@@ -18,7 +18,7 @@ unsigned long server_loop = 0, cpy_server_loop = 0;
 class cDescList * descriptor_list;
 bool server_shutdown = false;
 class cLog log ("server.log");
-class cMYSQL sql ("localhost", "hearts", "", "hearts");
+class cMYSQL sql ("localhost", "hearts", "75uVmTop", "hearts");
 int sigint = 0;
 
 // External Functions
@@ -26,8 +26,9 @@ extern socket_t init_socket(unsigned int port);
 
 void game_loop( socket_t mother_desc )
 {
- fd_set input_set, output_set, exc_set, null_set;
- struct timeval null_time, opt_time;
+ fd_set rfds, input_set, output_set, exc_set, null_set;
+ struct timeval tv, null_time, opt_time;
+ int retval;
 
  /* initialize various time values */
  null_time.tv_sec = 0;
@@ -55,6 +56,17 @@ void game_loop( socket_t mother_desc )
      descriptor_list->Add( desc );
    }
    descriptor_list->Check_Conns();
+
+
+   FD_ZERO(&rfds);
+   FD_SET(0, &rfds);
+   tv.tv_sec = 0;
+   tv.tv_usec = 1000;
+
+   retval = select(1, &rfds, NULL, NULL, &tv);
+   if (retval == -1)
+     log.Write("SYSERR: wait select()");
+   
 // descriptor_list->Send_To_All("%c %s\n", 'R', "Hi there");
  }
 }

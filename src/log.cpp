@@ -20,21 +20,20 @@ cLog::~cLog()
  fclose(logfile); 
 }
  
-void
-cLog::Write (const char *format, ...)
+void cLog::Write (const char *format, ...)
 {
+ if (!bLogging) return;
+
  va_list args;
  time_t ctime = time(0);
  char * time_s = asctime(localtime(&ctime));
-
- if (!bLogging) return;
 
  if (format == NULL)
    format = "SYSERR: log() received a NULL format.";
 
  time_s[strlen(time_s) - 1] = '\0';
 
- fprintf(logfile, "%-15.15s :: ", time_s + 4);
+ fprintf(logfile, "%-15.15s :: ", time_s + 4); // skip day of the week
 
  va_start(args, format);
  vfprintf(logfile, format, args);

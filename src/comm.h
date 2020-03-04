@@ -52,7 +52,7 @@ public:
   bool Add( cDescriptor * elem );
   bool Remove( cDescriptor * elem );
   bool Empty();
-  bool Send_To_All( const char * format, ... );
+  bool send_to_all( const char * format, ... );
   bool Check_Conns();
   bool Find_Handle( const char * handle );
 };

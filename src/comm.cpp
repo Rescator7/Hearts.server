@@ -24,7 +24,7 @@ cCommandsStack cmd;
 //External variables
 extern class cDescList * descriptor_list;
 
-const char *mesg1 = "login: ";
+const char *login = "login: ";
 socket_t s;
 
 socket_t init_socket(unsigned int port)
@@ -93,7 +93,7 @@ cDescriptor::cDescriptor(socket_t mother_desc)
  state = CON_LOGIN;
  last_sockread = time(0);
  fcntl(desc, F_SETFL, O_NONBLOCK);
- send(desc, mesg1, strlen(mesg1), 0);
+ send(desc, login, strlen(login), 0);
  memset(ip, '\x0', sizeof(ip));
  strncpy(ip, inet_ntoa(peer.sin_addr), 15);
  from = gethostbyaddr((char *) &peer.sin_addr, sizeof(peer.sin_addr), AF_INET);
@@ -108,14 +108,12 @@ cDescriptor::~cDescriptor()
 }
 
 // Not used for now
-void
-cDescriptor::Disconnect()
+void cDescriptor::Disconnect()
 {
  state = CON_DISCONNECT;
 }
 
-bool
-cDescriptor::Socket_Write( const char * format, ... )
+bool cDescriptor::Socket_Write( const char * format, ... )
 {
  va_list args;
  char buf [10 * 1024];
@@ -129,8 +127,7 @@ cDescriptor::Socket_Write( const char * format, ... )
  return ( true );
 }
 
-ssize_t
-cDescriptor::Socket_Read()
+ssize_t cDescriptor::Socket_Read()
 {
  int ret;
 
@@ -145,7 +142,7 @@ cDescriptor::Socket_Read()
    last_sockread = time(0);
    skip_crlf( buffer );
    log.Write("RCVD %d (%s): %s", desc, ip, buffer);
-   if (!strncmp(buffer,"shutdown",8)) exit(0);
+//   if (!strncmp(buffer,"shutdown",8)) exit(0);
    if (!strncmp(buffer,"loop", 4)) for(;;);
    if (!strcmp(buffer,"ÿôÿý"))
      return ( -1 ); // ctrl-c received
@@ -157,8 +154,7 @@ cDescriptor::Socket_Read()
  return ( -1 );
 }
 
-bool 
-cDescriptor::IsHandleValid( const char * handle, const char * message )
+bool cDescriptor::IsHandleValid( const char * handle, const char * message )
 {
  if (strlen(handle) > MAX_HANDLE_LENGTH) {
    Socket_Write("Your handle is too long. It should contains a maximum of %d characters.\n%s",
@@ -173,8 +169,7 @@ cDescriptor::IsHandleValid( const char * handle, const char * message )
  return ( true );
 }
 
-bool
-cDescriptor::process_input()
+bool cDescriptor::process_input()
 {
  char lcBuf [SOCKET_BUFSIZE] = "";
 
@@ -190,9 +185,9 @@ printf("buf: '%s', lcbuf: '%s'\r\n", buffer, lcBuf);
             Socket_Write("Choose your handle: ");
             break;
           }
-          if (IsHandleValid( lcBuf, mesg1)) {
+          if (IsHandleValid( lcBuf, login)) {
             if (!sql.query("select handle, password from account where handle='%s'", lcBuf)) {
-              Socket_Write("\n\"%s\" is not a registered name. Try again.\n%s", lcBuf, mesg1);
+              Socket_Write("\n\"%s\" is not a registered name. Try again.\n%s", lcBuf, login);
               break;
             } else {
                 Socket_Write("\n\"%s\" is a registered name. If it is yours, type the password.\n"
@@ -208,12 +203,12 @@ printf("buf: '%s', lcbuf: '%s'\r\n", buffer, lcBuf);
           break;
    case CON_PASSWORD :
           if (!*lcBuf) {
-            Socket_Write(mesg1);
+            Socket_Write(login);
             state = CON_LOGIN;
             break;
           }
           if (!player->doesPasswordMatch(lcBuf)) {
-            Socket_Write("\n**** Invalid password! ****\n%s", mesg1);
+            Socket_Write("\n**** Invalid password! ****\n%s", login);
             state = CON_LOGIN;
             break;
           }
@@ -316,14 +311,12 @@ motd:     log.Write("PROCINP: CON_MOTD");
  return ( true );
 }
 
-void
-cDescriptor::Send_Prompt()
+void cDescriptor::Send_Prompt()
 {
  Socket_Write("%s ", player->prompt);
 }
 
-bool
-cDescriptor::Is_Connected()
+bool cDescriptor::Is_Connected()
 {
  if (state == CON_DISCONNECT) 
    return ( false );
@@ -391,8 +384,7 @@ cDescList::~cDescList()
  Empty();
 }
 
-bool
-cDescList::Add( cDescriptor *elem )
+bool cDescList::Add( cDescriptor *elem )
 {
  struct sList * Q;
 
@@ -412,8 +404,7 @@ cDescList::Add( cDescriptor *elem )
  return ( true );
 }
 
-bool
-cDescList::Remove( cDescriptor *elem )
+bool cDescList::Remove( cDescriptor *elem )
 {
  struct sList * Q, * prev;
 
@@ -434,8 +425,7 @@ cDescList::Remove( cDescriptor *elem )
  return ( false );
 }
 
-bool
-cDescList::Empty()
+bool cDescList::Empty()
 {
  struct sList * Q, * prev;
 
@@ -449,8 +439,7 @@ cDescList::Empty()
  return ( true );
 }
 
-bool
-cDescList::Find_Handle( const char * handle )
+bool cDescList::Find_Handle( const char * handle )
 {
  for (struct sList * Q = head; Q; Q = Q->next) {
    if (Q->elem->player->isHandle( handle ))
@@ -460,8 +449,7 @@ cDescList::Find_Handle( const char * handle )
  return ( false );
 }
 
-bool
-cDescList::Send_To_All( const char * format, ... )
+bool cDescList::send_to_all( const char * format, ... )
 {
  va_list args;
  char buffer [10 * 1024];
@@ -474,8 +462,7 @@ cDescList::Send_To_All( const char * format, ... )
  return ( true );
 }
 
-bool
-cDescList::Check_Conns()
+bool cDescList::Check_Conns()
 {
  for (struct sList * Q = head; Q; Q = Q->next)
    if (!Q->elem->Is_Connected()) Remove( Q->elem );

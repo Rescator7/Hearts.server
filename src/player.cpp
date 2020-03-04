@@ -72,7 +72,7 @@ cPlayer::save()
 
  printf ("%s %s %s %s\r\n", handle, password, realname, email);
 
- return ( sql.query("insert into account values ('', '%s', '%s', '%s', '%s', now(), 0, 1 )", handle, password, realname, email ));
+ return ( sql.query("insert into account values (0, '%s', '%s', '%s', '%s', now(), 0, 1 )", handle, password, realname, email ));
 }
 
 bool
