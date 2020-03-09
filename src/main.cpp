@@ -54,9 +54,10 @@ void game_loop( socket_t mother_desc )
    if (FD_ISSET(mother_desc, &input_set)) {
      cDescriptor *desc = new cDescriptor( mother_desc );
      descriptor_list->Add( desc );
+     log.Write("New connection");
    }
-   descriptor_list->Check_Conns();
 
+   descriptor_list->Check_Conns();
 
    FD_ZERO(&rfds);
    FD_SET(0, &rfds);
@@ -64,8 +65,8 @@ void game_loop( socket_t mother_desc )
    tv.tv_usec = 1000;
 
    retval = select(1, &rfds, NULL, NULL, &tv);
-   if (retval == -1)
-     log.Write("SYSERR: wait select()");
+//   if (retval == -1)
+//     log.Write("SYSERR: wait select()");
    
 // descriptor_list->Send_To_All("%c %s\n", 'R', "Hi there");
  }

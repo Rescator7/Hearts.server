@@ -4,8 +4,7 @@
 #include "comm.h"
 #include "string.h"
 
-char *
-extract_cmd(const char * buffer, char * cmd)
+char *extract_cmd(const char * buffer, char * cmd)
 {
  int i;
  for (i = 0; ; i++) {
@@ -19,8 +18,7 @@ extract_cmd(const char * buffer, char * cmd)
  return ((char *)&buffer[i]);
 }
 
-const char * 
-skip_spaces(char * str)
+const char *skip_spaces(char * str)
 {
  int i, len = strlen(str);
  for (i = 0; i < len; i++)
@@ -29,8 +27,7 @@ skip_spaces(char * str)
  return ( str );
 }
 
-const char *
-stolower(const char * str, char * new_str)
+const char *stolower(const char * str, char * new_str)
 {
  if (!str || !*str) return ( NULL );
 
@@ -42,8 +39,7 @@ stolower(const char * str, char * new_str)
  return ( new_str );
 }
 
-const char *
-skip_crlf(char * str)
+const char *skip_crlf(char * str)
 {
  if (!str || !*str) return ( NULL );
 
@@ -57,8 +53,7 @@ skip_crlf(char * str)
  return ( (const char *)str );
 }
 
-bool
-isBufferValid( char * buffer, bool bSupLatin1 )
+bool isBufferValid( char * buffer, bool bSupLatin1 )
 {
 // const char *latin1 = "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ";
    const char *normal = "AAAAAAACEEEEIIIIDNOOOOO*OUUUUYPBAAAAAAxceeeeiiiienooooo/ouuuuypy";

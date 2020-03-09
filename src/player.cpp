@@ -20,8 +20,7 @@ cPlayer::~cPlayer()
 {
 }
 
-bool 
-cPlayer::doesPasswordMatch( const char * p )
+bool cPlayer::doesPasswordMatch( const char * p )
 { 
  printf("salt: %c%c, real: %s\r\ngave: %s\r\n", salt[0], salt[1], password, DES_crypt(p, salt));
  salt[0] = password[0];
@@ -30,8 +29,7 @@ cPlayer::doesPasswordMatch( const char * p )
  return ( !strcmp(password, DES_crypt(p, salt)) );
 }
 
-void
-cPlayer::setPassword( const char * p, bool encrypt )
+void cPlayer::setPassword( const char * p, bool encrypt )
 {
  const char letters[63] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -53,8 +51,7 @@ cPlayer::setPassword( const char * p, bool encrypt )
  printf("salt: %c%c, p: %s\n", salt[0], salt[1], password);
 }
 
-bool
-cPlayer::isHandle( const char * h ) 
+bool cPlayer::isHandle( const char * h ) 
 {
  char buf1 [MAX_HANDLE_LENGTH], buf2 [MAX_HANDLE_LENGTH];
 
@@ -65,18 +62,14 @@ cPlayer::isHandle( const char * h )
  return ( !strcmp(buf1, buf2) ); 
 }
 
-bool
-cPlayer::save()
+bool cPlayer::save()
 {
- sprintf(prompt, "[%s@%s]# /", handle, HOSTNAME);
-
  printf ("%s %s %s %s\r\n", handle, password, realname, email);
 
  return ( sql.query("insert into account values (0, '%s', '%s', '%s', '%s', now(), 0, 1 )", handle, password, realname, email ));
 }
 
-bool
-cPlayer::load()
+bool cPlayer::load()
 {
 /*
  if (!sql.query("select prompt from account where handle = '%s'", handle))

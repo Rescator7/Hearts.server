@@ -1,14 +1,11 @@
 #include <fcntl.h>
-//#include <netinet/in.h>
 #include <unistd.h> // close()
 #include <stdlib.h> // exit()
 #include <string.h> // memset()
 #include <stdarg.h> // va_start(), etc.
 #include <netdb.h>  // gethostbyaddr()
-//#include <sys/types.h>
-//#include <sys/select.h>
-//#include <sys/socket.h>
 #include <time.h>   // time()
+#include <ctype.h>  // isalnum()
 
 #include "define.h"
 #include "player.h"
@@ -17,6 +14,7 @@
 #include "sql.h"
 #include "comm.h"
 #include "commands.h"
+#include "errors.h"
 
 //#define perror(a) fprintf(stderr, "%s\n", (a));
 cCommandsStack cmd;
@@ -24,7 +22,12 @@ cCommandsStack cmd;
 //External variables
 extern class cDescList * descriptor_list;
 
-const char *login = "login: ";
+const char *prompt = "%%";
+const char *login = "login:";
+const char *password = "password:";
+const char *handle = "handle:";
+const char *confirm = "confirm:";
+
 socket_t s;
 
 socket_t init_socket(unsigned int port)
@@ -83,11 +86,14 @@ socket_t init_socket(unsigned int port)
 
 cDescriptor::cDescriptor(socket_t mother_desc)
 {
+ log.Write("1");
+ player = NULL;
  len = sizeof(peer);
  if ((desc = accept(mother_desc, (struct sockaddr *) &peer, &len)) == INVALID_SOCKET) {
    log.Write("SYSERR: accept");
    return;
  }
+ log.Write("2");
 // cmd = new cCommandsStack();
  player = new cPlayer;
  state = CON_LOGIN;
@@ -104,7 +110,8 @@ cDescriptor::cDescriptor(socket_t mother_desc)
 cDescriptor::~cDescriptor()
 {
  close( desc );
- delete player;
+ if (player)
+   delete player;
 }
 
 // Not used for now
@@ -124,6 +131,7 @@ bool cDescriptor::Socket_Write( const char * format, ... )
  send(desc, buf, strlen(buf), 0);
  va_end(args);
 
+ send(desc, "\x0", 1, 0);
  return ( true );
 }
 
@@ -143,7 +151,7 @@ ssize_t cDescriptor::Socket_Read()
    skip_crlf( buffer );
    log.Write("RCVD %d (%s): %s", desc, ip, buffer);
 //   if (!strncmp(buffer,"shutdown",8)) exit(0);
-   if (!strncmp(buffer,"loop", 4)) for(;;);
+//   if (!strncmp(buffer,"loop", 4)) for(;;);
    if (!strcmp(buffer,"ÿôÿý"))
      return ( -1 ); // ctrl-c received
    return ( ret );
@@ -157,16 +165,20 @@ ssize_t cDescriptor::Socket_Read()
 bool cDescriptor::IsHandleValid( const char * handle, const char * message )
 {
  if (strlen(handle) > MAX_HANDLE_LENGTH) {
-   Socket_Write("Your handle is too long. It should contains a maximum of %d characters.\n%s",
-                MAX_HANDLE_LENGTH, message);
-   return ( false );
+   Socket_Write(HANDLE_TOO_LONG);
+   return false;
  }
  if (strlen(handle) < MIN_HANDLE_LENGTH) {
-   Socket_Write("Your handle is too short. It should contains atlease %d characters.\n%s",
-                MIN_HANDLE_LENGTH, message);
-   return ( false );
+   Socket_Write(HANDLE_TOO_SHORT);
+   return false;
  }
- return ( true );
+ for (unsigned int i=0; i<strlen(handle); i++) {
+   if (!isalnum(handle[i]) && (handle[i] != '_') && (handle[i] != '-')) {
+     Socket_Write(HANDLE_ILLEGAL_CHAR);
+     return false;
+   }
+ }
+ return true;
 }
 
 bool cDescriptor::process_input()
@@ -182,34 +194,35 @@ printf("buf: '%s', lcbuf: '%s'\r\n", buffer, lcBuf);
           log.Write("PROCINP: CON_LOGIN");
           if (!strcmp(lcBuf, "new")) {
             state = CON_NEW_HANDLE;
-            Socket_Write("Choose your handle: ");
+            Socket_Write(handle);
             break;
           }
           if (IsHandleValid( lcBuf, login)) {
             if (!sql.query("select handle, password from account where handle='%s'", lcBuf)) {
-              Socket_Write("\n\"%s\" is not a registered name. Try again.\n%s", lcBuf, login);
+              Socket_Write(HANDLE_NOT_REGISTERED);
+	      state = CON_DISCONNECT;
               break;
             } else {
-                Socket_Write("\n\"%s\" is a registered name. If it is yours, type the password.\n"
-                             "If not, just hit return to try another name.\n\n"
-                             "password: ", lcBuf);
+		Socket_Write(password);
                 player->handle = strdup(lcBuf);
                 player->password = strdup(sql.get_row(1));
                 state = CON_PASSWORD;
 // TODO: il semble qu'on peu envoye un code ainsi au client pour cache le password
 // trouve ce code, et l'envoyer
               }
-          } else break;
+          } else 
+              state = CON_DISCONNECT;
           break;
    case CON_PASSWORD :
           if (!*lcBuf) {
-            Socket_Write(login);
-            state = CON_LOGIN;
+//            Socket_Write(login);
+//            state = CON_LOGIN;
+            state = CON_DISCONNECT;
             break;
           }
           if (!player->doesPasswordMatch(lcBuf)) {
-            Socket_Write("\n**** Invalid password! ****\n%s", login);
-            state = CON_LOGIN;
+            Socket_Write(WRONG_PASSWORD);
+            state = CON_DISCONNECT;
             break;
           }
           if (!player->load()) {
@@ -225,22 +238,27 @@ printf("buf: '%s', lcbuf: '%s'\r\n", buffer, lcBuf);
           log.Write("PROCINP: CON_NEW_HANDLE");
           if (!strcmp(lcBuf, "new") ||
               !strncmp(lcBuf, "guest", 5)) {
-            Socket_Write("You can't register as '%s' it's reserved.\n"
-                         "Choose your handle: ", buffer);
+            Socket_Write(HANDLE_RESERVED);
+	    state = CON_DISCONNECT;
             break;
           }
           if (descriptor_list->Find_Handle( lcBuf ) || 
               sql.query("select handle from account where handle = '%s'", lcBuf)) {
-            Socket_Write("The handle '%s' is already registered.\n"
-                         "Choose your handle: ", lcBuf);
+            Socket_Write(HANDLE_UNAVAILABLE);
+	    state = CON_DISCONNECT;
             break;
           }
-          if (!IsHandleValid( lcBuf, "Choose your handle: "))
+          if (!IsHandleValid( lcBuf, "Choose your handle: ")) {
+            state = CON_DISCONNECT;
             break;
-          Socket_Write("Enter your real name: ");
+	  }
+//          Socket_Write("Enter your real name: ");
           player->handle = strdup(buffer);
-          state = CON_NEW_REALNAME;
+	  Socket_Write(password);
+	  state = CON_NEW_PASSWORD;
+//          state = CON_NEW_REALNAME;
           break;
+/*
    case CON_NEW_REALNAME :
           log.Write("PROCINP: CON_NEW_REALNAME");
           if (strlen(lcBuf) > MAX_REALNAME_LENGTH) {
@@ -259,34 +277,34 @@ printf("buf: '%s', lcbuf: '%s'\r\n", buffer, lcBuf);
                          "Enter your email address: ", MAX_EMAIL_LENGTH);
             break;
           }
-//          Socket_Write("Thanks for registering. You should receive your password via email soon.\n");
-//          return ( false );
+          Socket_Write("Thanks for registering. You should receive your password via email soon.\n");
+          return ( false );
           Socket_Write("Enter your password: ");
           player->email = strdup(buffer);
           state = CON_NEW_PASSWORD;
           break; 
+*/
    case CON_NEW_PASSWORD :
           log.Write("PROCINP: CON_NEW_PASSWORD");
           if (strlen(lcBuf) > MAX_PASSWORD_LENGTH) {
-            Socket_Write("Your password is too long. It should contains a maximum of %d characters.\n"
-                         "Enter your password: ", MAX_PASSWORD_LENGTH);
+            Socket_Write(PASSWORD_TOO_LONG);
+	    state = CON_DISCONNECT;
             break;
           } 
           if (strlen(lcBuf) < MIN_PASSWORD_LENGTH) {
-            Socket_Write("Your password is too short. It should contains atlease %d characters.\n"
-                         "Enter your password: ", MIN_PASSWORD_LENGTH);
+            Socket_Write(PASSWORD_TOO_SHORT);
+	    state = CON_DISCONNECT;
             break;
           } 
           player->setPassword( buffer, true );
-          Socket_Write("Confirm your password: ");
+          Socket_Write(confirm);
           state = CON_CONFIRM_PASSWORD;
           break;
    case CON_CONFIRM_PASSWORD :
           log.Write("PROCINP: CON_CONFIRM_PASSWORD");
           if (!player->doesPasswordMatch( buffer )) {
-            Socket_Write("The passwords doesn't match. Try again.\n"
-                         "Enter your password: ");
-            state = CON_NEW_PASSWORD;
+            Socket_Write(PASSWORD_DONT_MATCH);
+            state = CON_DISCONNECT;
             break;
           }
           if (!player->save()) {
@@ -313,7 +331,8 @@ motd:     log.Write("PROCINP: CON_MOTD");
 
 void cDescriptor::Send_Prompt()
 {
- Socket_Write("%s ", player->prompt);
+// Socket_Write("%s ", player->prompt);
+ Socket_Write(prompt);
 }
 
 bool cDescriptor::Is_Connected()
@@ -363,7 +382,7 @@ bool cDescriptor::Is_Connected()
      if (idleness) {
        log.Write("WARNING: Idleness on socket %d (connection closed)", desc);
        if (idleness < 120)
-         Socket_Write("\n\n**** Auto-logout because you were idle more than %d secondes. ****\n\n", idleness);
+         Socket_Write(AUTO_LOGOUT_IDLENESS);
        else
          Socket_Write("\n\n**** Auto-logout because you were idle more than %d minutes. ****\n\n", idleness / 60);
        return ( false );
@@ -406,9 +425,8 @@ bool cDescList::Add( cDescriptor *elem )
 
 bool cDescList::Remove( cDescriptor *elem )
 {
- struct sList * Q, * prev;
+ struct sList * Q, * prev = NULL;
 
- prev = NULL;
  for (Q = head; Q; Q = Q->next) {
    if (Q->elem == elem) {
      if ( prev ) 
@@ -464,7 +482,14 @@ bool cDescList::send_to_all( const char * format, ... )
 
 bool cDescList::Check_Conns()
 {
- for (struct sList * Q = head; Q; Q = Q->next)
-   if (!Q->elem->Is_Connected()) Remove( Q->elem );
+ struct sList *Q = head, *N = NULL;
+
+ while (Q) {
+   N = Q->next;
+   if (!Q->elem->Is_Connected())
+     Remove(Q->elem);
+   Q = N;
+ }
+
  return ( true );
 }

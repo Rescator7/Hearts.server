@@ -8,6 +8,7 @@
 #include "string.h"
 #include "includes.h"
 #include "log.h"
+#include "errors.h"
 
 cCommandsStack::cCommandsStack(void)
 {
@@ -23,15 +24,13 @@ cCommandsStack::~cCommandsStack(void)
 {
 }
 
-cCommandsStack* 
-cCommandsStack::GetInstance()
+cCommandsStack *cCommandsStack::GetInstance()
 {
  static cCommandsStack S_CommandsStack;
  return &S_CommandsStack;
 }
 
-void 
-cCommandsStack::Add(const char * name, cCommand * cmd )
+void cCommandsStack::Add(const char * name, cCommand * cmd )
 {
  m_commands[m_CountCmd].name = strdup(name);
  m_commands[m_CountCmd].func = cmd;
@@ -41,8 +40,7 @@ cCommandsStack::Add(const char * name, cCommand * cmd )
  }
 }
 
-bool 
-cCommandsStack::Process_Command(cDescriptor * d, char * buffer)
+bool cCommandsStack::Process_Command(cDescriptor * d, char * buffer)
 {
  char command [SOCKET_BUFSIZE];
  char matches [2048] = ""; // 2k is enough to match the entire command list
@@ -69,7 +67,8 @@ cCommandsStack::Process_Command(cDescriptor * d, char * buffer)
  } while ((cmp >= 0) && (command_id < m_CountCmd));
 
  if (matches_count == 0) {
-   d->Socket_Write("bash: %s: command not found\n", buffer);
+//   d->Socket_Write("%s: command not found\n", buffer);
+   d->Socket_Write(UNKNOWN_COMMAND);
    return ( false );
  }
 
