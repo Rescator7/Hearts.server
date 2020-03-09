@@ -2,8 +2,7 @@
 #include "../define.h"
 #include "date.h"
 
-void
-cDate::Execute( cDescriptor & d, cParam & param )
+void cDate::Execute( cDescriptor & d, cParam & param )
 {
  const time_t now = time(0);
  char local_time[50], server_time[50], gm_time[50];
