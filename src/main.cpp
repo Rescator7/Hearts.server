@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
+#include <time.h>
 
 #include "comm.h"
 #include "log.h"
@@ -15,8 +16,10 @@
 // Global Variables
 socket_t mother_desc;
 unsigned long server_loop = 0, cpy_server_loop = 0;
+unsigned int num_table = 0;
 class cDescList * descriptor_list;
 bool server_shutdown = false;
+bool server_shutoff = false;
 class cLog log ("server.log");
 class cMYSQL sql ("localhost", "hearts", "75uVmTop", "hearts");
 int sigint = 0;
@@ -67,8 +70,6 @@ void game_loop( socket_t mother_desc )
    retval = select(1, &rfds, NULL, NULL, &tv);
 //   if (retval == -1)
 //     log.Write("SYSERR: wait select()");
-   
-// descriptor_list->Send_To_All("%c %s\n", 'R', "Hi there");
  }
 }
 
@@ -134,6 +135,8 @@ void set_signals()
 int main() 
 {
  int renice = 0, server_port = 4000;
+
+ srand(time(0));
 
 // log = new cLog("hackers.log");
  log.Write("Heart server is booting up");

@@ -19,6 +19,7 @@
 
 #define SIZE_QUERY_BUFFER    1024
 #define SOCKET_BUFSIZE       512
+#define SOCKET_MAX_READ_BYTES 256
 
 #define MAX_HANDLE_LENGTH    8
 #define MIN_HANDLE_LENGTH    3
@@ -46,4 +47,33 @@
 #define LVL_REGISTERED       1
 #define LVL_ADMIN            10
 
+#define pLEFT                0
+#define pRIGHT               1
+#define pUP                  2
+#define pDOWN                3
+
+#define NOPLAYER             0
+#define DECK_SIZE            52
+
+#define two_clubs            0
+
+/*
+const int ace_clubs     = 12;
+const int two_spade     = 13;
+const int queen_spade   = 23;
+const int king_spade    = 24;
+const int ace_spade     = 25;
+const int two_diamond   = 26;
+const int jack_diamond  = 35;
+const int queen_diamond = 36;
+const int king_diamond  = 37;
+const int ace_diamond   = 38;
+const int two_heart     = 39;
+const int jack_heart    = 48;
+const int queen_heart   = 49;
+const int king_heart    = 50;
+const int ace_heart     = 51;
+const int empty         = 127;
+const int your_turn     = 255;
+*/
 #endif // _DEFINE_

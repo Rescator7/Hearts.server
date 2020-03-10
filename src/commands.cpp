@@ -17,6 +17,7 @@ cCommandsStack::cCommandsStack(void)
  Add( "date", new cDate() );
  Add( "exit", new cExit() );
  Add( "shutdown", new cShutdown() );
+ Add( "shutoff", new cShutoff() );
  Add( "\xff", NULL );
 }
 

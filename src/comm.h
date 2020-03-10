@@ -18,20 +18,21 @@ private:
   time_t last_sockread;
   struct sockaddr_in peer;
   char   ip [16];       // numeric ip
-  struct hostent * from;
+  struct hostent *from;
+  unsigned int bytes_read;
 //  class  cCommandsStack * cmd;
 
 public:
-  class cPlayer * player;
+  class cPlayer *player;
 
 public:
-  bool Socket_Write( const char * format, ... );
+  bool Socket_Write( const char *format, ... );
   ssize_t Socket_Read();
   bool Is_Connected();
   bool process_input();
-  const char * process_ansi( const char * outbuf );
+  const char *process_ansi( const char *outbuf );
   void Send_Prompt();
-  bool IsHandleValid( const char * handle, const char * message );
+  bool IsHandleValid( const char *handle, const char *message );
   void Disconnect();
 };
 
@@ -43,18 +44,19 @@ public:
 private:
   int num_elem;
   struct sList {
-    cDescriptor * elem;
-    struct sList * next;
+    cDescriptor *elem;
+    struct sList *next;
   }; 
-  struct sList * head;
+  struct sList *head;
 
 public:
-  bool Add( cDescriptor * elem );
-  bool Remove( cDescriptor * elem );
+  bool Add( cDescriptor *elem );
+  bool Remove( cDescriptor *elem );
   bool Empty();
-  bool send_to_all( const char * format, ... );
+  bool send_to_all( const char *format, ... );
   bool Check_Conns();
-  bool Find_Handle( const char * handle );
+  bool Find_Handle( const char *handle );
+  void DisconnectPlayerID(unsigned int pID);
 };
 
 #endif // _COMM_

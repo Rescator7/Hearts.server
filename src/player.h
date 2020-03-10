@@ -7,6 +7,7 @@ public:
   ~cPlayer();
 
 public:
+  unsigned int playerid;
   char *handle;
   char *realname;
   char *email;
@@ -21,6 +22,7 @@ public:
   bool isHandle( const char * h );
   bool save();
   bool load();
+  unsigned int get_playerid();
 };
 
 #endif // _PLAYER_

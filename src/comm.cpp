@@ -12,6 +12,7 @@
 #include "string.h"
 #include "log.h"
 #include "sql.h"
+#include "global.h"
 #include "comm.h"
 #include "commands.h"
 #include "errors.h"
@@ -86,25 +87,28 @@ socket_t init_socket(unsigned int port)
 
 cDescriptor::cDescriptor(socket_t mother_desc)
 {
- log.Write("1");
  player = NULL;
+ bytes_read = 0;
  len = sizeof(peer);
  if ((desc = accept(mother_desc, (struct sockaddr *) &peer, &len)) == INVALID_SOCKET) {
    log.Write("SYSERR: accept");
    return;
  }
- log.Write("2");
 // cmd = new cCommandsStack();
  player = new cPlayer;
- state = CON_LOGIN;
+ if (!server_shutoff) {
+   state = CON_LOGIN;
+   send(desc, login, strlen(login), 0);
+ } else {
+     send(desc, SERVER_SHUTOFF, strlen(SERVER_SHUTOFF), 0);
+     state = CON_DISCONNECT;
+   }
  last_sockread = time(0);
  fcntl(desc, F_SETFL, O_NONBLOCK);
- send(desc, login, strlen(login), 0);
  memset(ip, '\x0', sizeof(ip));
  strncpy(ip, inet_ntoa(peer.sin_addr), 15);
  from = gethostbyaddr((char *) &peer.sin_addr, sizeof(peer.sin_addr), AF_INET);
 // printf("from: %s\n", from->h_name);
-// TODO: send() splash screen here.
 }
 
 cDescriptor::~cDescriptor()
@@ -131,7 +135,6 @@ bool cDescriptor::Socket_Write( const char * format, ... )
  send(desc, buf, strlen(buf), 0);
  va_end(args);
 
- send(desc, "\x0", 1, 0);
  return ( true );
 }
 
@@ -146,11 +149,22 @@ ssize_t cDescriptor::Socket_Read()
    return ( -1 );
  }
  
+ if (ret >= 1)
+   bytes_read += ret;
+
+ if (difftime(time(0), last_sockread) >= 1) {
+   if (bytes_read > SOCKET_MAX_READ_BYTES) {
+     Socket_Write(SOCKET_FLOOD);
+     state = CON_DISCONNECT;
+   }
+   else
+     bytes_read = 0;
+ }
+
  if (ret > 0) {
    last_sockread = time(0);
    skip_crlf( buffer );
    log.Write("RCVD %d (%s): %s", desc, ip, buffer);
-//   if (!strncmp(buffer,"shutdown",8)) exit(0);
 //   if (!strncmp(buffer,"loop", 4)) for(;;);
    if (!strcmp(buffer,"ÿôÿý"))
      return ( -1 ); // ctrl-c received
@@ -181,13 +195,22 @@ bool cDescriptor::IsHandleValid( const char * handle, const char * message )
  return true;
 }
 
+void cDescList::DisconnectPlayerID(unsigned int pID)
+{
+ for (struct sList *Q = head; Q; Q = Q->next)
+   if (Q->elem->player->playerid == pID) {
+     Q->elem->Socket_Write(PLAYER_RECONNECT);
+     Q->elem->Disconnect();
+   }
+}
+
 bool cDescriptor::process_input()
 {
  char lcBuf [SOCKET_BUFSIZE] = "";
 
  stolower(buffer, lcBuf);
 
-printf("buf: '%s', lcbuf: '%s'\r\n", buffer, lcBuf);
+ printf("buf: '%s', lcbuf: '%s'\r\n", buffer, lcBuf);
 
  switch ( state ) {
    case CON_LOGIN : 
@@ -225,8 +248,10 @@ printf("buf: '%s', lcbuf: '%s'\r\n", buffer, lcBuf);
             state = CON_DISCONNECT;
             break;
           }
+	  descriptor_list->DisconnectPlayerID(player->get_playerid());
           if (!player->load()) {
-            Socket_Write("\nFailed to load your player file.\n");
+            Socket_Write(PLAYER_LOAD_FAILED);
+	    state = CON_DISCONNECT;
             return ( false );
           }
           state = CON_MOTD;
@@ -248,7 +273,7 @@ printf("buf: '%s', lcbuf: '%s'\r\n", buffer, lcBuf);
 	    state = CON_DISCONNECT;
             break;
           }
-          if (!IsHandleValid( lcBuf, "Choose your handle: ")) {
+          if (!IsHandleValid( lcBuf, handle)) {
             state = CON_DISCONNECT;
             break;
 	  }
@@ -310,11 +335,14 @@ printf("buf: '%s', lcbuf: '%s'\r\n", buffer, lcBuf);
           if (!player->save()) {
             Socket_Write("Account creation failed");
             return ( false );
-          }
+          } else {
+	      descriptor_list->DisconnectPlayerID(player->get_playerid());
+	      player->load(); // load() we need the playerid
+	    }
           state = CON_MOTD;
    case CON_MOTD :
 motd:     log.Write("PROCINP: CON_MOTD");
-//          Socket_Write("---- &yM&b/wO&n&GT&rD&n ----&n\n");
+	  Socket_Write("%s %d", PLAYER_UID, player->playerid);
           state = CON_PROMPT;
           break;
    case CON_PROMPT :
@@ -405,7 +433,7 @@ cDescList::~cDescList()
 
 bool cDescList::Add( cDescriptor *elem )
 {
- struct sList * Q;
+ struct sList *Q;
 
  Q = new (struct sList); 
  Q->elem = elem;
@@ -425,7 +453,7 @@ bool cDescList::Add( cDescriptor *elem )
 
 bool cDescList::Remove( cDescriptor *elem )
 {
- struct sList * Q, * prev = NULL;
+ struct sList *Q, *prev = NULL;
 
  for (Q = head; Q; Q = Q->next) {
    if (Q->elem == elem) {
@@ -445,7 +473,7 @@ bool cDescList::Remove( cDescriptor *elem )
 
 bool cDescList::Empty()
 {
- struct sList * Q, * prev;
+ struct sList *Q, *prev;
 
  Q = head;
  while ( Q ) {
@@ -490,6 +518,9 @@ bool cDescList::Check_Conns()
      Remove(Q->elem);
    Q = N;
  }
+
+ if (server_shutoff && (head == NULL))
+   server_shutdown = true;
 
  return ( true );
 }

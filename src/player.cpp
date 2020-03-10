@@ -10,6 +10,7 @@
 
 cPlayer::cPlayer()
 {
+ playerid = 0;
  handle = NULL;
  realname = NULL;
  email = NULL;
@@ -62,6 +63,16 @@ bool cPlayer::isHandle( const char * h )
  return ( !strcmp(buf1, buf2) ); 
 }
 
+unsigned int cPlayer::get_playerid()
+{
+ int id = 0;
+
+ if (sql.query("select playerid from account where handle = '%s'", handle)) {
+   id = atoi(sql.get_row(0));
+ }
+ return id;
+}
+
 bool cPlayer::save()
 {
  printf ("%s %s %s %s\r\n", handle, password, realname, email);
@@ -71,6 +82,9 @@ bool cPlayer::save()
 
 bool cPlayer::load()
 {
+ if (sql.query("select playerid from account where handle = '%s'", handle)) {
+   playerid = atoi(sql.get_row(0));
+ }
 /*
  if (!sql.query("select prompt from account where handle = '%s'", handle))
    return ( false );
