@@ -16,6 +16,8 @@ cCommandsStack::cCommandsStack(void)
 
  Add( "date", new cDate() );
  Add( "exit", new cExit() );
+ Add( "new", new cNew() );
+ Add( "sitc", new cSitc() );
  Add( "shutdown", new cShutdown() );
  Add( "shutoff", new cShutoff() );
  Add( "\xff", NULL );
@@ -36,7 +38,7 @@ void cCommandsStack::Add(const char * name, cCommand * cmd )
  m_commands[m_CountCmd].name = strdup(name);
  m_commands[m_CountCmd].func = cmd;
  if (m_CountCmd++ >= MAX_SERVER_CMDS) {
-   log.Write("SYSERR: Maximum server commands reached.\n");
+   Log.Write("SYSERR: Maximum server commands reached.\n");
    exit(1);
  }
 }
@@ -45,7 +47,7 @@ bool cCommandsStack::Process_Command(cDescriptor * d, char * buffer)
 {
  char command [SOCKET_BUFSIZE];
  char matches [2048] = ""; // 2k is enough to match the entire command list
- int command_id = 0, cmp, matches_count = 0;
+ int first = 0, command_id = 0, cmp, matches_count = 0;
  unsigned short int len;
  const char * ptr; 
  char * arguments;
@@ -58,17 +60,18 @@ bool cCommandsStack::Process_Command(cDescriptor * d, char * buffer)
  do {
    ptr = m_commands[command_id].name;
    len = strlen(ptr);
+//   printf("list : '%s' search: '%s'\r\n", ptr, command);
    cmp = strncmp(command, ptr, strlen(command));
-   if (!cmp) {
+   if (!cmp)  {
      matches_count++;
      strncat(matches, ptr, len);
      strcat(matches, " ");
+     first = command_id;
    }
    command_id++;
- } while ((cmp >= 0) && (command_id < m_CountCmd));
+ } while (command_id < m_CountCmd);
 
  if (matches_count == 0) {
-//   d->Socket_Write("%s: command not found\n", buffer);
    d->Socket_Write(UNKNOWN_COMMAND);
    return ( false );
  }
@@ -76,7 +79,7 @@ bool cCommandsStack::Process_Command(cDescriptor * d, char * buffer)
  if (matches_count == 1) {
    skip_spaces( arguments );
    param.arguments = arguments;
-   m_commands[command_id - 2].func->Execute(*d, param);
+   m_commands[first].func->Execute(*d, param);
 
 // TODO: the function should return a code, and should be handled here...
 // change all (void) function to (int)

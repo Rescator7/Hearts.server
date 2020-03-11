@@ -5,7 +5,7 @@
 void cDate::Execute( cDescriptor & d, cParam & param )
 {
  const time_t now = time(0);
- char local_time[50], server_time[50], gm_time[50];
+ char server_time[50], gm_time[50];
 
  strftime(server_time, 50, "%a %b %e, %k:%M %Z %Y", localtime(&now));
  strftime(gm_time, 50, "%a %b %e, %k:%M GMT %Y", gmtime(&now));
@@ -13,5 +13,4 @@ void cDate::Execute( cDescriptor & d, cParam & param )
                 "Server time    - %s\n"
                 "GMT            - %s\n",
                 server_time, server_time, gm_time);
-// TODO: support local time
 }

@@ -11,10 +11,11 @@
 cPlayer::cPlayer()
 {
  playerid = 0;
- handle = NULL;
- realname = NULL;
- email = NULL;
- password = NULL;
+ handle = nullptr;
+ realname = nullptr;
+ email = nullptr;
+ password = nullptr;
+ table = nullptr;
 }
 
 cPlayer::~cPlayer()

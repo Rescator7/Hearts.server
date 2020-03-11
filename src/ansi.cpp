@@ -33,7 +33,7 @@ cDescriptor::process_ansi( const char * outbuff )
    if (*ansi_code) {
      len_ac = strlen(ansi_code);
      if (len + len_ac > SOCKET_BUFSIZE) 
-       log.Write("process_ansi: **** Buffer Overflow ****");
+       Log.Write("process_ansi: **** Buffer Overflow ****");
      else {
        strncat(buffer, ansi_code, SOCKET_BUFSIZE - len);
        len += len_ac;
@@ -43,7 +43,7 @@ cDescriptor::process_ansi( const char * outbuff )
        len++;
      }
    if (len >= SOCKET_BUFSIZE) {
-     log.Write("process_ansi: **** Buffer Overflow ****");
+     Log.Write("process_ansi: **** Buffer Overflow ****");
      return ( (const char *) &buffer );
    }
    if (outbuff[i] == '\x0')

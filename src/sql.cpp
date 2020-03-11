@@ -28,7 +28,7 @@ cMYSQL::query( const char * format, ... )
  if (!(result = mysql_store_result(&mysql))) {
    freed = true; // nothings has been saved, so nothing will need to be freed.
    if (mysql_field_count(&mysql) != 0) { // data was expected
-     log.Write("SYSERR: cMYSQL::query() error: %s\n", mysql_error(&mysql));
+     Log.Write("SYSERR: cMYSQL::query() error: %s\n", mysql_error(&mysql));
      return ( false ); // error
    }
    return ( true ); // not error, was a "insert", "delete"... not data to retreive.
@@ -49,7 +49,7 @@ const char *
 cMYSQL::get_row(unsigned int index)
 {
  if (index + 1 > num_fields) {
-   log.Write("SYSERR: cMYSQL::get_row() invalid index: %d > num_fields: %d\n"
+   Log.Write("SYSERR: cMYSQL::get_row() invalid index: %d > num_fields: %d\n"
              "SYSERR: last query was '%s'" , index, num_fields, last_query);
    return ( "" );
  }
@@ -77,13 +77,13 @@ cMYSQL::cMYSQL(const char *host, const char *user, const char *password, const c
 
  if (!mysql_real_connect(&mysql, host, user, password, NULL, 0, NULL, 0)) {
 // A MYSQL* connection handle if the connection was successful, NULL if the connection was unsuccessful. For a successful connection, the return value is the same as the value of the first parameter.
-   log.Write("SYSERR: can't connect to the mysql database");
+   Log.Write("SYSERR: can't connect to the mysql database");
    exit(1);
  }
 
  if (mysql_select_db(&mysql, db)) { 
 // Zero for success. Non-zero if an error occurred.
-   log.Write("SYSERR: can't select the database: '%s'", db);
+   Log.Write("SYSERR: can't select the database: '%s'", db);
    exit(1);
  }
 
@@ -104,10 +104,9 @@ cMYSQL::singleIntQuery(const char * query)
  int errno, value;
 
  errno = mysql_query(&mysql, query);
-/*
- switch ( err ) {
+ switch ( errno ) {
    case CR_COMMANDS_OUT_OF_SYNC : 
-        break
+        break;
    case CR_SERVER_GONE_ERROR : 
         break;
    case CR_SERVER_LOST : 
@@ -115,7 +114,7 @@ cMYSQL::singleIntQuery(const char * query)
    case CR_UNKNOWN_ERROR :
         break;
  }
-*/
+
 // TODO: those CR_ seem unknown from <mysql/mysql.h> to be checked
  result = mysql_store_result(&mysql);
  num_affected_row = mysql_affected_rows(&mysql);

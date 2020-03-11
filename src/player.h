@@ -1,12 +1,19 @@
 #ifndef _PLAYER_
 #define _PLAYER_
 
+#include "table.h"
+
+#define PLAYER_NORTH 0
+#define PLAYER_SOUTH 1
+#define PLAYER_WEST  2
+#define PLAYER_EAST  3
+
 class cPlayer {
 public:
   cPlayer();
   ~cPlayer();
 
-public:
+  cTable *table;
   unsigned int playerid;
   char *handle;
   char *realname;

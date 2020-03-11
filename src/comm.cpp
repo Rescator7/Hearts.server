@@ -37,21 +37,21 @@ socket_t init_socket(unsigned int port)
  int opt;
 
  if ((s = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-   log.Write("SYSERR: Error creating socket");
+   Log.Write("SYSERR: Error creating socket");
    exit(1);
  }
 
 #ifdef SO_REUSEADDR
   opt = 1;
   if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt)) < 0){
-    log.Write("SYSERR: setsockopt REUSEADDR");
+    Log.Write("SYSERR: setsockopt REUSEADDR");
     exit(1);
   }
 #endif
 
  opt = 12 * 1024;
  if (setsockopt(s, SOL_SOCKET, SO_SNDBUF, (char *) &opt, sizeof(opt)) < 0) {
-   log.Write("SYSERR: setsockopt SNDBUF");
+   Log.Write("SYSERR: setsockopt SNDBUF");
 //   return ( -1 );
  }
 
@@ -61,7 +61,7 @@ socket_t init_socket(unsigned int port)
   ld.l_onoff = 0;
   ld.l_linger = 0;
   if (setsockopt(s, SOL_SOCKET, SO_LINGER, (char *) &ld, sizeof(ld)) < 0) {
-    log.Write("SYSERR: setsockopt SO_LINGER");   /* Not fatal I suppose. */
+    Log.Write("SYSERR: setsockopt SO_LINGER");
   }
 #endif
 
@@ -74,7 +74,7 @@ socket_t init_socket(unsigned int port)
  sa.sin_addr.s_addr = htonl(INADDR_ANY); // *(get_bind_addr());
 
  if (bind(s, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
-   log.Write("SYSERR: bind");
+   Log.Write("SYSERR: bind");
    close(s);
    exit(1);
  }
@@ -91,10 +91,9 @@ cDescriptor::cDescriptor(socket_t mother_desc)
  bytes_read = 0;
  len = sizeof(peer);
  if ((desc = accept(mother_desc, (struct sockaddr *) &peer, &len)) == INVALID_SOCKET) {
-   log.Write("SYSERR: accept");
+   Log.Write("SYSERR: accept");
    return;
  }
-// cmd = new cCommandsStack();
  player = new cPlayer;
  if (!server_shutoff) {
    state = CON_LOGIN;
@@ -108,7 +107,6 @@ cDescriptor::cDescriptor(socket_t mother_desc)
  memset(ip, '\x0', sizeof(ip));
  strncpy(ip, inet_ntoa(peer.sin_addr), 15);
  from = gethostbyaddr((char *) &peer.sin_addr, sizeof(peer.sin_addr), AF_INET);
-// printf("from: %s\n", from->h_name);
 }
 
 cDescriptor::~cDescriptor()
@@ -145,7 +143,7 @@ ssize_t cDescriptor::Socket_Read()
  memset(buffer, '\x0', sizeof(buffer));
  ret = read(desc, buffer, sizeof(buffer));
  if (ret == 0) {
-   log.Write("WARNING: EOF on socket read %d (connection broken by peer)", desc);
+   Log.Write("WARNING: EOF on socket read %d (connection broken by peer)", desc);
    return ( -1 );
  }
  
@@ -164,7 +162,7 @@ ssize_t cDescriptor::Socket_Read()
  if (ret > 0) {
    last_sockread = time(0);
    skip_crlf( buffer );
-   log.Write("RCVD %d (%s): %s", desc, ip, buffer);
+   Log.Write("RCVD %d (%s): %s", desc, ip, buffer);
 //   if (!strncmp(buffer,"loop", 4)) for(;;);
    if (!strcmp(buffer,"ÿôÿý"))
      return ( -1 ); // ctrl-c received
@@ -172,7 +170,7 @@ ssize_t cDescriptor::Socket_Read()
  }
 
  // TODO: maybe catch more error here.
- log.Write("SYSERR: unkown socket error");
+ Log.Write("SYSERR: unkown socket error");
  return ( -1 );
 }
 
@@ -214,7 +212,7 @@ bool cDescriptor::process_input()
 
  switch ( state ) {
    case CON_LOGIN : 
-          log.Write("PROCINP: CON_LOGIN");
+          Log.Write("PROCINP: CON_LOGIN");
           if (!strcmp(lcBuf, "new")) {
             state = CON_NEW_HANDLE;
             Socket_Write(handle);
@@ -260,7 +258,7 @@ bool cDescriptor::process_input()
 //          state = CON_MOTD;
 //          break;
    case CON_NEW_HANDLE :
-          log.Write("PROCINP: CON_NEW_HANDLE");
+          Log.Write("PROCINP: CON_NEW_HANDLE");
           if (!strcmp(lcBuf, "new") ||
               !strncmp(lcBuf, "guest", 5)) {
             Socket_Write(HANDLE_RESERVED);
@@ -285,7 +283,7 @@ bool cDescriptor::process_input()
           break;
 /*
    case CON_NEW_REALNAME :
-          log.Write("PROCINP: CON_NEW_REALNAME");
+          Log.Write("PROCINP: CON_NEW_REALNAME");
           if (strlen(lcBuf) > MAX_REALNAME_LENGTH) {
             Socket_Write("Your real name is too long. It should contains a maximum of %d characters.\n"
                          "Enter your real name: ", MAX_REALNAME_LENGTH);
@@ -296,7 +294,7 @@ bool cDescriptor::process_input()
           state = CON_NEW_EMAIL;
           break;
    case CON_NEW_EMAIL :
-          log.Write("PROCINP: CON_NEW_EMAIL");
+          Log.Write("PROCINP: CON_NEW_EMAIL");
           if (strlen(lcBuf) > MAX_EMAIL_LENGTH) {
             Socket_Write("Your email address is too long. It should contains a maximum of %d characters.\n"
                          "Enter your email address: ", MAX_EMAIL_LENGTH);
@@ -310,7 +308,7 @@ bool cDescriptor::process_input()
           break; 
 */
    case CON_NEW_PASSWORD :
-          log.Write("PROCINP: CON_NEW_PASSWORD");
+          Log.Write("PROCINP: CON_NEW_PASSWORD");
           if (strlen(lcBuf) > MAX_PASSWORD_LENGTH) {
             Socket_Write(PASSWORD_TOO_LONG);
 	    state = CON_DISCONNECT;
@@ -326,7 +324,7 @@ bool cDescriptor::process_input()
           state = CON_CONFIRM_PASSWORD;
           break;
    case CON_CONFIRM_PASSWORD :
-          log.Write("PROCINP: CON_CONFIRM_PASSWORD");
+          Log.Write("PROCINP: CON_CONFIRM_PASSWORD");
           if (!player->doesPasswordMatch( buffer )) {
             Socket_Write(PASSWORD_DONT_MATCH);
             state = CON_DISCONNECT;
@@ -341,7 +339,7 @@ bool cDescriptor::process_input()
 	    }
           state = CON_MOTD;
    case CON_MOTD :
-motd:     log.Write("PROCINP: CON_MOTD");
+motd:     Log.Write("PROCINP: CON_MOTD");
 	  Socket_Write("%s %d", PLAYER_UID, player->playerid);
           state = CON_PROMPT;
           break;
@@ -360,7 +358,8 @@ motd:     log.Write("PROCINP: CON_MOTD");
 void cDescriptor::Send_Prompt()
 {
 // Socket_Write("%s ", player->prompt);
- Socket_Write(prompt);
+// don't send until i fix the system, it mess ECODE
+// Socket_Write(prompt);
 }
 
 bool cDescriptor::Is_Connected()
@@ -379,13 +378,13 @@ bool cDescriptor::Is_Connected()
  FD_SET(desc, &output_set);
  FD_SET(desc, &exc_set);
  if (select(desc + 1, &input_set, &output_set, &exc_set, &null_time) < 0) {
-   log.Write("SYSERR: Is_Connected() select pool");
+   Log.Write("SYSERR: Is_Connected() select pool");
    return ( false );
  }
  if (FD_ISSET(desc, &exc_set)) {
    FD_CLR(desc, &input_set);
    FD_CLR(desc, &output_set);
-   log.Write("select() exception: connection closed");
+   Log.Write("select() exception: connection closed");
    return ( false );
  } 
  if (FD_ISSET(desc, &input_set)) {
@@ -408,7 +407,7 @@ bool cDescriptor::Is_Connected()
          if (time(0) - last_sockread > MAX_IDLE) idleness = MAX_IDLE;
        }
      if (idleness) {
-       log.Write("WARNING: Idleness on socket %d (connection closed)", desc);
+       Log.Write("WARNING: Idleness on socket %d (connection closed)", desc);
        if (idleness < 120)
          Socket_Write(AUTO_LOGOUT_IDLENESS);
        else
@@ -447,7 +446,7 @@ bool cDescList::Add( cDescriptor *elem )
    }
 
  num_elem++;
- log.Write("SOCKETS: %d", num_elem);
+ Log.Write("SOCKETS: %d", num_elem);
  return ( true );
 }
 

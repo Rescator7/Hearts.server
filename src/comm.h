@@ -1,7 +1,8 @@
 #ifndef _COMM_
 #define _COMM_
 
-#include <arpa/inet.h>
+#include <arpa/inet.h> // socklen_t
+#include "define.h"
 
 class cDescriptor {
 public:
@@ -20,7 +21,6 @@ private:
   char   ip [16];       // numeric ip
   struct hostent *from;
   unsigned int bytes_read;
-//  class  cCommandsStack * cmd;
 
 public:
   class cPlayer *player;

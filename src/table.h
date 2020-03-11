@@ -1,25 +1,28 @@
 #ifndef _TABLE_
 #define _TABLE_
 
+#include "comm.h"
+
 class cTable {
 public:
-  cTable(unsigned int oID);
+  cTable(cDescriptor &desc);
   ~cTable();
 
-public:
+private:
+  cDescriptor *player_desc[4];
+  cDescriptor *owner;
   unsigned int table_id;
-  unsigned int owner_id;
-  unsigned int table_flags;
-  unsigned int player_up;
-  unsigned int player_down;
-  unsigned int player_left;
-  unsigned int player_right;
+  unsigned int flags;
+  unsigned int player_id[4];
   unsigned short int turn;
   unsigned short int player_cards[4][13];
   bool muted;
 
 public:
   void generate_cards();
+  void set_flags(unsigned int flags);
+  void sit_player(cDescriptor &desc, unsigned int chair);
+  void Send(const char *format, ...);
 };
 
 class cTabList {
@@ -37,6 +40,7 @@ private:
 
 public:
   bool Add(cTable *elem);
+  bool Empty(); 
   bool Remove(cTable *elem);
 };
 #endif // _TABLE_

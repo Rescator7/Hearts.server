@@ -12,15 +12,17 @@
 #include "comm.h"
 #include "log.h"
 #include "sql.h"
+#include "table.h"
 
 // Global Variables
 socket_t mother_desc;
 unsigned long server_loop = 0, cpy_server_loop = 0;
 unsigned int num_table = 0;
-class cDescList * descriptor_list;
+class cDescList *descriptor_list;
+class cTabList *table_list;
 bool server_shutdown = false;
 bool server_shutoff = false;
-class cLog log ("server.log");
+class cLog Log ("server.log");
 class cMYSQL sql ("localhost", "hearts", "75uVmTop", "hearts");
 int sigint = 0;
 
@@ -30,14 +32,12 @@ extern socket_t init_socket(unsigned int port);
 void game_loop( socket_t mother_desc )
 {
  fd_set rfds, input_set, output_set, exc_set, null_set;
- struct timeval tv, null_time, opt_time;
+ struct timeval tv, null_time;
  int retval;
 
  /* initialize various time values */
  null_time.tv_sec = 0;
  null_time.tv_usec = 0;
- opt_time.tv_usec = OPT_USEC;
- opt_time.tv_sec = 0;
 
  FD_ZERO(&input_set);
  FD_ZERO(&output_set);
@@ -50,14 +50,14 @@ void game_loop( socket_t mother_desc )
    /* Poll (without blocking) for new input, output, and exceptions */
    FD_SET(mother_desc, &input_set);
    if (select(mother_desc + 1, &input_set, &output_set, &exc_set, &null_time) < 0) {
-     log.Write("SYSERR: game_loop (select() pool) error");
+     Log.Write("SYSERR: game_loop (select() pool) error");
      continue;
    }
     /* If there are new connections waiting, accept them. */
    if (FD_ISSET(mother_desc, &input_set)) {
      cDescriptor *desc = new cDescriptor( mother_desc );
      descriptor_list->Add( desc );
-     log.Write("New connection");
+     Log.Write("New connection");
    }
 
    descriptor_list->Check_Conns();
@@ -68,8 +68,9 @@ void game_loop( socket_t mother_desc )
    tv.tv_usec = 1000;
 
    retval = select(1, &rfds, NULL, NULL, &tv);
-//   if (retval == -1)
-//     log.Write("SYSERR: wait select()");
+   if (retval == -1) {
+//     Log.Write("SYSERR: wait select()");
+   }
  }
 }
 
@@ -77,27 +78,27 @@ void handle_signals( int signo )
 {
  switch ( signo ) {
    case SIGSEGV : 
-          log.Write("SYSERR: got signal SIGSEGV");
+          Log.Write("SYSERR: got signal SIGSEGV");
           exit(1);
    case SIGILL :
-          log.Write("SYSTEM: got signal SIGILL");
+          Log.Write("SYSTEM: got signal SIGILL");
           exit(1);
    case SIGBUS :
-          log.Write("SYSTEM: got signal SIGBUS");
+          Log.Write("SYSTEM: got signal SIGBUS");
           exit(1);
    case SIGINT :
-          log.Write("Server interupted");
+          Log.Write("Server interupted");
           if (++sigint >= 2) 
             exit(0); // if we fail to shutdown on the first ctrl-c, then we're probably in endless-loop so, let's quit
           else
             server_shutdown = true;
           return;
    case SIGPIPE :
-          log.Write("SYSERR: got signal SIGPIPE");
+          Log.Write("SYSERR: got signal SIGPIPE");
           return;
    case SIGALRM :
           if (server_loop == cpy_server_loop) {
-            log.Write("SYSERR: Endless-Loop detected");
+            Log.Write("SYSERR: Endless-Loop detected");
             exit(1);
           }
           cpy_server_loop = server_loop;
@@ -119,7 +120,7 @@ void set_signals()
    Action.sa_flags = 0;
    sigaction (SIGNALS[i], &Action, NULL);
  }
- log.Write("Signals handler installed");
+ Log.Write("Signals handler installed");
 
  struct itimerval itime;
 
@@ -138,38 +139,41 @@ int main()
 
  srand(time(0));
 
-// log = new cLog("hackers.log");
- log.Write("Heart server is booting up");
+// Log = new cLog("hackers.log");
+ Log.Write("Heart server is booting up");
 
  //sql = new cMYSQL("localhost", "hackers", "hartaxiome", "hackers");
- log.Write("Connected to the MYSQL database");
+ Log.Write("Connected to the MYSQL database");
 
  if (sql.query("select server_port, nice from config")) {
    server_port = atoi(sql.get_row(0));
    renice = atoi(sql.get_row(1)); 
  } else {
-     log.Write("SYSERR: Server configuration failed");
+     Log.Write("SYSERR: Server configuration failed");
    }
 // TODO: create a class cCONFIG and put all config in it
 
  nice(renice); 
- log.Write("Running in nice mode (priority = %d)", renice);
+ Log.Write("Running in nice mode (priority = %d)", renice);
 
  descriptor_list = new cDescList;
- log.Write("The descriptor list has been created");
+ Log.Write("The descriptor list has been created");
+
+ table_list = new cTabList;
+ Log.Write("The table list has been created");
 
  set_signals();
 
  mother_desc = init_socket( server_port );
- log.Write("Listening on port: %d", server_port);
+ Log.Write("Listening on port: %d", server_port);
 
- log.Write("Entering the game_loop");
+ Log.Write("Entering the game_loop");
  game_loop( mother_desc );
 
- log.Write("Heart server is turning down");
+ Log.Write("Heart server is turning down");
 
  delete descriptor_list;
-// delete log;
+// delete Log;
 
  return ( false );
 }

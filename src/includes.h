@@ -1,4 +1,6 @@
 #include "commands/date.h"
 #include "commands/exit.h"
+#include "commands/new.h"
+#include "commands/sitc.h"
 #include "commands/shutdown.h"
 #include "commands/shutoff.h"

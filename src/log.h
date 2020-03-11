@@ -17,6 +17,6 @@ public:
 };
 
 // external variable
-extern class cLog log;
+extern class cLog Log;
 
 #endif // _LOG_

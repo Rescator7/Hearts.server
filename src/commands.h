@@ -10,8 +10,7 @@ class cParam
    ~cParam(){};
 
  public:
-   const char * arguments;
-// TODO: put parameters here
+   const char *arguments;
 };
 
 class cCommand
@@ -30,19 +29,19 @@ class cCommandsStack
    ~cCommandsStack(void);
 
  private:
-   int m_CountCmd; // count the number of commands installed
+   int m_CountCmd;
    struct sCommand {
-      const char * name;
-      cCommand * func;
+      const char *name;
+      cCommand *func;
    };
    class cParam param; 
    struct sCommand m_commands[MAX_SERVER_CMDS];
 
  public:
-   static cCommandsStack* GetInstance();
+   static cCommandsStack *GetInstance();
 
-   void Add(const char * commande, cCommand * cmd);
-   bool Process_Command(cDescriptor * d, char * buffer);
+   void Add(const char *commande, cCommand *cmd);
+   bool Process_Command(cDescriptor *d, char *buffer);
 };
 
 #endif // _COMMANDS_

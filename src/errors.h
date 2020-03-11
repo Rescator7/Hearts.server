@@ -1,7 +1,7 @@
 #ifndef ERRORS
 #define ERRORS
 
-#define HANDLE_IS_ILLEGAL     "E1"
+#define HANDLE_IS_ILLEGAL     "E1" // unused (see: E7)
 #define HANDLE_UNAVAILABLE    "E2"
 #define HANDLE_RESERVED       "E3"
 #define WRONG_PASSWORD        "E4"
@@ -19,6 +19,12 @@
 #define PLAYER_RECONNECT      "E16"
 #define PLAYER_LOAD_FAILED    "E17"
 #define SOCKET_FLOOD          "E18"
+#define PLAYER_AT_TABLE       "E19"
+#define PLAYER_NO_TABLE       "E20"
+#define TABLE_WRONG_CHAIR     "E21"
 
 #define PLAYER_UID            "I1"
+#define PLAYER_CHOOSE_CHAIR   "I2"
+#define PLAYER_SIT_HERE       "I3"
+#define PLAYER_STAND          "I4"
 #endif
