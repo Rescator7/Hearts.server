@@ -10,7 +10,7 @@
 
 cPlayer::cPlayer()
 {
- playerid = 0;
+ player_id = 0;
  handle = nullptr;
  realname = nullptr;
  email = nullptr;
@@ -64,7 +64,7 @@ bool cPlayer::isHandle( const char * h )
  return ( !strcmp(buf1, buf2) ); 
 }
 
-unsigned int cPlayer::get_playerid()
+unsigned int cPlayer::SQL_ID()
 {
  int id = 0;
 
@@ -84,7 +84,7 @@ bool cPlayer::save()
 bool cPlayer::load()
 {
  if (sql.query("select playerid from account where handle = '%s'", handle)) {
-   playerid = atoi(sql.get_row(0));
+   player_id = atoi(sql.get_row(0));
  }
 /*
  if (!sql.query("select prompt from account where handle = '%s'", handle))
@@ -93,4 +93,29 @@ bool cPlayer::load()
  strncpy (prompt, sql.get_row(0), MAX_PROMPT_LENGTH);
 */
  return ( true );
+}
+
+unsigned int cPlayer::ID()
+{
+  return player_id;
+}
+
+char *cPlayer::Handle()
+{
+  return handle;
+}
+
+char *cPlayer::Password()
+{
+  return password;
+}
+
+void cPlayer::Set_Handle(char *h)
+{
+  handle = h;
+}
+
+void cPlayer::Set_Password(char *p)
+{
+  password = p;
 }

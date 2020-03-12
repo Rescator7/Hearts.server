@@ -8,9 +8,8 @@
 
 void cNew::Execute( cDescriptor & d, cParam & param )
 {
- printf("param: %s\r\n", param.arguments);
  if (!d.player->table) {
-   cTable *table = new cTable(d);;
+   cTable *table = new cTable(d);
 
    d.player->table = table;
    table->set_flags(atoi(param.arguments));

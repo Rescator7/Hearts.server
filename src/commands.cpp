@@ -16,6 +16,7 @@ cCommandsStack::cCommandsStack(void)
 
  Add( "date", new cDate() );
  Add( "exit", new cExit() );
+ Add( "join", new cJoin() );
  Add( "new", new cNew() );
  Add( "sitc", new cSitc() );
  Add( "shutdown", new cShutdown() );
@@ -43,7 +44,7 @@ void cCommandsStack::Add(const char * name, cCommand * cmd )
  }
 }
 
-bool cCommandsStack::Process_Command(cDescriptor * d, char * buffer)
+bool cCommandsStack::Process_Command(cDescriptor *d, char *buffer)
 {
  char command [SOCKET_BUFSIZE];
  char matches [2048] = ""; // 2k is enough to match the entire command list
@@ -54,6 +55,8 @@ bool cCommandsStack::Process_Command(cDescriptor * d, char * buffer)
 
  skip_spaces( buffer );
  arguments = extract_cmd( buffer, command );
+
+// printf("1 desc: %d", d->desc);
 
  if (!*command) return ( false );
 
@@ -75,6 +78,8 @@ bool cCommandsStack::Process_Command(cDescriptor * d, char * buffer)
    d->Socket_Write(UNKNOWN_COMMAND);
    return ( false );
  }
+
+ //printf("2 desc: %d", d->desc);
 
  if (matches_count == 1) {
    skip_spaces( arguments );

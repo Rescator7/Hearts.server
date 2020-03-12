@@ -14,7 +14,9 @@ public:
   ~cPlayer();
 
   cTable *table;
-  unsigned int playerid;
+
+private:
+  unsigned int player_id;
   char *handle;
   char *realname;
   char *email;
@@ -29,7 +31,12 @@ public:
   bool isHandle( const char * h );
   bool save();
   bool load();
-  unsigned int get_playerid();
+  unsigned int SQL_ID();
+  unsigned int ID();
+  char *Handle();
+  char *Password();
+  void Set_Handle(char *h);
+  void Set_Password(char *p);
 };
 
 #endif // _PLAYER_

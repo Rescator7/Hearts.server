@@ -21,7 +21,7 @@
 cCommandsStack cmd;
 
 //External variables
-extern class cDescList * descriptor_list;
+extern class cDescList *descriptor_list;
 
 const char *prompt = "%%";
 const char *login = "login:";
@@ -89,24 +89,30 @@ cDescriptor::cDescriptor(socket_t mother_desc)
 {
  player = NULL;
  bytes_read = 0;
+ sit_time = 0;
+ state = CON_LOGIN;
  len = sizeof(peer);
  if ((desc = accept(mother_desc, (struct sockaddr *) &peer, &len)) == INVALID_SOCKET) {
    Log.Write("SYSERR: accept");
    return;
  }
  player = new cPlayer;
- if (!server_shutoff) {
-   state = CON_LOGIN;
-   send(desc, login, strlen(login), 0);
- } else {
-     send(desc, SERVER_SHUTOFF, strlen(SERVER_SHUTOFF), 0);
-     state = CON_DISCONNECT;
-   }
  last_sockread = time(0);
  fcntl(desc, F_SETFL, O_NONBLOCK);
  memset(ip, '\x0', sizeof(ip));
  strncpy(ip, inet_ntoa(peer.sin_addr), 15);
  from = gethostbyaddr((char *) &peer.sin_addr, sizeof(peer.sin_addr), AF_INET);
+ printf("'%s' %d\r\n", ip, descriptor_list->Connection_Per_Ip((char *) &ip));
+ if (descriptor_list->Connection_Per_Ip((char *)&ip) >= MAX_CONNECTION_PER_IP) {
+   Socket_Write(SOCKET_MAX_CONN_IP);
+   state = CON_DISCONNECT;
+ }
+ if (server_shutoff) {
+   Socket_Write(SERVER_SHUTOFF);
+   state = CON_DISCONNECT;
+ }
+ if (state == CON_LOGIN)
+   Socket_Write(login);
 }
 
 cDescriptor::~cDescriptor()
@@ -130,7 +136,8 @@ bool cDescriptor::Socket_Write( const char * format, ... )
  va_start(args, format);
  vsprintf(buf, format, args); // FIXME: unsafe, no buffer overflow check on this
 // process_ansi( buf );
- send(desc, buf, strlen(buf), 0);
+ printf("SOCKET_WRITE: '%s'\r\n", buf);
+ send(desc, buf, strlen(buf)+1, 0); // +1 allow to send the \x0, and use it as a datagram end marker
  va_end(args);
 
  return ( true );
@@ -151,7 +158,7 @@ ssize_t cDescriptor::Socket_Read()
    bytes_read += ret;
 
  if (difftime(time(0), last_sockread) >= 1) {
-   if (bytes_read > SOCKET_MAX_READ_BYTES) {
+   if (bytes_read >= SOCKET_MAX_READ_BYTES) {
      Socket_Write(SOCKET_FLOOD);
      state = CON_DISCONNECT;
    }
@@ -172,6 +179,11 @@ ssize_t cDescriptor::Socket_Read()
  // TODO: maybe catch more error here.
  Log.Write("SYSERR: unkown socket error");
  return ( -1 );
+}
+
+char *cDescriptor::IP_Adress()
+{
+  return (char *)&ip;
 }
 
 bool cDescriptor::IsHandleValid( const char * handle, const char * message )
@@ -196,7 +208,7 @@ bool cDescriptor::IsHandleValid( const char * handle, const char * message )
 void cDescList::DisconnectPlayerID(unsigned int pID)
 {
  for (struct sList *Q = head; Q; Q = Q->next)
-   if (Q->elem->player->playerid == pID) {
+   if (Q->elem->player->ID() == pID) {
      Q->elem->Socket_Write(PLAYER_RECONNECT);
      Q->elem->Disconnect();
    }
@@ -225,8 +237,8 @@ bool cDescriptor::process_input()
               break;
             } else {
 		Socket_Write(password);
-                player->handle = strdup(lcBuf);
-                player->password = strdup(sql.get_row(1));
+                player->Set_Handle(strdup(lcBuf));
+                player->Set_Password(strdup(sql.get_row(1)));
                 state = CON_PASSWORD;
 // TODO: il semble qu'on peu envoye un code ainsi au client pour cache le password
 // trouve ce code, et l'envoyer
@@ -246,7 +258,7 @@ bool cDescriptor::process_input()
             state = CON_DISCONNECT;
             break;
           }
-	  descriptor_list->DisconnectPlayerID(player->get_playerid());
+	  descriptor_list->DisconnectPlayerID(player->SQL_ID());
           if (!player->load()) {
             Socket_Write(PLAYER_LOAD_FAILED);
 	    state = CON_DISCONNECT;
@@ -276,7 +288,7 @@ bool cDescriptor::process_input()
             break;
 	  }
 //          Socket_Write("Enter your real name: ");
-          player->handle = strdup(buffer);
+          player->Set_Handle(strdup(buffer));
 	  Socket_Write(password);
 	  state = CON_NEW_PASSWORD;
 //          state = CON_NEW_REALNAME;
@@ -334,13 +346,13 @@ bool cDescriptor::process_input()
             Socket_Write("Account creation failed");
             return ( false );
           } else {
-	      descriptor_list->DisconnectPlayerID(player->get_playerid());
+	      descriptor_list->DisconnectPlayerID(player->SQL_ID());
 	      player->load(); // load() we need the playerid
 	    }
           state = CON_MOTD;
    case CON_MOTD :
 motd:     Log.Write("PROCINP: CON_MOTD");
-	  Socket_Write("%s %d", PLAYER_UID, player->playerid);
+	  Socket_Write("%s %d", PLAYER_UID, player->ID());
           state = CON_PROMPT;
           break;
    case CON_PROMPT :
@@ -353,6 +365,21 @@ motd:     Log.Write("PROCINP: CON_MOTD");
           return ( false );
  }
  return ( true );
+}
+
+time_t cDescriptor::Get_Sit_Time()
+{
+ return sit_time;
+}
+
+int cDescriptor::State()
+{
+ return state;
+}
+
+void cDescriptor::Set_Sit_Time(time_t t)
+{
+ sit_time = t;
 }
 
 void cDescriptor::Send_Prompt()
@@ -494,7 +521,7 @@ bool cDescList::Find_Handle( const char * handle )
  return ( false );
 }
 
-bool cDescList::send_to_all( const char * format, ... )
+bool cDescList::Send_To_All( const char * format, ... )
 {
  va_list args;
  char buffer [10 * 1024];
@@ -502,9 +529,22 @@ bool cDescList::send_to_all( const char * format, ... )
  va_start(args, format);
  vsprintf(buffer, format, args); // FIXME: unsafe, no buffer overflow check on this
  for (struct sList * Q = head; Q; Q = Q->next)
-   Q->elem->Socket_Write( (const char *)&buffer );
+   if ((Q->elem->State() == CON_PROMPT) && Q->elem->Socket_Write((const char *)&buffer));
  va_end(args);
  return ( true );
+}
+
+unsigned int cDescList::Connection_Per_Ip(char *ip)
+{
+ int cpt = 0;
+ struct sList *Q = head;
+
+ while (Q) {
+   if (!strcmp(Q->elem->IP_Adress(), ip))
+     cpt++; 
+   Q = Q->next;
+ }
+ return cpt;
 }
 
 bool cDescList::Check_Conns()

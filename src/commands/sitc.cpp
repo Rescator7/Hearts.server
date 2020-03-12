@@ -23,7 +23,7 @@ void cSitc::Execute( cDescriptor & d, cParam & param )
 	      return;
   }
 
-  if (!d.player->table)
+  if (d.player->table == nullptr)
     d.Socket_Write(PLAYER_NO_TABLE);
   else
     d.player->table->sit_player(d, player_position);

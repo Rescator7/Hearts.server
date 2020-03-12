@@ -19,6 +19,7 @@ private:
   bool muted;
 
 public:
+  unsigned int TableID();
   void generate_cards();
   void set_flags(unsigned int flags);
   void sit_player(cDescriptor &desc, unsigned int chair);
@@ -42,5 +43,6 @@ public:
   bool Add(cTable *elem);
   bool Empty(); 
   bool Remove(cTable *elem);
+  cTable *Search(unsigned int id);
 };
 #endif // _TABLE_

@@ -1,5 +1,6 @@
 #include <stdlib.h> // rand()
 #include <stdarg.h> // va_start, etc. 
+#include <time.h>   // difftime()
 #include "comm.h"
 #include "table.h"
 #include "define.h"
@@ -46,9 +47,13 @@ void cTable::Send(const char *format, ...)
  va_end(args);
 }
 
+unsigned int cTable::TableID()
+{
+ return table_id;
+}
+
 void cTable::sit_player(cDescriptor &desc, unsigned int chair)
 {
- // is the chair free?
  char c;
 
  switch (chair) {
@@ -59,31 +64,39 @@ void cTable::sit_player(cDescriptor &desc, unsigned int chair)
    default: Log.Write("SYSERR: sit_player invalid chair.");
  }
 
+ // is the chair free?
  if (player_desc[chair] == nullptr) {
+    // do we have a delay before sitting again?
+    if (desc.Get_Sit_Time() && (difftime(time(nullptr), desc.Get_Sit_Time()) <= SIT_DELAY)) {
+      desc.Socket_Write(PLAYER_SIT_DELAY);
+      return;
+    } else
+        desc.Set_Sit_Time(time(nullptr));
+
    if ((chair != PLAYER_NORTH) && (player_desc[PLAYER_NORTH] == &desc)) {
-     Send("%s n", PLAYER_STAND);
+     descriptor_list->Send_To_All("%s %d n", PLAYER_STAND, table_id);
      player_desc[PLAYER_NORTH] = nullptr;
      player_id[PLAYER_NORTH] = NOPLAYER;
    }
    if ((chair != PLAYER_SOUTH) && (player_desc[PLAYER_SOUTH] == &desc)) {
-     Send("%s s", PLAYER_STAND);
+     descriptor_list->Send_To_All("%s %d s", PLAYER_STAND, table_id);
      player_desc[PLAYER_SOUTH] = nullptr;
      player_id[PLAYER_SOUTH] = NOPLAYER;
    }
    if ((chair != PLAYER_WEST) && (player_desc[PLAYER_WEST] == &desc)) {
-     Send("%s w", PLAYER_STAND);
+     descriptor_list->Send_To_All("%s %d w", PLAYER_STAND, table_id);
      player_desc[PLAYER_WEST] = nullptr;
      player_id[PLAYER_WEST] = NOPLAYER;
    }
    if ((chair != PLAYER_EAST) && (player_desc[PLAYER_EAST] == &desc)) {
-     Send("%s e", PLAYER_STAND);
+     descriptor_list->Send_To_All("%s %d e", PLAYER_STAND, table_id);
      player_desc[PLAYER_EAST] = nullptr;
      player_id[PLAYER_EAST] = NOPLAYER;
    }
 
    player_desc[chair] = &desc;
-   player_id[chair] = desc.player->get_playerid();
-   Send("%s %c %s", PLAYER_SIT_HERE, c, desc.player->handle);
+   player_id[chair] = desc.player->ID();
+   descriptor_list->Send_To_All("%s %d %c %s", PLAYER_SIT_HERE, table_id, c, desc.player->Handle());
  }
 }
 
@@ -130,6 +143,9 @@ bool cTabList::Add(cTable *elem)
 
   num_elem++;
   Log.Write("SOCKETS: created table: %d", num_elem);
+
+  descriptor_list->Send_To_All("%s %d", TABLE_CREATED, elem->TableID());
+
   return ( true );
 }
 
@@ -156,23 +172,36 @@ bool cTabList::Remove(cTable *elem)
       delete Q->elem;
       delete Q;
       num_elem--;
+
+      descriptor_list->Send_To_All("%s %d", TABLE_DELETED, elem->TableID());
       return ( true );
     }
     prev = Q;
   }
-  return ( false );
+  return false;
+}
+
+cTable *cTabList::Search(unsigned int id)
+{
+ struct sList *Q = head;
+
+ while ( Q ) {
+   if (Q->elem->TableID() == id)
+     return Q->elem;
+   Q = Q->next;
+ }
+ return nullptr;
 }
 
 bool cTabList::Empty()
 {
- struct sList *Q, *prev;
+ struct sList *Q = head, *prev;
 
- Q = head;
  while ( Q ) {
    prev = Q;
    Q = Q->next;
    num_elem--;
    delete prev;
  }
- return ( true );
+ return true;
 }

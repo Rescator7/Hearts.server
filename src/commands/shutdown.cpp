@@ -8,6 +8,6 @@ extern class cDescList * descriptor_list;
 
 void cShutdown::Execute( cDescriptor & d, cParam & param )
 {
-  descriptor_list->send_to_all(SERVER_SHUTDOWN);
+  descriptor_list->Send_To_All(SERVER_SHUTDOWN);
   server_shutdown = true;
 }

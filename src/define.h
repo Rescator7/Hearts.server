@@ -12,14 +12,14 @@
 #define INVALID_SOCKET       (-1)
 #endif // INVALID_SOCKET
 
-#define DEFPROMPT            "# "
-#define HOSTNAME             "banzai"
 #define MAX_IDLE             3600
 #define MAX_LOGON_IDLE       60 
 
 #define SIZE_QUERY_BUFFER    1024
 #define SOCKET_BUFSIZE       512
 #define SOCKET_MAX_READ_BYTES 256
+#define SIT_DELAY            2      // in seconds
+#define MAX_CONNECTION_PER_IP 50
 
 #define MAX_HANDLE_LENGTH    8
 #define MIN_HANDLE_LENGTH    3

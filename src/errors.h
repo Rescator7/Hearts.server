@@ -22,9 +22,14 @@
 #define PLAYER_AT_TABLE       "E19"
 #define PLAYER_NO_TABLE       "E20"
 #define TABLE_WRONG_CHAIR     "E21"
+#define PLAYER_SIT_DELAY      "E22"
+#define SOCKET_MAX_CONN_IP    "E23"
+#define TABLE_NOT_FOUND       "E24"
 
 #define PLAYER_UID            "I1"
 #define PLAYER_CHOOSE_CHAIR   "I2"
 #define PLAYER_SIT_HERE       "I3"
 #define PLAYER_STAND          "I4"
+#define TABLE_CREATED         "I5"
+#define TABLE_DELETED         "I6"
 #endif

@@ -9,6 +9,6 @@ extern class cDescList * descriptor_list;
 
 void cShutoff::Execute( cDescriptor & d, cParam & param )
 {
-  descriptor_list->send_to_all(SERVER_SHUTOFF);
+  descriptor_list->Send_To_All(SERVER_SHUTOFF);
   server_shutoff = true;
 }

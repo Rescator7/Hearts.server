@@ -17,6 +17,7 @@ private:
   fd_set input_set, output_set, exc_set, null_set;
   int    state;
   time_t last_sockread;
+  time_t sit_time;
   struct sockaddr_in peer;
   char   ip [16];       // numeric ip
   struct hostent *from;
@@ -34,6 +35,10 @@ public:
   void Send_Prompt();
   bool IsHandleValid( const char *handle, const char *message );
   void Disconnect();
+  void Set_Sit_Time(time_t t);
+  time_t Get_Sit_Time();
+  char *IP_Adress();
+  int State();
 };
 
 class cDescList {
@@ -53,10 +58,11 @@ public:
   bool Add( cDescriptor *elem );
   bool Remove( cDescriptor *elem );
   bool Empty();
-  bool send_to_all( const char *format, ... );
+  bool Send_To_All( const char *format, ... );
   bool Check_Conns();
   bool Find_Handle( const char *handle );
   void DisconnectPlayerID(unsigned int pID);
+  unsigned int Connection_Per_Ip(char *ip);
 };
 
 #endif // _COMM_
