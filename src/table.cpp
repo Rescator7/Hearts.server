@@ -15,6 +15,8 @@ cTable::cTable(cDescriptor &desc)
   owner = &desc;
   table_id = ++num_table;
   flags = 0;
+  expire = time(nullptr);
+  num_players = 0;
   player_id[PLAYER_NORTH] = NOPLAYER;
   player_id[PLAYER_SOUTH] = NOPLAYER;
   player_id[PLAYER_WEST] = NOPLAYER;
@@ -47,12 +49,82 @@ void cTable::Send(const char *format, ...)
  va_end(args);
 }
 
+bool cTable::PlayerLink(cDescriptor &desc)
+{
+ cPlayer *player = desc.player;
+
+ if (player == nullptr) return false;
+
+ if (player->ID() == player_id[PLAYER_NORTH]) {
+   player->table = this;
+   player_desc[PLAYER_NORTH] = &desc;
+   return true;
+ }
+
+ if (player->ID() == player_id[PLAYER_SOUTH]) {
+   player->table = this;
+   player_desc[PLAYER_SOUTH] = &desc;
+   return true;
+ }
+
+ if (player->ID() == player_id[PLAYER_WEST]) {
+   player->table = this;
+   player_desc[PLAYER_WEST] = &desc;
+   return true;
+ }
+
+ if (player->ID() == player_id[PLAYER_EAST]) {
+   player->table = this;
+   player_desc[PLAYER_EAST] = &desc;
+   return true;
+ }
+
+ return false;
+}
+
 unsigned int cTable::TableID()
 {
  return table_id;
 }
 
-void cTable::sit_player(cDescriptor &desc, unsigned int chair)
+bool cTable::Stand(cDescriptor &desc)
+{
+ if (player_desc[PLAYER_NORTH] == &desc) {
+   player_desc[PLAYER_NORTH] = nullptr;
+   player_id[PLAYER_NORTH] = NOPLAYER;
+   descriptor_list->Send_To_All("%s %d n", PLAYER_STAND, table_id);
+   num_players--;
+   expire = time(nullptr);
+   return true;
+ }
+ if (player_desc[PLAYER_SOUTH] == &desc) {
+   player_desc[PLAYER_SOUTH] = nullptr;
+   player_id[PLAYER_SOUTH] = NOPLAYER;
+   descriptor_list->Send_To_All("%s %d s", PLAYER_STAND, table_id);
+   num_players--;
+   expire = time(nullptr);
+   return true;
+ }
+ if (player_desc[PLAYER_WEST] == &desc) {
+   player_desc[PLAYER_WEST] = nullptr;
+   player_id[PLAYER_WEST] = NOPLAYER;
+   descriptor_list->Send_To_All("%s %d w", PLAYER_STAND, table_id);
+   num_players--;
+   expire = time(nullptr);
+   return true;
+ }
+ if (player_desc[PLAYER_EAST] == &desc) {
+   player_desc[PLAYER_EAST] = nullptr;
+   player_id[PLAYER_EAST] = NOPLAYER;
+   descriptor_list->Send_To_All("%s %d e", PLAYER_STAND, table_id);
+   num_players--;
+   expire = time(nullptr);
+   return true;
+ }
+ return false;
+}
+
+void cTable::Sit(cDescriptor &desc, unsigned int chair)
 {
  char c;
 
@@ -73,36 +145,70 @@ void cTable::sit_player(cDescriptor &desc, unsigned int chair)
     } else
         desc.Set_Sit_Time(time(nullptr));
 
-   if ((chair != PLAYER_NORTH) && (player_desc[PLAYER_NORTH] == &desc)) {
-     descriptor_list->Send_To_All("%s %d n", PLAYER_STAND, table_id);
-     player_desc[PLAYER_NORTH] = nullptr;
-     player_id[PLAYER_NORTH] = NOPLAYER;
-   }
-   if ((chair != PLAYER_SOUTH) && (player_desc[PLAYER_SOUTH] == &desc)) {
-     descriptor_list->Send_To_All("%s %d s", PLAYER_STAND, table_id);
-     player_desc[PLAYER_SOUTH] = nullptr;
-     player_id[PLAYER_SOUTH] = NOPLAYER;
-   }
-   if ((chair != PLAYER_WEST) && (player_desc[PLAYER_WEST] == &desc)) {
-     descriptor_list->Send_To_All("%s %d w", PLAYER_STAND, table_id);
-     player_desc[PLAYER_WEST] = nullptr;
-     player_id[PLAYER_WEST] = NOPLAYER;
-   }
-   if ((chair != PLAYER_EAST) && (player_desc[PLAYER_EAST] == &desc)) {
-     descriptor_list->Send_To_All("%s %d e", PLAYER_STAND, table_id);
-     player_desc[PLAYER_EAST] = nullptr;
-     player_id[PLAYER_EAST] = NOPLAYER;
-   }
+   // Calling Stand() for possible switching chair.
+   Stand(desc);
 
    player_desc[chair] = &desc;
    player_id[chair] = desc.player->ID();
    descriptor_list->Send_To_All("%s %d %c %s", PLAYER_SIT_HERE, table_id, c, desc.player->Handle());
+   expire = time(nullptr);
+   num_players++;
  }
+}
+
+void cTable::Sat(cDescriptor &desc)
+{
+  struct cPlayer *player;
+
+  if ((player = Player(PLAYER_NORTH)) != nullptr) 
+    desc.Socket_Write("%s %d n %s", PLAYER_SIT_HERE, TableID(), player->Handle());
+    
+  if ((player = Player(PLAYER_SOUTH)) != nullptr) 
+    desc.Socket_Write("%s %d s %s", PLAYER_SIT_HERE, TableID(), player->Handle());
+	    
+  if ((player = Player(PLAYER_WEST)) != nullptr) 
+    desc.Socket_Write("%s %d w %s", PLAYER_SIT_HERE, TableID(), player->Handle());
+
+  if ((player = Player(PLAYER_EAST)) != nullptr) 
+    desc.Socket_Write("%s %d e %s", PLAYER_SIT_HERE, TableID(), player->Handle());
+}
+
+unsigned int cTable::Flags()
+{
+ return flags;
+}
+
+time_t cTable::Expire()
+{
+ return expire;
+}
+
+unsigned int cTable::Num_Players()
+{
+ return num_players;
 }
 
 void cTable::set_flags(unsigned int f)
 {
   flags = f;
+}
+
+cPlayer *cTable::Player(unsigned int chair)
+{
+  if (player_desc[chair])
+    return player_desc[chair]->player;
+  else
+    return nullptr;
+}
+
+bool cTable::Full()
+{
+  if (player_cards[PLAYER_NORTH] == nullptr) return false;
+  if (player_cards[PLAYER_SOUTH] == nullptr) return false;
+  if (player_cards[PLAYER_WEST] == nullptr) return false;
+  if (player_cards[PLAYER_EAST] == nullptr) return false;
+
+  return true;
 }
 
 void cTable::generate_cards()
@@ -144,7 +250,7 @@ bool cTabList::Add(cTable *elem)
   num_elem++;
   Log.Write("SOCKETS: created table: %d", num_elem);
 
-  descriptor_list->Send_To_All("%s %d", TABLE_CREATED, elem->TableID());
+  descriptor_list->Send_To_All("%s %d %d", TABLE_CREATED, elem->TableID(), elem->Flags());
 
   return ( true );
 }
@@ -152,6 +258,7 @@ bool cTabList::Add(cTable *elem)
 cTabList::cTabList()
 {
  num_elem = 0;
+ head = nullptr;
 }
 
 cTabList::~cTabList()
@@ -169,6 +276,8 @@ bool cTabList::Remove(cTable *elem)
         prev->next = Q->next;
       else
         head = Q->next;
+
+      descriptor_list->ULink_TableID(Q->elem->TableID());
       delete Q->elem;
       delete Q;
       num_elem--;
@@ -205,3 +314,33 @@ bool cTabList::Empty()
  }
  return true;
 }
+
+void cTabList::Remove_Expired() 
+{
+  struct sList *Q = head, *N;
+
+  while ( Q ) {
+    N = Q->next;
+
+    if (!Q->elem->Num_Players() && (difftime(time(nullptr), Q->elem->Expire()) >= TABLE_EXPIRE))
+      Remove(Q->elem);
+    Q = N;
+  }
+}
+
+void cTabList::List(cDescriptor &desc)
+{
+  struct sList *Q = head;
+
+  while ( Q ) {
+    desc.Socket_Write("%s %d %d", TABLE_CREATED, Q->elem->TableID(), Q->elem->Flags());
+
+    if (Q->elem->PlayerLink(desc))
+      desc.Socket_Write("%s %d", PLAYER_CHOOSE_CHAIR, Q->elem->TableID());
+
+    Q->elem->Sat(desc);
+
+    Q = Q->next;
+  }
+}
+

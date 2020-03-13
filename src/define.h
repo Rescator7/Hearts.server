@@ -19,6 +19,7 @@
 #define SOCKET_BUFSIZE       512
 #define SOCKET_MAX_READ_BYTES 256
 #define SIT_DELAY            2      // in seconds
+#define TABLE_EXPIRE         10 
 #define MAX_CONNECTION_PER_IP 50
 
 #define MAX_HANDLE_LENGTH    8

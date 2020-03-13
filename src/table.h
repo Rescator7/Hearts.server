@@ -16,14 +16,24 @@ private:
   unsigned int player_id[4];
   unsigned short int turn;
   unsigned short int player_cards[4][13];
+  unsigned int num_players;
   bool muted;
+  time_t expire;
 
 public:
+  cPlayer *Player(unsigned int chair);
   unsigned int TableID();
+  unsigned int Flags();
+  unsigned int Num_Players();
+  time_t Expire();
   void generate_cards();
   void set_flags(unsigned int flags);
-  void sit_player(cDescriptor &desc, unsigned int chair);
+  void Sit(cDescriptor &desc, unsigned int chair);
   void Send(const char *format, ...);
+  void Sat(cDescriptor &desc);
+  bool Stand(cDescriptor &desc);
+  bool PlayerLink(cDescriptor &desc);
+  bool Full();
 };
 
 class cTabList {
@@ -43,6 +53,8 @@ public:
   bool Add(cTable *elem);
   bool Empty(); 
   bool Remove(cTable *elem);
+  void Remove_Expired();
   cTable *Search(unsigned int id);
+  void List(cDescriptor &desc);
 };
 #endif // _TABLE_

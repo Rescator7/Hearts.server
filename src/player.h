@@ -3,10 +3,10 @@
 
 #include "table.h"
 
-#define PLAYER_NORTH 0
-#define PLAYER_SOUTH 1
-#define PLAYER_WEST  2
-#define PLAYER_EAST  3
+#define PLAYER_NORTH    0
+#define PLAYER_SOUTH    1
+#define PLAYER_WEST     2
+#define PLAYER_EAST     3
 
 class cPlayer {
 public:
@@ -17,6 +17,7 @@ public:
 
 private:
   unsigned int player_id;
+  unsigned int level;
   char *handle;
   char *realname;
   char *email;
@@ -33,10 +34,12 @@ public:
   bool load();
   unsigned int SQL_ID();
   unsigned int ID();
+  unsigned int Level();
   char *Handle();
   char *Password();
   void Set_Handle(char *h);
   void Set_Password(char *p);
+  void ULink_Table(unsigned int id);
 };
 
 #endif // _PLAYER_

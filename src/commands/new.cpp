@@ -14,7 +14,7 @@ void cNew::Execute( cDescriptor & d, cParam & param )
    d.player->table = table;
    table->set_flags(atoi(param.arguments));
    table_list->Add(table);   
-   d.Socket_Write(PLAYER_CHOOSE_CHAIR);
+   d.Socket_Write("%s %d", PLAYER_CHOOSE_CHAIR, table->TableID());
  } else
      d.Socket_Write(PLAYER_AT_TABLE);
 }

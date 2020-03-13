@@ -7,24 +7,26 @@
 
 void cSitc::Execute( cDescriptor & d, cParam & param )
 {
-  unsigned int player_position;
+  unsigned int chair;
 
-  if (!param.arguments[0] || param.arguments[1]) {
-    d.Socket_Write(TABLE_WRONG_CHAIR);
+  if (d.player->table == nullptr) {
+    d.Socket_Write(PLAYER_NO_TABLE);
+    return;
+  }
+
+  if (!param.arguments[0]) {
+    d.player->table->Stand(d);
     return;
   }
 
   switch (param.arguments[0]) {
-    case 'n': player_position = PLAYER_NORTH; break; 
-    case 's': player_position = PLAYER_SOUTH; break;
-    case 'w': player_position = PLAYER_WEST; break;
-    case 'e': player_position = PLAYER_EAST; break;
+    case 'n': chair = PLAYER_NORTH; break; 
+    case 's': chair = PLAYER_SOUTH; break;
+    case 'w': chair = PLAYER_WEST; break;
+    case 'e': chair = PLAYER_EAST; break;
     default : d.Socket_Write(TABLE_WRONG_CHAIR);
 	      return;
   }
 
-  if (d.player->table == nullptr)
-    d.Socket_Write(PLAYER_NO_TABLE);
-  else
-    d.player->table->sit_player(d, player_position);
+  d.player->table->Sit(d, chair);
 }

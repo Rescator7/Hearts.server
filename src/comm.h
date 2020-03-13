@@ -63,6 +63,7 @@ public:
   bool Find_Handle( const char *handle );
   void DisconnectPlayerID(unsigned int pID);
   unsigned int Connection_Per_Ip(char *ip);
+  void ULink_TableID(unsigned int id);
 };
 
 #endif // _COMM_

@@ -25,6 +25,7 @@
 #define PLAYER_SIT_DELAY      "E22"
 #define SOCKET_MAX_CONN_IP    "E23"
 #define TABLE_NOT_FOUND       "E24"
+#define AMBIGOUS_COMMAND      "E25"
 
 #define PLAYER_UID            "I1"
 #define PLAYER_CHOOSE_CHAIR   "I2"

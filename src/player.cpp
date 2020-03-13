@@ -11,6 +11,7 @@
 cPlayer::cPlayer()
 {
  player_id = 0;
+ level = 0;
  handle = nullptr;
  realname = nullptr;
  email = nullptr;
@@ -83,9 +84,11 @@ bool cPlayer::save()
 
 bool cPlayer::load()
 {
- if (sql.query("select playerid from account where handle = '%s'", handle)) {
+ if (sql.query("select playerid, userlevel from account where handle = '%s'", handle)) {
    player_id = atoi(sql.get_row(0));
+   level = atoi(sql.get_row(1));
  }
+ printf("player id: %d, userlevel: %d\r\n", player_id, level);
 /*
  if (!sql.query("select prompt from account where handle = '%s'", handle))
    return ( false );
@@ -93,6 +96,11 @@ bool cPlayer::load()
  strncpy (prompt, sql.get_row(0), MAX_PROMPT_LENGTH);
 */
  return ( true );
+}
+
+unsigned int cPlayer::Level()
+{
+  return level;
 }
 
 unsigned int cPlayer::ID()
@@ -118,4 +126,10 @@ void cPlayer::Set_Handle(char *h)
 void cPlayer::Set_Password(char *p)
 {
   password = p;
+}
+
+void cPlayer::ULink_Table(unsigned int id)
+{
+  if (table && (table->TableID() == id))
+    table = nullptr;
 }
