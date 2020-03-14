@@ -2,6 +2,7 @@
 #define _DEFINE_
 
 #define socket_t int
+#define usINT unsigned short int
 
 #define MAX_SERVER_CMDS      500
 
@@ -12,7 +13,7 @@
 #define INVALID_SOCKET       (-1)
 #endif // INVALID_SOCKET
 
-#define MAX_IDLE             3600
+#define MAX_IDLE             30 // 3600
 #define MAX_LOGON_IDLE       60 
 
 #define SIZE_QUERY_BUFFER    1024
@@ -20,6 +21,7 @@
 #define SOCKET_MAX_READ_BYTES 256
 #define SIT_DELAY            2      // in seconds
 #define TABLE_EXPIRE         10 
+#define GAME_WAIT            4
 #define MAX_CONNECTION_PER_IP 50
 
 #define MAX_HANDLE_LENGTH    8
@@ -50,13 +52,20 @@
 
 #define pLEFT                0
 #define pRIGHT               1
-#define pUP                  2
-#define pDOWN                3
+#define pACCROSS             2
+#define pNOPASS              3
 
 #define NOPLAYER             0
 #define DECK_SIZE            52
 
 #define two_clubs            0
+#define empty                127
+
+#define CLUB                 0
+#define SPADE                1
+#define DIAMOND              2
+#define HEART                3
+#define FREESUIT             4
 
 /*
 const int ace_clubs     = 12;

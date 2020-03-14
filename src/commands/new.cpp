@@ -9,10 +9,9 @@
 void cNew::Execute( cDescriptor & d, cParam & param )
 {
  if (!d.player->table) {
-   cTable *table = new cTable(d);
+   cTable *table = new cTable(d, atoi(param.arguments));
 
    d.player->table = table;
-   table->set_flags(atoi(param.arguments));
    table_list->Add(table);   
    d.Socket_Write("%s %d", PLAYER_CHOOSE_CHAIR, table->TableID());
  } else

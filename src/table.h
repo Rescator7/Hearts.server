@@ -5,7 +5,7 @@
 
 class cTable {
 public:
-  cTable(cDescriptor &desc);
+  cTable(cDescriptor &desc, int f);
   ~cTable();
 
 private:
@@ -14,26 +14,29 @@ private:
   unsigned int table_id;
   unsigned int flags;
   unsigned int player_id[4];
-  unsigned short int turn;
-  unsigned short int player_cards[4][13];
   unsigned int num_players;
   bool muted;
   time_t expire;
 
 public:
+  class cGame *game;
+
   cPlayer *Player(unsigned int chair);
   unsigned int TableID();
   unsigned int Flags();
   unsigned int Num_Players();
   time_t Expire();
-  void generate_cards();
-  void set_flags(unsigned int flags);
   void Sit(cDescriptor &desc, unsigned int chair);
-  void Send(const char *format, ...);
+  void Say(cDescriptor &desc, const char *message);
+  void SendAll(const char *message);
+  void Send(usINT playerid, const char *message);
   void Sat(cDescriptor &desc);
+  void Mute();
   bool Stand(cDescriptor &desc);
   bool PlayerLink(cDescriptor &desc);
   bool Full();
+  bool Muted();
+  bool PlayerSat(cDescriptor &desc);
 };
 
 class cTabList {
@@ -54,6 +57,7 @@ public:
   bool Empty(); 
   bool Remove(cTable *elem);
   void Remove_Expired();
+  void Play();
   cTable *Search(unsigned int id);
   void List(cDescriptor &desc);
 };

@@ -64,6 +64,8 @@ void game_loop( socket_t mother_desc )
 
    table_list->Remove_Expired();
 
+   table_list->Play();
+
    FD_ZERO(&rfds);
    FD_SET(0, &rfds);
    tv.tv_sec = 0;

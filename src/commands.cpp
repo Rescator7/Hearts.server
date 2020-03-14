@@ -15,14 +15,16 @@ cCommandsStack::cCommandsStack(void)
 {
  m_CountCmd = 0;
 
- Add( "date", 0, new cDate() );
- Add( "exit", 0, new cExit() );
- Add( "join", 0, new cJoin() );
- Add( "new", 0, new cNew() );
- Add( "sitc", 0, new cSitc() );
- Add( "shutdown", 10, new cShutdown() );
- Add( "shutoff", 10, new cShutoff() );
- Add( "\xff", 0, NULL );
+ Add( "date",     LVL_GUEST, new cDate() );
+ Add( "exit",     LVL_GUEST, new cExit() );
+ Add( "join",     LVL_GUEST, new cJoin() );
+ Add( "new",      LVL_GUEST, new cNew() );
+ Add( "mute",     LVL_GUEST, new cMute() );
+ Add( "say",      LVL_GUEST, new cSay() );
+ Add( "sit",      LVL_GUEST, new cSit() );
+ Add( "shutdown", LVL_ADMIN, new cShutdown() );
+ Add( "shutoff",  LVL_ADMIN, new cShutoff() );
+ Add( "\xff",     0,         nullptr );
 }
 
 cCommandsStack::~cCommandsStack(void)

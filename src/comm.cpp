@@ -118,16 +118,20 @@ cDescriptor::cDescriptor(socket_t mother_desc)
 cDescriptor::~cDescriptor()
 {
  close( desc );
- if (player)
+ if (player) {
+
+   // this should be move into player destructor?
+   // class player don't have a descriptor, and table->Stand() use a descriptor
+   // maybe, modify it to use playerid instead...
+   if (player->table)
+     player->table->Stand(*this);
+
    delete player;
+ }
 }
 
-// Not used for now
 void cDescriptor::Disconnect()
 {
- if (player && (player->table))
-   player->table->Stand(*this);
-
  state = CON_DISCONNECT;
 }
 
@@ -154,8 +158,7 @@ ssize_t cDescriptor::Socket_Read()
  ret = read(desc, buffer, sizeof(buffer));
  if (ret == 0) {
    Log.Write("WARNING: EOF on socket read %d (connection broken by peer)", desc);
-   Disconnect();
-   return ( -1 );
+   return -1;
  }
  
  if (ret >= 1)
@@ -164,7 +167,7 @@ ssize_t cDescriptor::Socket_Read()
  if (difftime(time(0), last_sockread) >= 1) {
    if (bytes_read >= SOCKET_MAX_READ_BYTES) {
      Socket_Write(SOCKET_FLOOD);
-     Disconnect();
+     return -1;
    }
    else
      bytes_read = 0;
@@ -175,16 +178,14 @@ ssize_t cDescriptor::Socket_Read()
    skip_crlf( buffer );
    Log.Write("RCVD %d (%s): %s", desc, ip, buffer);
    if (!strcmp(buffer,"ÿôÿý")) {
-     Disconnect();
-     return ( -1 ); // ctrl-c received
+     return -1; // ctrl-c received
    }
-   return ( ret );
+   return ret;
  }
 
  // TODO: maybe catch more error here.
  Log.Write("SYSERR: unkown socket error");
- Disconnect();
- return ( -1 );
+ return -1;
 }
 
 char *cDescriptor::IP_Adress()
@@ -246,8 +247,6 @@ bool cDescriptor::process_input()
                 player->Set_Handle(strdup(lcBuf));
                 player->Set_Password(strdup(sql.get_row(1)));
                 state = CON_PASSWORD;
-// TODO: il semble qu'on peu envoye un code ainsi au client pour cache le password
-// trouve ce code, et l'envoyer
               }
           } else 
 	      Disconnect();
@@ -293,7 +292,6 @@ bool cDescriptor::process_input()
 	    Disconnect();
             break;
 	  }
-//          Socket_Write("Enter your real name: ");
           player->Set_Handle(strdup(buffer));
 	  Socket_Write(password);
 	  state = CON_NEW_PASSWORD;
@@ -352,8 +350,8 @@ bool cDescriptor::process_input()
             Socket_Write("Account creation failed");
             return ( false );
           } else {
-	      descriptor_list->DisconnectPlayerID(player->SQL_ID());
-	      player->load(); // load() we need the playerid
+	      descriptor_list->DisconnectPlayerID(player->SQL_ID()); // need to do this this way, to avoid to disconnect the new connection
+	      player->load();                                        // load() we need the playerid now
 	    }
           state = CON_MOTD;
    case CON_MOTD :
@@ -369,24 +367,24 @@ motd:     Log.Write("PROCINP: CON_MOTD");
             Send_Prompt();
           break;
    case CON_DISCONNECT :
-          return ( false );
+          return false;
  }
- return ( true );
+  return true;
 }
 
 time_t cDescriptor::Get_Sit_Time()
 {
- return sit_time;
+  return sit_time;
 }
 
 int cDescriptor::State()
 {
- return state;
+  return state;
 }
 
 void cDescriptor::Set_Sit_Time(time_t t)
 {
- sit_time = t;
+  sit_time = t;
 }
 
 // unused for now
@@ -399,186 +397,184 @@ void cDescriptor::Send_Prompt()
 
 bool cDescriptor::Is_Connected()
 {
- if (state == CON_DISCONNECT) 
-   return ( false );
+  if (state == CON_DISCONNECT) 
+    return false;
 
- null_time.tv_sec = 0;
- null_time.tv_usec = 0;
- FD_ZERO(&input_set);
- FD_ZERO(&output_set);
- FD_ZERO(&exc_set);
- FD_ZERO(&null_set);
+  null_time.tv_sec = 0;
+  null_time.tv_usec = 0;
+  FD_ZERO(&input_set);
+  FD_ZERO(&output_set);
+  FD_ZERO(&exc_set);
+  FD_ZERO(&null_set);
 
- FD_SET(desc, &input_set);
- FD_SET(desc, &output_set);
- FD_SET(desc, &exc_set);
- if (select(desc + 1, &input_set, &output_set, &exc_set, &null_time) < 0) {
-   Log.Write("SYSERR: Is_Connected() select pool");
-   return ( false );
- }
- if (FD_ISSET(desc, &exc_set)) {
-   FD_CLR(desc, &input_set);
-   FD_CLR(desc, &output_set);
-   Log.Write("select() exception: connection closed");
-   return ( false );
- } 
- if (FD_ISSET(desc, &input_set)) {
-   if (Socket_Read() == -1) 
-     return ( false );
-   if (isBufferValid(buffer, true)) {
-     if (!process_input()) 
-       return ( false );
-   }
-   else
-     Socket_Write("Your input has been dropped it contains illegal characters.\n");
-//   if (!isBufferValid(buffer, true))
-//     *buffer = '\x0';
-//   process_input();
- } else {
-     int idleness = 0;
-     if (state < CON_PROMPT) {
-       if (time(0) - last_sockread > MAX_LOGON_IDLE) idleness = MAX_LOGON_IDLE;
-     } else {
-         if (time(0) - last_sockread > MAX_IDLE) idleness = MAX_IDLE;
-       }
-     if (idleness) {
-       Log.Write("WARNING: Idleness on socket %d (connection closed)", desc);
-       if (idleness < 120)
-         Socket_Write(AUTO_LOGOUT_IDLENESS);
-       else
-         Socket_Write("\n\n**** Auto-logout because you were idle more than %d minutes. ****\n\n", idleness / 60);
-       return ( false );
-     }
-   }
+  FD_SET(desc, &input_set);
+  FD_SET(desc, &output_set);
+  FD_SET(desc, &exc_set);
+  if (select(desc + 1, &input_set, &output_set, &exc_set, &null_time) < 0) {
+    Log.Write("SYSERR: Is_Connected() select pool");
+    return false;
+  }
+  if (FD_ISSET(desc, &exc_set)) {
+    FD_CLR(desc, &input_set);
+    FD_CLR(desc, &output_set);
+    Log.Write("select() exception: connection closed");
+    return false;
+  } 
+  if (FD_ISSET(desc, &input_set)) {
+    if (Socket_Read() == -1) {
+      return false;
+    }
+    if (isBufferValid(buffer, true)) {
+      if (!process_input()) {
+        return false;
+      }
+    }
+    else
+      Socket_Write("Your input has been dropped it contains illegal characters.\n");
+  } else {
+      int idleness = 0;
+      if (state < CON_PROMPT) {
+        if (time(0) - last_sockread > MAX_LOGON_IDLE) idleness = MAX_LOGON_IDLE;
+      } else {
+          if (time(0) - last_sockread > MAX_IDLE) idleness = MAX_IDLE;
+        }
+      if (idleness) {
+        Log.Write("WARNING: Idleness on socket %d (connection closed)", desc);
+        if (idleness < 120)
+          Socket_Write(AUTO_LOGOUT_IDLENESS);
+        else
+          Socket_Write("\n\n**** Auto-logout because you were idle more than %d minutes. ****\n\n", idleness / 60);
+        return false;
+      }
+    }
 // if (FD_ISSET(desc, &output_set));
- return ( true );
+  return true;
 }
 
 cDescList::cDescList()
 {
- num_elem = 0;
- head = nullptr;
+  num_elem = 0;
+  head = nullptr;
 }
 
 cDescList::~cDescList()
 {
- Empty();
+  Empty();
 }
 
 bool cDescList::Add( cDescriptor *elem )
 {
- struct sList *Q;
+  struct sList *Q;
 
- Q = new (struct sList); 
- Q->elem = elem;
+  Q = new (struct sList); 
+  Q->elem = elem;
 
- if (head == NULL) {
-   Q->next = NULL;
-   head = Q;
- } else {
-     Q->next = head;
-     head = Q;
-   }
+  if (head == NULL) {
+    Q->next = NULL;
+    head = Q;
+  } else {
+      Q->next = head;
+      head = Q;
+    }
 
- num_elem++;
- Log.Write("SOCKETS: %d", num_elem);
- return ( true );
+  num_elem++;
+  Log.Write("SOCKETS: %d", num_elem);
+  return true;
 }
 
 bool cDescList::Remove( cDescriptor *elem )
 {
- struct sList *Q, *prev = NULL;
+  struct sList *Q, *prev = NULL;
 
- for (Q = head; Q; Q = Q->next) {
-   if (Q->elem == elem) {
-     if ( prev ) 
-       prev->next = Q->next;
-     else
-       head = Q->next;
-     delete Q->elem;
-     delete Q;
-     num_elem--;
-     return ( true );
-   }
-   prev = Q;
- }
- return ( false );
+  for (Q = head; Q; Q = Q->next) {
+    if (Q->elem == elem) {
+      if ( prev ) 
+        prev->next = Q->next;
+      else
+        head = Q->next;
+      delete Q->elem;
+      delete Q;
+      num_elem--;
+      return true;
+    }
+    prev = Q;
+  }
+  return false;
 }
 
 bool cDescList::Empty()
 {
- struct sList *Q, *prev;
+  struct sList *Q, *prev;
 
- Q = head;
- while ( Q ) {
-   prev = Q;
-   Q = Q->next;
-   num_elem--;
-   delete prev;
- }
- return ( true );
+  Q = head;
+  while ( Q ) {
+    prev = Q;
+    Q = Q->next;
+    num_elem--;
+    delete prev;
+  }
+  return true;
 }
 
 bool cDescList::Find_Handle( const char * handle )
 {
- for (struct sList * Q = head; Q; Q = Q->next) {
-   if (Q->elem->player->isHandle( handle ))
-     return ( true );
-//     return ( Q->elem );
- }
- return ( false );
+  for (struct sList * Q = head; Q; Q = Q->next) {
+    if (Q->elem->player->isHandle( handle ))
+      return true;
+  }
+  return false;
 }
 
 bool cDescList::Send_To_All( const char * format, ... )
 {
- va_list args;
- char buffer [10 * 1024];
+  va_list args;
+  char buffer [10 * 1024];
 
- va_start(args, format);
- vsprintf(buffer, format, args); // FIXME: unsafe, no buffer overflow check on this
- for (struct sList * Q = head; Q; Q = Q->next)
-   if ((Q->elem->State() == CON_PROMPT) && Q->elem->Socket_Write((const char *)&buffer));
- va_end(args);
- return ( true );
+  va_start(args, format);
+  vsprintf(buffer, format, args); // FIXME: unsafe, no buffer overflow check on this
+  for (struct sList * Q = head; Q; Q = Q->next)
+    if ((Q->elem->State() == CON_PROMPT) && Q->elem->Socket_Write((const char *)&buffer));
+  va_end(args);
+  return true;
 }
 
 unsigned int cDescList::Connection_Per_Ip(char *ip)
 {
- int cpt = 0;
- struct sList *Q = head;
+  int cpt = 0;
+  struct sList *Q = head;
 
- while (Q) {
-   if (!strcmp(Q->elem->IP_Adress(), ip))
-     cpt++; 
-   Q = Q->next;
- }
- return cpt;
+  while (Q) {
+    if (!strcmp(Q->elem->IP_Adress(), ip))
+      cpt++; 
+    Q = Q->next;
+  }
+  return cpt;
 }
 
 bool cDescList::Check_Conns()
 {
- struct sList *Q = head, *N = NULL;
+  struct sList *Q = head, *N = NULL;
 
- while (Q) {
-   N = Q->next;
-   if (!Q->elem->Is_Connected())
-     Remove(Q->elem);
-   Q = N;
- }
+  while (Q) {
+    N = Q->next;
+    if (!Q->elem->Is_Connected())
+      Remove(Q->elem);
+    Q = N;
+  }
 
- if (server_shutoff && (head == NULL))
-   server_shutdown = true;
+  if (server_shutoff && (head == NULL))
+    server_shutdown = true;
 
- return ( true );
+  return true;
 }
 
 void cDescList::ULink_TableID(unsigned int id)
 {
- struct sList *Q = head;
+  struct sList *Q = head;
 
- while (Q) {
-   if (Q->elem->player)
-     Q->elem->player->ULink_Table(id);
-   Q = Q->next;
- } 
+  while (Q) {
+    if (Q->elem->player)
+      Q->elem->player->ULink_Table(id);
+    Q = Q->next;
+  } 
 }

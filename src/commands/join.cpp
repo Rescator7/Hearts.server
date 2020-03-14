@@ -33,7 +33,7 @@ void cJoin::Execute( cDescriptor &d, cParam &param )
 
  if (ret == 2) {
    char buf[7]; 
-   sprintf(buf, "sitc %c", direction);
+   sprintf(buf, "sit %c", direction);
    cmd.Process_Command(&d, (char *)&buf);
  }
    

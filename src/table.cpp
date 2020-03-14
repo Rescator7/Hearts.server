@@ -1,20 +1,20 @@
-#include <stdlib.h> // rand()
 #include <stdarg.h> // va_start, etc. 
 #include <time.h>   // difftime()
 #include "comm.h"
-#include "table.h"
 #include "define.h"
 #include "global.h"
 #include "player.h"
 #include "log.h"
 #include "errors.h"
+#include "game.h"
+#include "table.h"
 
-cTable::cTable(cDescriptor &desc)
+cTable::cTable(cDescriptor &desc, int f)
 {
   muted = false;
   owner = &desc;
   table_id = ++num_table;
-  flags = 0;
+  flags = f;
   expire = time(nullptr);
   num_players = 0;
   player_id[PLAYER_NORTH] = NOPLAYER;
@@ -25,28 +25,62 @@ cTable::cTable(cDescriptor &desc)
   player_desc[PLAYER_SOUTH] = nullptr;
   player_desc[PLAYER_WEST] = nullptr;
   player_desc[PLAYER_EAST] = nullptr;
-  
-  generate_cards();
+
+  game = new cGame(f);
 }
 
 cTable::~cTable()
 {
+  delete game;
 }
 
-void cTable::Send(const char *format, ...)
+void cTable::Mute()
 {
- va_list args;
- char buf [10 * 1024];
+  muted = true;
+}
 
- va_start(args, format);
- vsprintf(buf, format, args);
+bool cTable::Muted()
+{
+  return muted;
+}
 
- if (player_desc[PLAYER_NORTH]) player_desc[PLAYER_NORTH]->Socket_Write(buf);
- if (player_desc[PLAYER_SOUTH]) player_desc[PLAYER_SOUTH]->Socket_Write(buf);
- if (player_desc[PLAYER_WEST])  player_desc[PLAYER_WEST]->Socket_Write(buf);
- if (player_desc[PLAYER_EAST])  player_desc[PLAYER_EAST]->Socket_Write(buf);
+void cTable::Send(usINT playerid, const char *message)
+{
+  player_desc[playerid]->Socket_Write(message);  
+}
 
- va_end(args);
+void cTable::SendAll(const char *message)
+{
+  if (player_desc[PLAYER_NORTH] != nullptr) player_desc[PLAYER_NORTH]->Socket_Write(message);	
+  if (player_desc[PLAYER_SOUTH] != nullptr) player_desc[PLAYER_SOUTH]->Socket_Write(message);	
+  if (player_desc[PLAYER_WEST] != nullptr) player_desc[PLAYER_WEST]->Socket_Write(message);	
+  if (player_desc[PLAYER_EAST] != nullptr) player_desc[PLAYER_EAST]->Socket_Write(message);	
+}
+
+void cTable::Say(cDescriptor &desc, const char *message)
+{
+ struct cDescriptor *player;
+
+ if (muted) {
+   desc.Socket_Write(TABLE_MUTED);
+   return;
+ }
+
+ player = player_desc[PLAYER_NORTH];
+ if ((player != nullptr) && (player != &desc))
+   player->Socket_Write("%s %s %s", TABLE_SAY, desc.player->Handle(), message);
+
+ player = player_desc[PLAYER_SOUTH];
+ if ((player != nullptr) && (player != &desc))
+   player->Socket_Write("%s %s %s", TABLE_SAY, desc.player->Handle(), message);
+
+ player = player_desc[PLAYER_WEST]; 
+ if ((player != nullptr) && (player != &desc))
+   player->Socket_Write("%s %s %s", TABLE_SAY, desc.player->Handle(), message);
+
+ player = player_desc[PLAYER_EAST]; 
+ if ((player != nullptr) && (player != &desc))
+   player->Socket_Write("%s %s %s", TABLE_SAY, desc.player->Handle(), message);
 }
 
 bool cTable::PlayerLink(cDescriptor &desc)
@@ -153,6 +187,9 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
    descriptor_list->Send_To_All("%s %d %c %s", PLAYER_SIT_HERE, table_id, c, desc.player->Handle());
    expire = time(nullptr);
    num_players++;
+
+   if (num_players == 4)
+     game->Start();
  }
 }
 
@@ -188,11 +225,6 @@ unsigned int cTable::Num_Players()
  return num_players;
 }
 
-void cTable::set_flags(unsigned int f)
-{
-  flags = f;
-}
-
 cPlayer *cTable::Player(unsigned int chair)
 {
   if (player_desc[chair])
@@ -201,35 +233,24 @@ cPlayer *cTable::Player(unsigned int chair)
     return nullptr;
 }
 
-bool cTable::Full()
+bool cTable::PlayerSat(cDescriptor &desc)
 {
-  if (player_cards[PLAYER_NORTH] == nullptr) return false;
-  if (player_cards[PLAYER_SOUTH] == nullptr) return false;
-  if (player_cards[PLAYER_WEST] == nullptr) return false;
-  if (player_cards[PLAYER_EAST] == nullptr) return false;
+  if (player_desc[PLAYER_NORTH] == &desc) return true;
+  if (player_desc[PLAYER_SOUTH] == &desc) return true;
+  if (player_desc[PLAYER_WEST] == &desc) return true;
+  if (player_desc[PLAYER_EAST] == &desc) return true;
 
-  return true;
+  return false;
 }
 
-void cTable::generate_cards()
+bool cTable::Full()
 {
-  bool card_free[DECK_SIZE];
+  if (player_desc[PLAYER_NORTH] == nullptr) return false;
+  if (player_desc[PLAYER_SOUTH] == nullptr) return false;
+  if (player_desc[PLAYER_WEST] == nullptr) return false;
+  if (player_desc[PLAYER_EAST] == nullptr) return false;
 
-  for (int i=0; i < DECK_SIZE; i++)
-    card_free[i] = true;
-
-  int player = 0;
-  for (int i=0; i< DECK_SIZE; i++) {
-    int card = rand() % DECK_SIZE;
-    while (!card_free[card])
-      card = rand() % DECK_SIZE;
-    if (card == two_clubs)
-      turn = player;
-    card_free[card] = false;
-    player_cards[player][i / 4] = card;
-    if (player++ == 3)
-      player = 0;
-  }
+  return true;
 }
 
 bool cTabList::Add(cTable *elem)
@@ -325,6 +346,35 @@ void cTabList::Remove_Expired()
     if (!Q->elem->Num_Players() && (difftime(time(nullptr), Q->elem->Expire()) >= TABLE_EXPIRE))
       Remove(Q->elem);
     Q = N;
+  }
+}
+
+void cTabList::Play()
+{
+  struct sList *Q = head;
+  struct cGame *game;
+  int turn;
+  char buf[1024];
+
+  while ( Q ) {
+    game = Q->elem->game;
+    if (game->Started()) {
+      turn = game->Turn();
+
+      if (game->Wait() == 0) {
+	for (int player = 0; player < 4; player++) { 
+	  sprintf(buf, "%s %s", TABLE_YOUR_CARDS, game->Str_Cards(player));
+	  Q->elem->Send(player, buf);
+        }
+        Q->elem->Send(turn, TABLE_YOUR_TURN);  
+	game->Set_Wait(time(nullptr));
+      }
+      else
+        if (difftime(time(nullptr), game->Wait()) > GAME_WAIT) {
+	  // force play
+	}
+    }
+    Q = Q->next;
   }
 }
 

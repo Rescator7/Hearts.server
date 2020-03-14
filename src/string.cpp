@@ -4,30 +4,44 @@
 #include "comm.h"
 #include "string.h"
 
-char *extract_cmd(const char * buffer, char * cmd)
+// #include <stdlib.h>
+char *extract_cmd(const char *buffer, char *cmd)
 {
- int i;
- for (i = 0; ; i++) {
-   if ((buffer[i] == ' ') || (buffer[i] == '\x0') ||
-       (buffer[i] == '\r')) {
-     cmd[i] = '\x0';
-     break;
-   } else
-       cmd[i] = tolower(buffer[i]);
+  int i = 0;
+
+  do {
+    if ((buffer[i] == ' ') || (buffer[i] == '\x0') || (buffer[i] == '\r'))
+      cmd[i] = '\x0';
+    else
+      cmd[i] = tolower(buffer[i]);
+  } while (cmd[i++] != '\x0');
+
+// printf("extract: '%s' '%s'\r\n", cmd, (char *)&buffer[i]);
+
+  return ((char *)&buffer[i]);
+}
+
+const char *skip_spaces(char *str)
+{
+ int p = 0, s = 0, l = strlen(str);
+
+// printf("in: '%s'\r\n", str);
+
+ while (str[p] == ' ') if (++p >= l) break;
+
+ if (p == 0) return str;
+
+ while (p <= l) {
+   str[s] = str[p];
+   s++;
+   p++;
  }
- return ((char *)&buffer[i]);
+
+ // printf("str: '%s'\r\n", str);
+ return str;
 }
 
-const char *skip_spaces(char * str)
-{
- int i, len = strlen(str);
- for (i = 0; i < len; i++)
-   if (str[i] != ' ') break;
- strncpy(str, str+i, len); 
- return ( str );
-}
-
-const char *stolower(const char * str, char * new_str)
+const char *stolower(const char *str, char *new_str)
 {
  if (!str || !*str) return ( NULL );
 
@@ -39,7 +53,7 @@ const char *stolower(const char * str, char * new_str)
  return ( new_str );
 }
 
-const char *skip_crlf(char * str)
+const char *skip_crlf(char *str)
 {
  if (!str || !*str) return ( NULL );
 
@@ -53,7 +67,7 @@ const char *skip_crlf(char * str)
  return ( (const char *)str );
 }
 
-bool isBufferValid( char * buffer, bool bSupLatin1 )
+bool isBufferValid( char *buffer, bool bSupLatin1 )
 {
 // const char *latin1 = "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ";
    const char *normal = "AAAAAAACEEEEIIIIDNOOOOO*OUUUUYPBAAAAAAxceeeeiiiienooooo/ouuuuypy";

@@ -26,6 +26,8 @@
 #define SOCKET_MAX_CONN_IP    "E23"
 #define TABLE_NOT_FOUND       "E24"
 #define AMBIGOUS_COMMAND      "E25"
+#define TABLE_MUTED           "E26"
+#define PLAYER_NOT_SAT        "E27"
 
 #define PLAYER_UID            "I1"
 #define PLAYER_CHOOSE_CHAIR   "I2"
@@ -33,4 +35,7 @@
 #define PLAYER_STAND          "I4"
 #define TABLE_CREATED         "I5"
 #define TABLE_DELETED         "I6"
+#define TABLE_SAY             "I7"
+#define TABLE_YOUR_CARDS      "I8"
+#define TABLE_YOUR_TURN       "I9"
 #endif
