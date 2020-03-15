@@ -7,17 +7,23 @@
 
 void cSit::Execute( cDescriptor &d, cParam &param )
 {
-  unsigned int chair;
+  struct cPlayer *player = d.player;
 
-  if (d.player->table == nullptr) {
+  if (player == nullptr) return;
+
+  struct cTable *table = player->table;
+
+  if (table == nullptr) {
     d.Socket_Write(PLAYER_NO_TABLE);
     return;
   }
 
   if (!param.arguments[0]) {
-    d.player->table->Stand(d);
+    table->Stand(d);
     return;
   }
+
+  unsigned int chair;
 
   switch (param.arguments[0]) {
     case 'n': chair = PLAYER_NORTH; break; 
@@ -28,5 +34,5 @@ void cSit::Execute( cDescriptor &d, cParam &param )
 	      return;
   }
 
-  d.player->table->Sit(d, chair);
+  table->Sit(d, chair);
 }

@@ -4,6 +4,7 @@
 #include <cstdio>
 #include "define.h"
 #include "game.h"
+#include "player.h"
 
 cGame::cGame( int f )
 {
@@ -11,15 +12,23 @@ cGame::cGame( int f )
 
   turn = 0;
   suit = CLUB;
-  passto = pRIGHT;
+  passto = pLEFT;
   game_started = false;
   game_over = false;
   game_draw = false;
+  playing = false;
 
-  num_cards[0] = 13;
-  num_cards[1] = 13;
-  num_cards[2] = 13;
-  num_cards[3] = 13;
+  for (int i=0; i<3; i++) {
+    passed_cards[PLAYER_NORTH][i] = empty;
+    passed_cards[PLAYER_SOUTH][i] = empty;
+    passed_cards[PLAYER_WEST][i] = empty;
+    passed_cards[PLAYER_EAST][i] = empty;
+  }
+
+  num_cards[PLAYER_NORTH] = 13;
+  num_cards[PLAYER_SOUTH] = 13;
+  num_cards[PLAYER_WEST] = 13;
+  num_cards[PLAYER_EAST] = 13;
 
   generate_cards();
   Sort();
@@ -29,12 +38,42 @@ cGame::~cGame()
 {
 }
 
+usINT cGame::Pass(usINT pid, usINT card1, usINT card2, usINT card3)
+{
+  if (playing) return ERROR_PLAYING;
+
+  if (passed_cards[pid][0] != empty)
+    return ERROR_CARDS_PASSED;
+
+  if ((card1 < 0) || (card1 > DECK_SIZE - 1)) return ERROR_ILLEGAL_CARD;
+  if ((card2 < 0) || (card2 > DECK_SIZE - 1)) return ERROR_ILLEGAL_CARD;
+  if ((card3 < 0) || (card3 > DECK_SIZE - 1)) return ERROR_ILLEGAL_CARD;
+
+  int found = 0;
+
+  for (int i=0; i<num_cards[pid]; i++) {
+    if (player_cards[pid][i] == card1) if (++found == 3) break;
+    if (player_cards[pid][i] == card2) if (++found == 3) break;
+    if (player_cards[pid][i] == card3) if (++found == 3) break;
+  }
+    
+  if (found != 3) return ERROR_CARD_NOT_FOUND;
+
+  if ((card1 == card2) || (card1 == card3) || (card2 == card3)) return ERROR_DOUBLE_CARD;
+
+  passed_cards[pid][0] = card1;
+  passed_cards[pid][1] = card2;
+  passed_cards[pid][2] = card3;
+
+  return 0;
+}
+
 void cGame::Sort()
 {
-  std::sort(player_cards[0], player_cards[0]+13);
-  std::sort(player_cards[1], player_cards[1]+13);
-  std::sort(player_cards[2], player_cards[2]+13);
-  std::sort(player_cards[3], player_cards[3]+13);
+  std::sort(player_cards[PLAYER_NORTH], player_cards[PLAYER_NORTH]+13);
+  std::sort(player_cards[PLAYER_SOUTH], player_cards[PLAYER_SOUTH]+13);
+  std::sort(player_cards[PLAYER_WEST], player_cards[PLAYER_WEST]+13);
+  std::sort(player_cards[PLAYER_EAST], player_cards[PLAYER_EAST]+13);
 
   for (int i=0; i<4; i++)
     sprintf(str_cards[i], "%d %d %d %d %d %d %d %d %d %d %d %d %d", 
@@ -104,4 +143,9 @@ usINT cGame::Num_Cards(usINT player)
 char *cGame::Str_Cards(usINT player)
 {
   return str_cards[player];
+}
+
+usINT cGame::PassTo()
+{
+  return passto;
 }

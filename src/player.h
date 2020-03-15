@@ -3,9 +3,10 @@
 
 #include "table.h"
 
-#define PLAYER_NORTH    0
-#define PLAYER_SOUTH    1
-#define PLAYER_WEST     2
+#define PLAYER_NOWHERE  -1
+#define PLAYER_NORTH    2
+#define PLAYER_SOUTH    0
+#define PLAYER_WEST     1
 #define PLAYER_EAST     3
 
 class cPlayer {

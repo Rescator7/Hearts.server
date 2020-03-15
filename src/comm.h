@@ -64,6 +64,7 @@ public:
   void DisconnectPlayerID(unsigned int pID);
   unsigned int Connection_Per_Ip(char *ip);
   void ULink_TableID(unsigned int id);
+  void Who( cDescriptor &desc);
 };
 
 #endif // _COMM_

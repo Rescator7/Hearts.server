@@ -8,11 +8,18 @@
 
 void cNew::Execute( cDescriptor & d, cParam & param )
 {
- if (!d.player->table) {
-   cTable *table = new cTable(d, atoi(param.arguments));
+ struct cPlayer *player = d.player;
 
-   d.player->table = table;
+ if (player == nullptr) return;
+
+ struct cTable *table = player->table;
+
+ if (table == nullptr) {
+   table = new cTable(d, atoi(param.arguments));
+
+   player->table = table;
    table_list->Add(table);   
+
    d.Socket_Write("%s %d", PLAYER_CHOOSE_CHAIR, table->TableID());
  } else
      d.Socket_Write(PLAYER_AT_TABLE);

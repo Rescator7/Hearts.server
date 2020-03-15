@@ -13,7 +13,7 @@
 #define INVALID_SOCKET       (-1)
 #endif // INVALID_SOCKET
 
-#define MAX_IDLE             30 // 3600
+#define MAX_IDLE             3600
 #define MAX_LOGON_IDLE       60 
 
 #define SIZE_QUERY_BUFFER    1024

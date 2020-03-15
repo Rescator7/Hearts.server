@@ -578,3 +578,29 @@ void cDescList::ULink_TableID(unsigned int id)
     Q = Q->next;
   } 
 }
+
+void cDescList::Who(cDescriptor &desc)
+{
+  const int BUFSIZE = 10240;
+
+  char buf[BUFSIZE];
+
+  struct sList *Q = head;
+  int len, total;
+
+  total = snprintf(buf, BUFSIZE, "%s ", SERVER_WHO);
+
+  while (Q) {
+    if (Q->elem->player) {
+      len = snprintf(buf + total, BUFSIZE - total, "%s ", Q->elem->player->Handle());      
+      total += len;
+      if (total >= BUFSIZE) {
+	sprintf(buf + BUFSIZE - 17, "*** OVERFLOW ***");
+	break;
+      }
+    }
+    Q = Q->next;
+  }
+  desc.Socket_Write(buf);
+}
+

@@ -44,9 +44,17 @@ bool cTable::Muted()
   return muted;
 }
 
-void cTable::Send(usINT playerid, const char *message)
+void cTable::Send(usINT playerid, const char *format, ... )
 {
-  player_desc[playerid]->Socket_Write(message);  
+  va_list args;
+  char buffer [10 * 1024];
+
+  va_start(args, format);
+  vsprintf(buffer, format, args);
+
+  player_desc[playerid]->Socket_Write((const char *) &buffer);  
+
+  va_end(args);
 }
 
 void cTable::SendAll(const char *message)
@@ -160,18 +168,13 @@ bool cTable::Stand(cDescriptor &desc)
 
 void cTable::Sit(cDescriptor &desc, unsigned int chair)
 {
- char c;
-
- switch (chair) {
-   case PLAYER_NORTH: c = 'n'; break;
-   case PLAYER_SOUTH: c = 's'; break;
-   case PLAYER_WEST:  c = 'w'; break;
-   case PLAYER_EAST:  c = 'e'; break; 
-   default: Log.Write("SYSERR: sit_player invalid chair.");
- }
+  if (game->Started()) {
+    desc.Socket_Write(TABLE_STARTED);
+    return;
+  }
 
  // is the chair free?
- if (player_desc[chair] == nullptr) {
+  if (player_desc[chair] == nullptr) {
     // do we have a delay before sitting again?
     if (desc.Get_Sit_Time() && (difftime(time(nullptr), desc.Get_Sit_Time()) <= SIT_DELAY)) {
       desc.Socket_Write(PLAYER_SIT_DELAY);
@@ -182,6 +185,16 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
    // Calling Stand() for possible switching chair.
    Stand(desc);
 
+   char c;
+   switch (chair) {
+     case PLAYER_NORTH: c = 'n'; break;
+     case PLAYER_SOUTH: c = 's'; break;
+     case PLAYER_WEST:  c = 'w'; break;
+     case PLAYER_EAST:  c = 'e'; break; 
+     default: Log.Write("SYSERR: sit_player invalid chair.");
+	      return;
+   }
+
    player_desc[chair] = &desc;
    player_id[chair] = desc.player->ID();
    descriptor_list->Send_To_All("%s %d %c %s", PLAYER_SIT_HERE, table_id, c, desc.player->Handle());
@@ -190,7 +203,18 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
 
    if (num_players == 4)
      game->Start();
- }
+ } else
+     if (player_desc[chair] == &desc) Stand(desc);
+}
+
+usINT cTable::Chair(cDescriptor &desc)
+{
+ if (player_desc[PLAYER_NORTH] == &desc) return PLAYER_NORTH;
+ if (player_desc[PLAYER_SOUTH] == &desc) return PLAYER_SOUTH;
+ if (player_desc[PLAYER_WEST] == &desc) return PLAYER_WEST;
+ if (player_desc[PLAYER_EAST] == &desc) return PLAYER_EAST;
+
+ return PLAYER_NOWHERE;
 }
 
 void cTable::Sat(cDescriptor &desc)
@@ -354,7 +378,6 @@ void cTabList::Play()
   struct sList *Q = head;
   struct cGame *game;
   int turn;
-  char buf[1024];
 
   while ( Q ) {
     game = Q->elem->game;
@@ -362,11 +385,11 @@ void cTabList::Play()
       turn = game->Turn();
 
       if (game->Wait() == 0) {
-	for (int player = 0; player < 4; player++) { 
-	  sprintf(buf, "%s %s", TABLE_YOUR_CARDS, game->Str_Cards(player));
-	  Q->elem->Send(player, buf);
-        }
-        Q->elem->Send(turn, TABLE_YOUR_TURN);  
+	for (int player = 0; player < 4; player++)
+	  // send passto, followed by player's cards
+	  Q->elem->Send(player, "%s %d %s", TABLE_YOUR_CARDS, game->PassTo(), game->Str_Cards(player));
+	if (game->PassTo() == pNOPASS) 
+          Q->elem->Send(turn, TABLE_YOUR_TURN);  
 	game->Set_Wait(time(nullptr));
       }
       else

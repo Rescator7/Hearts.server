@@ -29,7 +29,7 @@ public:
   void Sit(cDescriptor &desc, unsigned int chair);
   void Say(cDescriptor &desc, const char *message);
   void SendAll(const char *message);
-  void Send(usINT playerid, const char *message);
+  void Send(usINT playerid, const char *format, ... );
   void Sat(cDescriptor &desc);
   void Mute();
   bool Stand(cDescriptor &desc);
@@ -37,6 +37,7 @@ public:
   bool Full();
   bool Muted();
   bool PlayerSat(cDescriptor &desc);
+  usINT Chair(cDescriptor &desc);
 };
 
 class cTabList {

@@ -5,18 +5,22 @@
 
 void cMute::Execute( cDescriptor &d, cParam &param )
 {
- if (d.player == nullptr) return;
+ struct cPlayer *player = d.player;
 
- if (d.player->table == nullptr) {
+ if (player == nullptr) return;
+
+ struct cTable *table = player->table;
+
+ if (table == nullptr) {
    d.Socket_Write(PLAYER_NO_TABLE);
    return;
  }
 
- if (d.player->table->Muted()) return;
+ if (table->Muted()) return;
 
- if (d.player->table->PlayerSat(d))  {
-   d.player->table->Mute();
-   d.player->table->SendAll(TABLE_MUTED);
+ if (table->PlayerSat(d))  {
+   table->Mute();
+   table->SendAll(TABLE_MUTED);
  } else
      d.Socket_Write(PLAYER_NOT_SAT);
 }

@@ -18,12 +18,15 @@ cCommandsStack::cCommandsStack(void)
  Add( "date",     LVL_GUEST, new cDate() );
  Add( "exit",     LVL_GUEST, new cExit() );
  Add( "join",     LVL_GUEST, new cJoin() );
+ Add( "leave",    LVL_GUEST, new cLeave() );
  Add( "new",      LVL_GUEST, new cNew() );
  Add( "mute",     LVL_GUEST, new cMute() );
+ Add( "pass",     LVL_GUEST, new cPass() );
  Add( "say",      LVL_GUEST, new cSay() );
  Add( "sit",      LVL_GUEST, new cSit() );
  Add( "shutdown", LVL_ADMIN, new cShutdown() );
  Add( "shutoff",  LVL_ADMIN, new cShutoff() );
+ Add( "who",      LVL_GUEST, new cWho() );
  Add( "\xff",     0,         nullptr );
 }
 

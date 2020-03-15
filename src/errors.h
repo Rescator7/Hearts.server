@@ -28,6 +28,14 @@
 #define AMBIGOUS_COMMAND      "E25"
 #define TABLE_MUTED           "E26"
 #define PLAYER_NOT_SAT        "E27"
+#define TABLE_NOT_3PASSED     "E28"
+#define TABLE_ALREADY_PASSED  "E29"
+#define TABLE_ILLEGAL_CARD    "E30"
+#define TABLE_CARD_NOT_FOUND  "E31"
+#define TABLE_DOUBLE_CARD     "E32"
+#define TABLE_PASSING_OVER    "E33"
+#define TABLE_STARTED         "E34"
+#define TABLE_FULL            "E35"
 
 #define PLAYER_UID            "I1"
 #define PLAYER_CHOOSE_CHAIR   "I2"
@@ -38,4 +46,7 @@
 #define TABLE_SAY             "I7"
 #define TABLE_YOUR_CARDS      "I8"
 #define TABLE_YOUR_TURN       "I9"
+#define SERVER_WHO            "I10"
+#define TABLE_LEAVE           "I11"
+
 #endif
