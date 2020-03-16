@@ -1,15 +1,15 @@
 #ifndef ERRORS
 #define ERRORS
 
-#define HANDLE_IS_ILLEGAL     "E1" // unused (see: E7)
-#define HANDLE_UNAVAILABLE    "E2"
-#define HANDLE_RESERVED       "E3"
-#define WRONG_PASSWORD        "E4"
-#define HANDLE_TOO_SHORT      "E5"
-#define HANDLE_TOO_LONG       "E6"
-#define HANDLE_ILLEGAL_CHAR   "E7"
-#define PASSWORD_TOO_SHORT    "E8"
-#define PASSWORD_TOO_LONG     "E9"
+#define HANDLE_IS_ILLEGAL     "E01" // unused (see: E7)
+#define HANDLE_UNAVAILABLE    "E02"
+#define HANDLE_RESERVED       "E03"
+#define WRONG_PASSWORD        "E04"
+#define HANDLE_TOO_SHORT      "E05"
+#define HANDLE_TOO_LONG       "E06"
+#define HANDLE_ILLEGAL_CHAR   "E07"
+#define PASSWORD_TOO_SHORT    "E08"
+#define PASSWORD_TOO_LONG     "E09"
 #define PASSWORD_DONT_MATCH   "E10"
 #define HANDLE_NOT_REGISTERED "E11"
 #define AUTO_LOGOUT_IDLENESS  "E12"
@@ -37,16 +37,18 @@
 #define TABLE_STARTED         "E34"
 #define TABLE_FULL            "E35"
 
-#define PLAYER_UID            "I1"
-#define PLAYER_CHOOSE_CHAIR   "I2"
-#define PLAYER_SIT_HERE       "I3"
-#define PLAYER_STAND          "I4"
-#define TABLE_CREATED         "I5"
-#define TABLE_DELETED         "I6"
-#define TABLE_SAY             "I7"
-#define TABLE_YOUR_CARDS      "I8"
-#define TABLE_YOUR_TURN       "I9"
+#define PLAYER_UID            "I01"
+#define PLAYER_CHOOSE_CHAIR   "I02"
+#define PLAYER_SIT_HERE       "I03"
+#define PLAYER_STAND          "I04"
+#define TABLE_CREATED         "I05"
+#define TABLE_DELETED         "I06"
+#define TABLE_SAY             "I07"
+#define TABLE_YOUR_CARDS      "I08"
+#define TABLE_YOUR_TURN       "I09"
 #define SERVER_WHO            "I10"
 #define TABLE_LEAVE           "I11"
+#define TABLE_CARDS_RECEIVED  "I12"
+#define TABLE_FORCE_PASS      "I13"
 
 #endif

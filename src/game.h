@@ -7,6 +7,14 @@
 #define ERROR_DOUBLE_CARD    4
 #define ERROR_PLAYING        5
 
+#define STATE_SEND_CARDS       1
+#define STATE_WAIT_PASS        2
+#define STATE_FORCE_PASS       3
+#define STATE_WAIT_TWO_CLUBS   4
+#define STATE_FORCE_TWO_CLUBS  5
+#define STATE_WAIT_PLAY        6
+#define STATE_FORCE_PLAY       7
+
 class cGame {
 public:
   cGame( int f );
@@ -18,11 +26,13 @@ private:
   bool game_draw;
   bool playing;
   int flags;
+  usINT state;
   time_t wait_time;
   usINT suit;
   usINT passto;
   usINT turn;
   usINT num_cards[4];
+  usINT num_passed;
   usINT player_cards[4][13];
   usINT passed_cards[4][3];
   char str_cards[4][80];    // 3 * 13 + 13 + 1 = 53 == 3 char for code 127 = empty cards * 13 cards + 13 spaces + 1 null char
@@ -37,8 +47,15 @@ public:
   char *Str_Cards(usINT player);
   usINT Cards(usINT player, usINT card);
   usINT Num_Cards(usINT player);
+  usINT State();
+  void SetState(usINT s);
   bool Started();
   usINT PassTo();
-  usINT Pass(usINT pid, usINT card1, usINT card2, usINT card3);
+  void ForcePass(cTable *table, usINT chair);
+  void Pass(cTable &table);
+  usINT PlayerPass(cTable &table, usINT chair, usINT card1, usINT card2, usINT card3);
+  bool Passed(usINT pid);
+  void ResetPassed();
+  void Run();
 };
 #endif

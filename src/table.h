@@ -38,6 +38,7 @@ public:
   bool Muted();
   bool PlayerSat(cDescriptor &desc);
   usINT Chair(cDescriptor &desc);
+  cDescriptor *desc(usINT chair);
 };
 
 class cTabList {

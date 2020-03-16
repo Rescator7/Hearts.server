@@ -1,11 +1,14 @@
 #include <stdio.h> // sscanf()
 #include <time.h>  // required by game.h
 #include "../define.h"
+#include "../table.h"
 #include "../game.h"
 #include "../player.h"
 #include "../errors.h"
 #include "pass.h"
 
+// we are passing the position of our cards, not the cards themself.
+// it's a lot more efficient for the server this way.
 void cPass::Execute( cDescriptor &d, cParam &param )
 {
   struct cPlayer *player;
@@ -32,7 +35,7 @@ void cPass::Execute( cDescriptor &d, cParam &param )
   }
 
   int error;
-  if ((error = game->Pass(chair, card1, card2, card3))) {
+  if ((error = game->PlayerPass(*table, chair, card1, card2, card3))) {
     switch (error) {
       case ERROR_CARDS_PASSED:   d.Socket_Write(TABLE_ALREADY_PASSED); break;
       case ERROR_ILLEGAL_CARD:   d.Socket_Write(TABLE_ILLEGAL_CARD);   break;

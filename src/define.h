@@ -66,6 +66,10 @@
 #define DIAMOND              2
 #define HEART                3
 #define FREESUIT             4
+#define ACE_SPADE            25
+#define KING_SPADE           24
+#define QUEEN_SPADE          23
+
 
 /*
 const int ace_clubs     = 12;

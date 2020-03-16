@@ -23,15 +23,12 @@ void cSit::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
-  unsigned int chair;
+  usINT chair;
 
-  switch (param.arguments[0]) {
-    case 'n': chair = PLAYER_NORTH; break; 
-    case 's': chair = PLAYER_SOUTH; break;
-    case 'w': chair = PLAYER_WEST; break;
-    case 'e': chair = PLAYER_EAST; break;
-    default : d.Socket_Write(TABLE_WRONG_CHAIR);
-	      return;
+  Direction(param.arguments[0], chair);
+  if (chair == PLAYER_NOWHERE) {
+    d.Socket_Write(TABLE_WRONG_CHAIR);
+    return;
   }
 
   table->Sit(d, chair);

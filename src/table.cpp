@@ -269,12 +269,20 @@ bool cTable::PlayerSat(cDescriptor &desc)
 
 bool cTable::Full()
 {
+  return num_players == 4;
+/*
   if (player_desc[PLAYER_NORTH] == nullptr) return false;
   if (player_desc[PLAYER_SOUTH] == nullptr) return false;
   if (player_desc[PLAYER_WEST] == nullptr) return false;
   if (player_desc[PLAYER_EAST] == nullptr) return false;
 
   return true;
+*/
+}
+
+cDescriptor *cTable::desc(usINT chair)
+{
+  return player_desc[chair];
 }
 
 bool cTabList::Add(cTable *elem)
@@ -373,29 +381,54 @@ void cTabList::Remove_Expired()
   }
 }
 
+/*
+#define STATE_SEND_CARDS       1
+#define STATE_WAIT_PASS        2
+#define STATE_FORCE_PASS       3
+#define STATE_WAIT_TWO_CLUBS   4
+#define STATE_FORCE_TWO_CLUBS  5
+#define STATE_WAIT_PLAY        6
+#define STATE_FORCE_PLAY       7
+*/
+
 void cTabList::Play()
 {
   struct sList *Q = head;
   struct cGame *game;
+  struct cTable *table;
+  int passto;
   int turn;
 
   while ( Q ) {
-    game = Q->elem->game;
-    if (game->Started()) {
-      turn = game->Turn();
+    table = Q->elem;
+    game = table->game;
+    turn = game->Turn();
 
-      if (game->Wait() == 0) {
-	for (int player = 0; player < 4; player++)
-	  // send passto, followed by player's cards
-	  Q->elem->Send(player, "%s %d %s", TABLE_YOUR_CARDS, game->PassTo(), game->Str_Cards(player));
-	if (game->PassTo() == pNOPASS) 
-          Q->elem->Send(turn, TABLE_YOUR_TURN);  
-	game->Set_Wait(time(nullptr));
+    if (game->Started()) {
+      passto = game->PassTo();
+
+      switch (game->State()) {
+	 case STATE_SEND_CARDS: for (int player = 0; player < 4; player++)
+	                           table->Send(player, "%s %d %s", TABLE_YOUR_CARDS, game->PassTo(), game->Str_Cards(player));
+				if (passto == pNOPASS)
+				  game->SetState(STATE_WAIT_TWO_CLUBS);
+				else
+				  game->SetState(STATE_WAIT_PASS);
+	                        game->Set_Wait(time(nullptr));
+		                break;
+	 case STATE_WAIT_PASS: if (difftime(time(nullptr), game->Wait()) > GAME_WAIT) {
+                                 if (!game->Passed(PLAYER_NORTH)) game->ForcePass(table, PLAYER_NORTH );
+                                 if (!game->Passed(PLAYER_SOUTH)) game->ForcePass(table, PLAYER_SOUTH );
+                                 if (!game->Passed(PLAYER_WEST)) game->ForcePass(table, PLAYER_WEST );
+                                 if (!game->Passed(PLAYER_EAST)) game->ForcePass(table, PLAYER_EAST );
+	                         game->Set_Wait(time(nullptr));
+	                       }
+			       break; 
+	 case STATE_WAIT_TWO_CLUBS: table->Send(turn, TABLE_YOUR_TURN);  
+				    game->Set_Wait(time(nullptr));
+				    game->SetState(STATE_FORCE_TWO_CLUBS);
+			            break; 
       }
-      else
-        if (difftime(time(nullptr), game->Wait()) > GAME_WAIT) {
-	  // force play
-	}
     }
     Q = Q->next;
   }

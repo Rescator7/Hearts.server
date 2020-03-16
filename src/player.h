@@ -3,11 +3,17 @@
 
 #include "table.h"
 
-#define PLAYER_NOWHERE  -1
+#define PLAYER_NOWHERE  4
 #define PLAYER_NORTH    2
 #define PLAYER_SOUTH    0
 #define PLAYER_WEST     1
 #define PLAYER_EAST     3
+
+#define Direction(a, b) if((a) == 'n') (b) = PLAYER_NORTH; \
+                                else if ((a) == 's') (b) = PLAYER_SOUTH; \
+                                else if ((a) == 'w') (b) = PLAYER_WEST; \
+                                else if ((a) == 'e') (b) = PLAYER_EAST; \
+                                else (b) = PLAYER_NOWHERE;
 
 class cPlayer {
 public:
