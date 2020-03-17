@@ -22,6 +22,7 @@ cCommandsStack::cCommandsStack(void)
  Add( "new",      LVL_GUEST, new cNew() );
  Add( "mute",     LVL_GUEST, new cMute() );
  Add( "pass",     LVL_GUEST, new cPass() );
+ Add( "play",     LVL_GUEST, new cPlay() );
  Add( "say",      LVL_GUEST, new cSay() );
  Add( "sit",      LVL_GUEST, new cSit() );
  Add( "shutdown", LVL_ADMIN, new cShutdown() );

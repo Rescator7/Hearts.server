@@ -4,7 +4,7 @@
 
 void cDate::Execute( cDescriptor & d, cParam & param )
 {
- const time_t now = time(0);
+ const time_t now = time(nullptr);
  char server_time[50], gm_time[50];
 
  strftime(server_time, 50, "%a %b %e, %k:%M %Z %Y", localtime(&now));

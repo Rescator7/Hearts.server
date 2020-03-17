@@ -141,7 +141,7 @@ int main()
 {
  int renice = 0, server_port = 4000;
 
- srand(time(0));
+ srand(time(nullptr));
 
 // Log = new cLog("hackers.log");
  Log.Write("Heart server is booting up");

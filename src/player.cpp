@@ -44,7 +44,7 @@ void cPlayer::setPassword( const char * p, bool encrypt )
    return;
  } // already encrypted
 
- srand(time(0));
+ srand(time(nullptr));
  salt[0] = letters[rand() % 62];
  salt[1] = letters[rand() % 62];
  salt[2] = '\x0';

@@ -253,14 +253,18 @@ usINT cGame::Turn()
   return turn;
 }
 
-time_t cGame::Wait()
+void cGame::Wait(usINT d)
 {
-  return wait_time;
+  delay = d;
+  wait_time = time(nullptr);
 }
 
-void cGame::Set_Wait(time_t t)
+bool cGame::WaitOver()
 {
-  wait_time = time(nullptr);
+  if (difftime(time(nullptr), wait_time) >= delay)
+    return true;
+  else
+    return false;
 }
 
 void cGame::Start()
@@ -294,4 +298,9 @@ void cGame::SetState(usINT s)
 usINT cGame::PassTo()
 {
   return passto;
+}
+
+bool cGame::MyTurn(usINT chair)
+{
+  return turn == chair;
 }

@@ -5,6 +5,7 @@
 #include "commands/leave.h"
 #include "commands/new.h"
 #include "commands/pass.h"
+#include "commands/play.h"
 #include "commands/say.h"
 #include "commands/sit.h"
 #include "commands/shutdown.h"

@@ -25,7 +25,7 @@ void cLog::Write (const char *format, ...)
  if (!bLogging) return;
 
  va_list args;
- time_t ctime = time(0);
+ time_t ctime = time(nullptr);
  char * time_s = asctime(localtime(&ctime));
 
  if (format == NULL)

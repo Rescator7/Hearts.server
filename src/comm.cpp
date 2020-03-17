@@ -97,7 +97,7 @@ cDescriptor::cDescriptor(socket_t mother_desc)
    return;
  }
  player = new cPlayer;
- last_sockread = time(0);
+ last_sockread = time(nullptr);
  fcntl(desc, F_SETFL, O_NONBLOCK);
  memset(ip, '\x0', sizeof(ip));
  strncpy(ip, inet_ntoa(peer.sin_addr), 15);
@@ -164,7 +164,7 @@ ssize_t cDescriptor::Socket_Read()
  if (ret >= 1)
    bytes_read += ret;
 
- if (difftime(time(0), last_sockread) >= 1) {
+ if (difftime(time(nullptr), last_sockread) >= 1) {
    if (bytes_read >= SOCKET_MAX_READ_BYTES) {
      Socket_Write(SOCKET_FLOOD);
      return -1;
@@ -174,7 +174,7 @@ ssize_t cDescriptor::Socket_Read()
  }
 
  if (ret > 0) {
-   last_sockread = time(0);
+   last_sockread = time(nullptr);
    skip_crlf( buffer );
    Log.Write("RCVD %d (%s): %s", desc, ip, buffer);
    if (!strcmp(buffer,"ÿôÿý")) {
@@ -434,16 +434,13 @@ bool cDescriptor::Is_Connected()
   } else {
       int idleness = 0;
       if (state < CON_PROMPT) {
-        if (time(0) - last_sockread > MAX_LOGON_IDLE) idleness = MAX_LOGON_IDLE;
+        if (time(nullptr) - last_sockread > MAX_LOGON_IDLE) idleness = MAX_LOGON_IDLE;
       } else {
-          if (time(0) - last_sockread > MAX_IDLE) idleness = MAX_IDLE;
+          if (time(nullptr) - last_sockread > MAX_IDLE) idleness = MAX_IDLE;
         }
       if (idleness) {
         Log.Write("WARNING: Idleness on socket %d (connection closed)", desc);
-        if (idleness < 120)
-          Socket_Write(AUTO_LOGOUT_IDLENESS);
-        else
-          Socket_Write("\n\n**** Auto-logout because you were idle more than %d minutes. ****\n\n", idleness / 60);
+        Socket_Write("%s %d", AUTO_LOGOUT_IDLENESS, idleness);
         return false;
       }
     }

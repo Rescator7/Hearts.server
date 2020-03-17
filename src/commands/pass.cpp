@@ -12,12 +12,28 @@
 void cPass::Execute( cDescriptor &d, cParam &param )
 {
   struct cPlayer *player;
-  struct cGame *game;
   struct cTable *table;
+  struct cGame *game;
 
   if ((player = d.player) == nullptr) return;
-  if ((table = player->table) == nullptr) return;
-  if ((game = table->game) == nullptr) return;
+
+  if ((table = player->table) == nullptr) {
+    d.Socket_Write(PLAYER_NO_TABLE);
+    return;
+  }
+
+  int chair = table->Chair(d);
+  if (chair == PLAYER_NOWHERE) {
+    d.Socket_Write(PLAYER_NOT_SAT);
+    return;
+  }
+
+  game = table->game;
+
+  if (!game->Started()) {
+    d.Socket_Write(TABLE_NOT_STARTED);
+    return;
+  }
 
   usINT ret, card1, card2, card3;
 
@@ -25,12 +41,6 @@ void cPass::Execute( cDescriptor &d, cParam &param )
 
   if (ret != 3) {
     d.Socket_Write(TABLE_NOT_3PASSED);
-    return;
-  }
-
-  int chair = table->Chair(d);
-  if (chair == PLAYER_NOWHERE) {
-    d.Socket_Write(PLAYER_NOT_SAT);
     return;
   }
 

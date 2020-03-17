@@ -36,6 +36,8 @@
 #define TABLE_PASSING_OVER    "E33"
 #define TABLE_STARTED         "E34"
 #define TABLE_FULL            "E35"
+#define TABLE_NOT_STARTED     "E36"
+#define TABLE_NOT_YOUR_TURN   "E37"
 
 #define PLAYER_UID            "I01"
 #define PLAYER_CHOOSE_CHAIR   "I02"

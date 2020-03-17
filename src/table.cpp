@@ -44,15 +44,19 @@ bool cTable::Muted()
   return muted;
 }
 
-void cTable::Send(usINT playerid, const char *format, ... )
+void cTable::Send(usINT chair, const char *format, ... )
 {
+  struct cDescriptor *desc = player_desc[chair];
+
+  if (desc == nullptr) return;
+
   va_list args;
   char buffer [10 * 1024];
 
   va_start(args, format);
   vsprintf(buffer, format, args);
 
-  player_desc[playerid]->Socket_Write((const char *) &buffer);  
+  desc->Socket_Write((const char *) &buffer);  
 
   va_end(args);
 }
@@ -251,7 +255,7 @@ unsigned int cTable::Num_Players()
 
 cPlayer *cTable::Player(unsigned int chair)
 {
-  if (player_desc[chair])
+  if (player_desc[chair] != nullptr)
     return player_desc[chair]->player;
   else
     return nullptr;
@@ -398,6 +402,7 @@ void cTabList::Play()
   struct cTable *table;
   int passto;
   int turn;
+  int w;
 
   while ( Q ) {
     table = Q->elem;
@@ -408,25 +413,31 @@ void cTabList::Play()
       passto = game->PassTo();
 
       switch (game->State()) {
-	 case STATE_SEND_CARDS: for (int player = 0; player < 4; player++)
-	                           table->Send(player, "%s %d %s", TABLE_YOUR_CARDS, game->PassTo(), game->Str_Cards(player));
-				if (passto == pNOPASS)
+	 case STATE_SEND_CARDS: if (passto == pNOPASS) {
 				  game->SetState(STATE_WAIT_TWO_CLUBS);
-				else
+				  w = WAIT_PLAY_TWO_CLUBS;
+				}
+				else {
 				  game->SetState(STATE_WAIT_PASS);
-	                        game->Set_Wait(time(nullptr));
+	                          w = WAIT_SELECT_CARDS;
+				}
+		                for (int player = 0; player < 4; player++)
+	                           table->Send(player, "%s %d %d %s", TABLE_YOUR_CARDS, game->PassTo(), w, game->Str_Cards(player));
+				game->Wait(w);
 		                break;
-	 case STATE_WAIT_PASS: if (difftime(time(nullptr), game->Wait()) > GAME_WAIT) {
+	 case STATE_WAIT_PASS: if (game->WaitOver()) {
                                  if (!game->Passed(PLAYER_NORTH)) game->ForcePass(table, PLAYER_NORTH );
                                  if (!game->Passed(PLAYER_SOUTH)) game->ForcePass(table, PLAYER_SOUTH );
                                  if (!game->Passed(PLAYER_WEST)) game->ForcePass(table, PLAYER_WEST );
                                  if (!game->Passed(PLAYER_EAST)) game->ForcePass(table, PLAYER_EAST );
-	                         game->Set_Wait(time(nullptr));
+	                         game->Wait(WAIT_PASSED_CARDS);
 	                       }
 			       break; 
-	 case STATE_WAIT_TWO_CLUBS: table->Send(turn, TABLE_YOUR_TURN);  
-				    game->Set_Wait(time(nullptr));
-				    game->SetState(STATE_FORCE_TWO_CLUBS);
+	 case STATE_WAIT_TWO_CLUBS: if (game->WaitOver()) {
+			              table->Send(turn, TABLE_YOUR_TURN);  
+				      game->SetState(STATE_FORCE_TWO_CLUBS);
+				      game->Wait(WAIT_PLAY_CARD);
+				    }
 			            break; 
       }
     }

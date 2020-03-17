@@ -15,6 +15,11 @@
 #define STATE_WAIT_PLAY        6
 #define STATE_FORCE_PLAY       7
 
+#define WAIT_SELECT_CARDS      10
+#define WAIT_PASSED_CARDS      2
+#define WAIT_PLAY_TWO_CLUBS    3 // 5 should be fine for release
+#define WAIT_PLAY_CARD         4 // 10 or 15 for release
+
 class cGame {
 public:
   cGame( int f );
@@ -28,6 +33,7 @@ private:
   int flags;
   usINT state;
   time_t wait_time;
+  usINT delay;
   usINT suit;
   usINT passto;
   usINT turn;
@@ -42,8 +48,8 @@ private:
 public:
   usINT Turn();
   void Start();
-  time_t Wait();
-  void Set_Wait(time_t t);
+  void Wait(usINT d);
+  bool WaitOver();
   char *Str_Cards(usINT player);
   usINT Cards(usINT player, usINT card);
   usINT Num_Cards(usINT player);
@@ -57,5 +63,6 @@ public:
   bool Passed(usINT pid);
   void ResetPassed();
   void Run();
+  bool MyTurn(usINT chair);
 };
 #endif
