@@ -34,16 +34,6 @@ cTable::~cTable()
   delete game;
 }
 
-void cTable::Mute()
-{
-  muted = true;
-}
-
-bool cTable::Muted()
-{
-  return muted;
-}
-
 void cTable::Send(usINT chair, const char *format, ... )
 {
   struct cDescriptor *desc = player_desc[chair];
@@ -59,14 +49,6 @@ void cTable::Send(usINT chair, const char *format, ... )
   desc->Socket_Write((const char *) &buffer);  
 
   va_end(args);
-}
-
-void cTable::SendAll(const char *message)
-{
-  if (player_desc[PLAYER_NORTH] != nullptr) player_desc[PLAYER_NORTH]->Socket_Write(message);	
-  if (player_desc[PLAYER_SOUTH] != nullptr) player_desc[PLAYER_SOUTH]->Socket_Write(message);	
-  if (player_desc[PLAYER_WEST] != nullptr) player_desc[PLAYER_WEST]->Socket_Write(message);	
-  if (player_desc[PLAYER_EAST] != nullptr) player_desc[PLAYER_EAST]->Socket_Write(message);	
 }
 
 void cTable::Say(cDescriptor &desc, const char *message)
@@ -126,11 +108,6 @@ bool cTable::PlayerLink(cDescriptor &desc)
  }
 
  return false;
-}
-
-unsigned int cTable::TableID()
-{
- return table_id;
 }
 
 bool cTable::Stand(cDescriptor &desc)
@@ -211,16 +188,6 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
      if (player_desc[chair] == &desc) Stand(desc);
 }
 
-usINT cTable::Chair(cDescriptor &desc)
-{
- if (player_desc[PLAYER_NORTH] == &desc) return PLAYER_NORTH;
- if (player_desc[PLAYER_SOUTH] == &desc) return PLAYER_SOUTH;
- if (player_desc[PLAYER_WEST] == &desc) return PLAYER_WEST;
- if (player_desc[PLAYER_EAST] == &desc) return PLAYER_EAST;
-
- return PLAYER_NOWHERE;
-}
-
 void cTable::Sat(cDescriptor &desc)
 {
   struct cPlayer *player;
@@ -238,6 +205,42 @@ void cTable::Sat(cDescriptor &desc)
     desc.Socket_Write("%s %d e %s", PLAYER_SIT_HERE, TableID(), player->Handle());
 }
 
+usINT cTable::Chair(cDescriptor &desc)
+{
+ if (player_desc[PLAYER_NORTH] == &desc) return PLAYER_NORTH;
+ if (player_desc[PLAYER_SOUTH] == &desc) return PLAYER_SOUTH;
+ if (player_desc[PLAYER_WEST] == &desc) return PLAYER_WEST;
+ if (player_desc[PLAYER_EAST] == &desc) return PLAYER_EAST;
+
+ return PLAYER_NOWHERE;
+}
+
+void cTable::SendAll(const char *message)
+{
+  if (player_desc[PLAYER_NORTH] != nullptr) player_desc[PLAYER_NORTH]->Socket_Write(message);	
+  if (player_desc[PLAYER_SOUTH] != nullptr) player_desc[PLAYER_SOUTH]->Socket_Write(message);	
+  if (player_desc[PLAYER_WEST] != nullptr) player_desc[PLAYER_WEST]->Socket_Write(message);	
+  if (player_desc[PLAYER_EAST] != nullptr) player_desc[PLAYER_EAST]->Socket_Write(message);	
+}
+
+bool cTable::PlayerSat(cDescriptor &desc)
+{
+  if (player_desc[PLAYER_NORTH] == &desc) return true;
+  if (player_desc[PLAYER_SOUTH] == &desc) return true;
+  if (player_desc[PLAYER_WEST] == &desc) return true;
+  if (player_desc[PLAYER_EAST] == &desc) return true;
+
+  return false;
+}
+
+cPlayer *cTable::Player(unsigned int chair)
+{
+  if (player_desc[chair] != nullptr)
+    return player_desc[chair]->player;
+  else
+    return nullptr;
+}
+
 unsigned int cTable::Flags()
 {
  return flags;
@@ -253,22 +256,9 @@ unsigned int cTable::Num_Players()
  return num_players;
 }
 
-cPlayer *cTable::Player(unsigned int chair)
+unsigned int cTable::TableID()
 {
-  if (player_desc[chair] != nullptr)
-    return player_desc[chair]->player;
-  else
-    return nullptr;
-}
-
-bool cTable::PlayerSat(cDescriptor &desc)
-{
-  if (player_desc[PLAYER_NORTH] == &desc) return true;
-  if (player_desc[PLAYER_SOUTH] == &desc) return true;
-  if (player_desc[PLAYER_WEST] == &desc) return true;
-  if (player_desc[PLAYER_EAST] == &desc) return true;
-
-  return false;
+ return table_id;
 }
 
 bool cTable::Full()
@@ -288,6 +278,18 @@ cDescriptor *cTable::desc(usINT chair)
 {
   return player_desc[chair];
 }
+
+void cTable::Mute()
+{
+  muted = true;
+}
+
+bool cTable::Muted()
+{
+  return muted;
+}
+
+// *************************************************************************************************************************************
 
 bool cTabList::Add(cTable *elem)
 {
@@ -402,7 +404,7 @@ void cTabList::Play()
   struct cTable *table;
   int passto;
   int turn;
-  int w;
+  int delay;
 
   while ( Q ) {
     table = Q->elem;
@@ -415,30 +417,38 @@ void cTabList::Play()
       switch (game->State()) {
 	 case STATE_SEND_CARDS: if (passto == pNOPASS) {
 				  game->SetState(STATE_WAIT_TWO_CLUBS);
-				  w = WAIT_PLAY_TWO_CLUBS;
+				  delay = WAIT_PLAY_TWO_CLUBS;
 				}
 				else {
 				  game->SetState(STATE_WAIT_PASS);
-	                          w = WAIT_SELECT_CARDS;
+	                          delay = WAIT_SELECT_CARDS;
 				}
 		                for (int player = 0; player < 4; player++)
-	                           table->Send(player, "%s %d %d %s", TABLE_YOUR_CARDS, game->PassTo(), w, game->Str_Cards(player));
-				game->Wait(w);
+	                           table->Send(player, "%s %d %d %s", TABLE_YOUR_CARDS, game->PassTo(), delay, game->Str_Cards(player));
+				game->Wait(delay);
 		                break;
 	 case STATE_WAIT_PASS: if (game->WaitOver()) {
                                  if (!game->Passed(PLAYER_NORTH)) game->ForcePass(table, PLAYER_NORTH );
                                  if (!game->Passed(PLAYER_SOUTH)) game->ForcePass(table, PLAYER_SOUTH );
                                  if (!game->Passed(PLAYER_WEST)) game->ForcePass(table, PLAYER_WEST );
                                  if (!game->Passed(PLAYER_EAST)) game->ForcePass(table, PLAYER_EAST );
+			         table->Send(turn, TABLE_YOUR_TURN);  
+				 game->SetState(STATE_WAIT_TWO_CLUBS);
 	                         game->Wait(WAIT_PASSED_CARDS);
 	                       }
 			       break; 
 	 case STATE_WAIT_TWO_CLUBS: if (game->WaitOver()) {
-			              table->Send(turn, TABLE_YOUR_TURN);  
 				      game->SetState(STATE_FORCE_TWO_CLUBS);
 				      game->Wait(WAIT_PLAY_CARD);
 				    }
 			            break; 
+	 case STATE_WAIT_PLAY: if (game->WaitOver()) {
+			         if (!game->Played(turn)) game->ForcePlay(*table);
+				 if (!game->AdvanceTurn(*table)) {
+				   // End of turn
+			         }
+			       }
+			       break;
       }
     }
     Q = Q->next;

@@ -38,6 +38,10 @@
 #define TABLE_FULL            "E35"
 #define TABLE_NOT_STARTED     "E36"
 #define TABLE_NOT_YOUR_TURN   "E37"
+#define TABLE_CANT_BREAK_HEART "E38"
+#define TABLE_QUEEN_SPADE     "E39"
+#define TABLE_WRONG_SUIT      "E40"
+#define SOCKET_MAX_REGISTER_IP "E41"
 
 #define PLAYER_UID            "I01"
 #define PLAYER_CHOOSE_CHAIR   "I02"
@@ -52,5 +56,6 @@
 #define TABLE_LEAVE           "I11"
 #define TABLE_CARDS_RECEIVED  "I12"
 #define TABLE_FORCE_PASS      "I13"
+#define TABLE_FORCE_PLAY      "I14"
 
 #endif

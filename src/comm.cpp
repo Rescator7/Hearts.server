@@ -20,9 +20,6 @@
 //#define perror(a) fprintf(stderr, "%s\n", (a));
 cCommandsStack cmd;
 
-//External variables
-extern class cDescList *descriptor_list;
-
 const char *prompt = "%%";
 const char *login = "login:";
 const char *password = "password:";
@@ -101,6 +98,7 @@ cDescriptor::cDescriptor(socket_t mother_desc)
  fcntl(desc, F_SETFL, O_NONBLOCK);
  memset(ip, '\x0', sizeof(ip));
  strncpy(ip, inet_ntoa(peer.sin_addr), 15);
+ player->Set_Ip(ip);
  from = gethostbyaddr((char *) &peer.sin_addr, sizeof(peer.sin_addr), AF_INET);
  printf("'%s' %d\r\n", ip, descriptor_list->Connection_Per_Ip((char *) &ip));
  if (descriptor_list->Connection_Per_Ip((char *)&ip) >= MAX_CONNECTION_PER_IP) {
@@ -233,6 +231,14 @@ bool cDescriptor::process_input()
    case CON_LOGIN : 
           Log.Write("PROCINP: CON_LOGIN");
           if (!strcmp(lcBuf, "new")) {
+	    if (sql.query("select count(*) from account where ip = '%s'", player->Ip())) {
+	      if (atoi(sql.get_row(0)) >= MAX_REGISTER_PER_IP) {
+		Socket_Write(SOCKET_MAX_REGISTER_IP);
+	        Disconnect();
+		break;
+	      }
+	    }
+
             state = CON_NEW_HANDLE;
             Socket_Write(handle);
             break;

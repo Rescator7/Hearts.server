@@ -16,11 +16,14 @@ cPlayer::cPlayer()
  realname = nullptr;
  email = nullptr;
  password = nullptr;
+ ip = nullptr;
  table = nullptr;
 }
 
 cPlayer::~cPlayer()
 {
+  if (ip)
+    free(ip);
 }
 
 bool cPlayer::doesPasswordMatch( const char * p )
@@ -77,16 +80,20 @@ unsigned int cPlayer::SQL_ID()
 
 bool cPlayer::save()
 {
- printf ("%s %s %s %s\r\n", handle, password, realname, email);
+ printf ("%s %s %s %s %s\r\n", handle, password, ip, realname, email);
 
- return ( sql.query("insert into account values (0, '%s', '%s', '%s', '%s', now(), 0, 1 )", handle, password, realname, email ));
+ return ( sql.query("insert into account values (0, '%s', '%s', '%s', '%s', '%s', now(), 0, 1 )", handle, password, ip, realname, email ));
 }
 
 bool cPlayer::load()
 {
- if (sql.query("select playerid, userlevel from account where handle = '%s'", handle)) {
+ if (sql.query("select playerid, ip, userlevel from account where handle = '%s'", handle)) {
    player_id = atoi(sql.get_row(0));
-   level = atoi(sql.get_row(1));
+   if (sql.get_row(1))
+     ip = strdup(sql.get_row(1));
+   if (ip)
+     printf("Connected from: %s\r\n", ip);
+   level = atoi(sql.get_row(2));
  }
  printf("player id: %d, userlevel: %d\r\n", player_id, level);
 /*
@@ -118,6 +125,11 @@ char *cPlayer::Password()
   return password;
 }
 
+char *cPlayer::Ip()
+{
+  return ip;
+}
+
 void cPlayer::Set_Handle(char *h)
 {
   handle = h;
@@ -126,6 +138,11 @@ void cPlayer::Set_Handle(char *h)
 void cPlayer::Set_Password(char *p)
 {
   password = p;
+}
+
+void cPlayer::Set_Ip(char *_ip)
+{
+  ip = strdup(_ip);
 }
 
 void cPlayer::ULink_Table(unsigned int id)

@@ -32,14 +32,9 @@ void cPlay::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
-  if (!game->MyTurn(chair)) {
-    d.Socket_Write(TABLE_NOT_YOUR_TURN);
-    return;
-  }
-
   int card = atoi(param.arguments);
-  if ((card < 0) || (card > DECK_SIZE - 1)) {
-    d.Socket_Write(TABLE_ILLEGAL_CARD);
+  if (!game->ValidMove(d, chair, card))
     return;
-  }
+
+  game->Play(chair, card);
 }

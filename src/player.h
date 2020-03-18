@@ -29,6 +29,7 @@ private:
   char *realname;
   char *email;
   char *password;
+  char *ip;
 
   char prompt   [MAX_PROMPT_LENGTH];
   char salt     [3];
@@ -44,8 +45,10 @@ public:
   unsigned int Level();
   char *Handle();
   char *Password();
+  char *Ip();
   void Set_Handle(char *h);
   void Set_Password(char *p);
+  void Set_Ip(char *_ip);
   void ULink_Table(unsigned int id);
 };
 

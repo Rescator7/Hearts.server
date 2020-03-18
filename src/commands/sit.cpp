@@ -18,7 +18,7 @@ void cSit::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
-  if (!param.arguments[0]) {
+  if (!*param.arguments) {
     table->Stand(d);
     return;
   }
