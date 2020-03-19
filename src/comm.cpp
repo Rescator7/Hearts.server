@@ -136,10 +136,10 @@ void cDescriptor::Disconnect()
 bool cDescriptor::Socket_Write( const char * format, ... )
 {
  va_list args;
- char buf [10 * 1024];
+ char buf [BUF_SIZE];
 
  va_start(args, format);
- vsprintf(buf, format, args); // FIXME: unsafe, no buffer overflow check on this
+ vsnprintf(buf, BUF_SIZE, format, args);
 // process_ansi( buf );
  printf("SOCKET_WRITE: '%s'\r\n", buf);
  send(desc, buf, strlen(buf)+1, 0); // +1 allow to send the \x0, and use it as a datagram end marker
@@ -531,10 +531,10 @@ bool cDescList::Find_Handle( const char * handle )
 bool cDescList::Send_To_All( const char * format, ... )
 {
   va_list args;
-  char buffer [10 * 1024];
+  char buffer [BUF_SIZE];
 
   va_start(args, format);
-  vsprintf(buffer, format, args); // FIXME: unsafe, no buffer overflow check on this
+  vsnprintf(buffer, BUF_SIZE, format, args); // FIXME: unsafe, no buffer overflow check on this
   for (struct sList * Q = head; Q; Q = Q->next)
     if ((Q->elem->State() == CON_PROMPT) && Q->elem->Socket_Write((const char *)&buffer));
   va_end(args);

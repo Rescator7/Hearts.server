@@ -28,7 +28,7 @@ public:
   time_t Expire();
   void Sit(cDescriptor &desc, unsigned int chair);
   void Say(cDescriptor &desc, const char *message);
-  void SendAll(const char *message);
+  void SendAll(const char *format, ... );
   void Send(usINT chair, const char *format, ... );
   void Sat(cDescriptor &desc);
   void Mute();

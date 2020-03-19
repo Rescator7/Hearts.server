@@ -41,10 +41,10 @@ void cTable::Send(usINT chair, const char *format, ... )
   if (desc == nullptr) return;
 
   va_list args;
-  char buffer [10 * 1024];
+  char buffer [BUF_SIZE];
 
   va_start(args, format);
-  vsprintf(buffer, format, args);
+  vsnprintf(buffer, BUF_SIZE, format, args);
 
   desc->Socket_Write((const char *) &buffer);  
 
@@ -215,12 +215,20 @@ usINT cTable::Chair(cDescriptor &desc)
  return PLAYER_NOWHERE;
 }
 
-void cTable::SendAll(const char *message)
+void cTable::SendAll(const char *format, ... )
 {
-  if (player_desc[PLAYER_NORTH] != nullptr) player_desc[PLAYER_NORTH]->Socket_Write(message);	
-  if (player_desc[PLAYER_SOUTH] != nullptr) player_desc[PLAYER_SOUTH]->Socket_Write(message);	
-  if (player_desc[PLAYER_WEST] != nullptr) player_desc[PLAYER_WEST]->Socket_Write(message);	
-  if (player_desc[PLAYER_EAST] != nullptr) player_desc[PLAYER_EAST]->Socket_Write(message);	
+  va_list args;
+  char buffer [BUF_SIZE];
+
+  va_start(args, format);
+  vsnprintf(buffer, BUF_SIZE, format, args);
+
+  if (player_desc[PLAYER_NORTH] != nullptr) player_desc[PLAYER_NORTH]->Socket_Write(buffer);	
+  if (player_desc[PLAYER_SOUTH] != nullptr) player_desc[PLAYER_SOUTH]->Socket_Write(buffer);	
+  if (player_desc[PLAYER_WEST] != nullptr) player_desc[PLAYER_WEST]->Socket_Write(buffer);	
+  if (player_desc[PLAYER_EAST] != nullptr) player_desc[PLAYER_EAST]->Socket_Write(buffer);	
+
+  va_end(args);
 }
 
 bool cTable::PlayerSat(cDescriptor &desc)
@@ -387,16 +395,6 @@ void cTabList::Remove_Expired()
   }
 }
 
-/*
-#define STATE_SEND_CARDS       1
-#define STATE_WAIT_PASS        2
-#define STATE_FORCE_PASS       3
-#define STATE_WAIT_TWO_CLUBS   4
-#define STATE_FORCE_TWO_CLUBS  5
-#define STATE_WAIT_PLAY        6
-#define STATE_FORCE_PLAY       7
-*/
-
 void cTabList::Play()
 {
   struct sList *Q = head;
@@ -428,11 +426,11 @@ void cTabList::Play()
 				game->Wait(delay);
 		                break;
 	 case STATE_WAIT_PASS: if (game->WaitOver()) {
-                                 if (!game->Passed(PLAYER_NORTH)) game->ForcePass(table, PLAYER_NORTH );
-                                 if (!game->Passed(PLAYER_SOUTH)) game->ForcePass(table, PLAYER_SOUTH );
-                                 if (!game->Passed(PLAYER_WEST)) game->ForcePass(table, PLAYER_WEST );
-                                 if (!game->Passed(PLAYER_EAST)) game->ForcePass(table, PLAYER_EAST );
-			         table->Send(turn, TABLE_YOUR_TURN);  
+                                 if (!game->Passed(PLAYER_NORTH)) game->ForcePass(table, PLAYER_NORTH);
+                                 if (!game->Passed(PLAYER_SOUTH)) game->ForcePass(table, PLAYER_SOUTH);
+                                 if (!game->Passed(PLAYER_WEST)) game->ForcePass(table, PLAYER_WEST);
+                                 if (!game->Passed(PLAYER_EAST)) game->ForcePass(table, PLAYER_EAST);
+			         table->Send(turn, "%s %d", TABLE_YOUR_TURN, WAIT_PLAY_TWO_CLUBS);  
 				 game->SetState(STATE_WAIT_TWO_CLUBS);
 	                         game->Wait(WAIT_PASSED_CARDS);
 	                       }
@@ -442,12 +440,24 @@ void cTabList::Play()
 				      game->Wait(WAIT_PLAY_CARD);
 				    }
 			            break; 
+	 case STATE_FORCE_TWO_CLUBS: if (game->WaitOver()) {
+				       if (!game->Played(turn)) game->ForcePlay(*table);
+				       game->AdvanceTurn(*table);
+				       game->SetState(STATE_WAIT_PLAY);
+				     }
+				     break;
 	 case STATE_WAIT_PLAY: if (game->WaitOver()) {
+				 printf("turn: %d, played: %d\r\n", turn, game->Played(turn));
 			         if (!game->Played(turn)) game->ForcePlay(*table);
 				 if (!game->AdvanceTurn(*table)) {
+				   game->SetState(STATE_END_TURN);
 				   // End of turn
-			         }
-			       }
+			         } else {
+				      game->Wait(WAIT_PLAY_CARD);   
+			           }
+                               }
+			       break;
+	case STATE_END_TURN:  
 			       break;
       }
     }

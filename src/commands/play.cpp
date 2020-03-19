@@ -36,5 +36,5 @@ void cPlay::Execute( cDescriptor &d, cParam &param )
   if (!game->ValidMove(d, chair, card))
     return;
 
-  game->Play(chair, card);
+  game->Play(*table, card);
 }

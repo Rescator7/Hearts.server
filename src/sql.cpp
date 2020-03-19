@@ -17,7 +17,7 @@ cMYSQL::query( const char * format, ... )
 
  va_start(args, format);
 
- vsprintf(buffer, format, args); // FIXME: unsafe, no buffer overflow check on this
+ vsnprintf(buffer, SIZE_QUERY_BUFFER, format, args); // FIXME: unsafe, no buffer overflow check on this
  strncpy(last_query, buffer, SIZE_QUERY_BUFFER);  // keep a backup of the last query
  errno = mysql_query(&mysql, buffer);
  printf("query: %s, errno: %d\n", buffer, errno);

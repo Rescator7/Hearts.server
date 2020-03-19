@@ -57,5 +57,8 @@
 #define TABLE_CARDS_RECEIVED  "I12"
 #define TABLE_FORCE_PASS      "I13"
 #define TABLE_FORCE_PLAY      "I14"
+#define TABLE_PLAY_TWO_CLUBS  "I15"
+#define TABLE_PLAY            "I16"
+#define TABLE_CLEAR           "I17"
 
 #endif

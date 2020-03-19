@@ -16,6 +16,7 @@
 #define MAX_IDLE             3600
 #define MAX_LOGON_IDLE       60 
 
+#define BUF_SIZE             2048
 #define SIZE_QUERY_BUFFER    1024
 #define SOCKET_BUFSIZE       512
 #define SOCKET_MAX_READ_BYTES 256
@@ -66,6 +67,7 @@
 #define DIAMOND              2
 #define HEART                3
 #define FREESUIT             4
+#define TWO_CLUBS            0
 #define ACE_SPADE            25
 #define KING_SPADE           24
 #define QUEEN_SPADE          23

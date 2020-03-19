@@ -8,16 +8,6 @@
 #include "game.h"
 #include "player.h"
 
-/*
-#define STATE_SEND_CARDS       1
-#define STATE_WAIT_PASS        2
-#define STATE_FORCE_PASS       3
-#define STATE_WAIT_TWO_CLUBS   4
-#define STATE_FORCE_TWO_CLUBS  5
-#define STATE_WAIT_PLAY        6
-#define STATE_FORCE_PLAY       7
-*/
-
 cGame::cGame( int f )
 {
   flags = f;
@@ -47,7 +37,7 @@ cGame::cGame( int f )
 
   num_passed = 0;
   current_score = 0;
-  won_hand = 0;
+  won_turn = 0;
   left_to_play = 4;
   best_card = 0;
 
@@ -67,44 +57,63 @@ void cGame::Run()
 bool cGame::AdvanceTurn(cTable &table)
 {
   if (jack_diamond) {
-    won_jack_diamond = won_hand;
+    won_jack_diamond = won_turn;
     jack_diamond = false;
   }
 
-  hand_score[won_hand] += current_score;
+  hand_score[won_turn] += current_score;
 
   if (++turn == 4)
     turn = 0;
 
-  table.Send(turn, TABLE_YOUR_TURN);
+  table.Send(turn, "%s %d", TABLE_YOUR_TURN, WAIT_PLAY_CARD);
 
   if (--left_to_play == 0) {
     ResetPlayed();
-    return false;
+    turn = won_turn;
+    suit = FREESUIT;
+    table.SendAll(TABLE_CLEAR);
+ // add score here
+ //   return false;
   }
 
   return true;
 }
 
-void cGame::Play(usINT chair, usINT card)
+void cGame::Play(cTable &table, usINT card)
 {
-  if (card == QUEEN_SPADE)
+  struct cGame *game = table.game;
+
+  int turn = game->turn;
+
+  if (suit == FREESUIT)
+    suit = card / 13;
+
+  if (card == QUEEN_SPADE) {
     current_score += 13;
+    if (!heart_broken && (flags & QUEEN_SPADE_f))
+      heart_broken = true;
+  }
   else
     if (card == JACK_DIAMOND)
       jack_diamond = true;
     else
-      if (card / 13 == HEART)
-        current_score++;
+    if (card == TWO_CLUBS)
+        first_card = false;
+    else
+    if (card / 13 == HEART) {
+      current_score++;
+      heart_broken = true;
+    }
 
   if ((card / 13 == suit) && (card > best_card)) {
     best_card = card;
-    won_hand = chair;
+    won_turn = turn;
   }
 
-  num_cards[chair]--;
-  has_card[chair][card] = false;
-  played[chair] = true;
+  num_cards[turn]--;
+  has_card[turn][card] = false;
+  played[turn] = true;
 }
 
 bool cGame::ValidMove(cDescriptor &d, usINT chair, usINT card)
@@ -112,16 +121,18 @@ bool cGame::ValidMove(cDescriptor &d, usINT chair, usINT card)
   usINT error = ValidMove(chair, card);
 
   switch (error) {
-    case ERROR_NOT_YOUR_TURN: d.Socket_Write(TABLE_NOT_YOUR_TURN);
-			      return false;
-    case ERROR_ILLEGAL_CARD:  d.Socket_Write(TABLE_ILLEGAL_CARD);
-			      return false;
-    case ERROR_QUEEN_SPADE:   d.Socket_Write(TABLE_QUEEN_SPADE);
-			      return false;
-    case ERROR_BREAK_HEART:   d.Socket_Write(TABLE_CANT_BREAK_HEART);
-			      return false;
-    case ERROR_WRONG_SUIT:    d.Socket_Write(TABLE_WRONG_SUIT);
-			      return false;
+    case ERROR_NOT_YOUR_TURN:  d.Socket_Write(TABLE_NOT_YOUR_TURN);
+			       return false;
+    case ERROR_ILLEGAL_CARD:   d.Socket_Write(TABLE_ILLEGAL_CARD);
+			       return false;
+    case ERROR_QUEEN_SPADE:    d.Socket_Write(TABLE_QUEEN_SPADE);
+			       return false;
+    case ERROR_BREAK_HEART:    d.Socket_Write(TABLE_CANT_BREAK_HEART);
+			       return false;
+    case ERROR_WRONG_SUIT:     d.Socket_Write(TABLE_WRONG_SUIT);
+			       return false;
+    case ERROR_PLAY_TWO_CLUBS: d.Socket_Write(TABLE_PLAY_TWO_CLUBS);
+			       return false;
   }
   return true;
 }
@@ -149,6 +160,9 @@ usINT cGame::ValidMove(usINT chair, usINT card)
       if ((card_suit != suit) && cards_in_suit[chair][suit])
         return ERROR_WRONG_SUIT;
 
+  if (first_card && (card != TWO_CLUBS))
+    return ERROR_PLAY_TWO_CLUBS;
+
   return NO_ERROR;
 }
 
@@ -162,17 +176,19 @@ void cGame::ForcePlay(cTable &table)
 
   struct cDescriptor *d = table.desc(turn);
 
+  printf("force play, turn: %d, num_cards: %d\r\n", turn, num_cards[turn]);
   for (int i=0; i<num_cards[turn]; i++) {
     usINT card = player_cards[turn][i];
     if (ValidMove(turn, card) == NO_ERROR) {
-      Play(turn, card);
+      Play(table, card);
 
       if (d != nullptr)
 	d->Socket_Write("%s %d", TABLE_FORCE_PLAY, card);
-	
+      table.SendAll("%s %d %d", TABLE_PLAY, turn, card);
       return;
     }
   }
+  printf("CARD VALID NOT FOUND\r\n");
 }
 
 // This is a simple choose 3 cards to pass.
@@ -419,7 +435,6 @@ bool cGame::WaitOver()
   else
     return false;
 }
-
 
 void cGame::Start()
 {

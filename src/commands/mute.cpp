@@ -20,7 +20,7 @@ void cMute::Execute( cDescriptor &d, cParam &param )
 
  if (table->PlayerSat(d))  {
    table->Mute();
-   table->SendAll(TABLE_MUTED);
+   table->SendAll("%s", TABLE_MUTED);
  } else
      d.Socket_Write(PLAYER_NOT_SAT);
 }

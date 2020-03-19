@@ -1,6 +1,13 @@
 #ifndef _GAME_
 #define GAME
 
+#define QUEEN_SPADE_f          1
+#define PERFECT_100_f          1 << 1
+#define OMNIBUS_f              1 << 2
+#define NO_TRICK_BONUS_f       1 << 3
+#define NEW_MOON_f             1 << 4
+#define NO_DRAW_f              1 << 5
+
 #define NO_ERROR               0
 #define ERROR_CARDS_PASSED     1
 #define ERROR_ILLEGAL_CARD     2
@@ -11,6 +18,7 @@
 #define ERROR_QUEEN_SPADE      7
 #define ERROR_BREAK_HEART      8
 #define ERROR_WRONG_SUIT       9
+#define ERROR_PLAY_TWO_CLUBS   10
 
 #define STATE_SEND_CARDS       1
 #define STATE_WAIT_PASS        2
@@ -19,11 +27,12 @@
 #define STATE_FORCE_TWO_CLUBS  5
 #define STATE_WAIT_PLAY        6
 #define STATE_FORCE_PLAY       7
+#define STATE_END_TURN         8
 
 #define WAIT_SELECT_CARDS      10
 #define WAIT_PASSED_CARDS      2
-#define WAIT_PLAY_TWO_CLUBS    3 // 5 should be fine for release
-#define WAIT_PLAY_CARD         4 // 10 or 15 for release
+#define WAIT_PLAY_TWO_CLUBS    5 // 5 should be fine for release
+#define WAIT_PLAY_CARD         8 // 10 or 15 for release
 
 class cGame {
 public:
@@ -54,7 +63,7 @@ private:
   usINT passed_cards[4][3];
   usINT cards_in_suit[4][4];
   usINT hand_score[4];
-  usINT won_hand;
+  usINT won_turn;
   usINT best_card;
   usINT won_jack_diamond;
   bool jack_diamond;
@@ -84,7 +93,7 @@ public:
   bool MyTurn(usINT chair);
   bool ValidMove(cDescriptor &d, usINT chair, usINT card);
   usINT ValidMove(usINT chair, usINT card);
-  void Play(usINT chair, usINT card);
+  void Play(cTable &table, usINT card);
   bool AdvanceTurn(cTable &table);
   bool Played(usINT chair);
   void ResetPlayed();
