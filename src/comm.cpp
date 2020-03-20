@@ -534,7 +534,7 @@ bool cDescList::Send_To_All( const char * format, ... )
   char buffer [BUF_SIZE];
 
   va_start(args, format);
-  vsnprintf(buffer, BUF_SIZE, format, args); // FIXME: unsafe, no buffer overflow check on this
+  vsnprintf(buffer, BUF_SIZE, format, args);
   for (struct sList * Q = head; Q; Q = Q->next)
     if ((Q->elem->State() == CON_PROMPT) && Q->elem->Socket_Write((const char *)&buffer));
   va_end(args);

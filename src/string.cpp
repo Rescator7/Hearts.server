@@ -4,7 +4,6 @@
 #include "comm.h"
 #include "string.h"
 
-// #include <stdlib.h>
 char *extract_cmd(const char *buffer, char *cmd)
 {
   int i = 0;

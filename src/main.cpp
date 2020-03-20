@@ -139,14 +139,13 @@ void set_signals()
 
 int main() 
 {
- int renice = 0, server_port = 4000;
+ int renice = 0, 
+     server_port = 4000;
 
  srand(time(nullptr));
 
-// Log = new cLog("hackers.log");
  Log.Write("Heart server is booting up");
 
- //sql = new cMYSQL("localhost", "hackers", "hartaxiome", "hackers");
  Log.Write("Connected to the MYSQL database");
 
  if (sql.query("select server_port, nice from config")) {
@@ -155,7 +154,6 @@ int main()
  } else {
      Log.Write("SYSERR: Server configuration failed");
    }
-// TODO: create a class cCONFIG and put all config in it
 
  nice(renice); 
  Log.Write("Running in nice mode (priority = %d)", renice);
@@ -177,7 +175,7 @@ int main()
  Log.Write("Heart server is turning down");
 
  delete descriptor_list;
-// delete Log;
+ delete table_list;
 
- return ( false );
+ return false;
 }

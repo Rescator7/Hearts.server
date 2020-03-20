@@ -96,12 +96,6 @@ bool cPlayer::load()
    level = atoi(sql.get_row(2));
  }
  printf("player id: %d, userlevel: %d\r\n", player_id, level);
-/*
- if (!sql.query("select prompt from account where handle = '%s'", handle))
-   return ( false );
-
- strncpy (prompt, sql.get_row(0), MAX_PROMPT_LENGTH);
-*/
  return ( true );
 }
 

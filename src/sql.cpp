@@ -5,8 +5,7 @@
 #include "sql.h"
 #include "log.h"
 
-int
-cMYSQL::query( const char * format, ... )
+int cMYSQL::query( const char * format, ... )
 {
  int errno;
  va_list args;
@@ -17,21 +16,21 @@ cMYSQL::query( const char * format, ... )
 
  va_start(args, format);
 
- vsnprintf(buffer, SIZE_QUERY_BUFFER, format, args); // FIXME: unsafe, no buffer overflow check on this
+ vsnprintf(buffer, SIZE_QUERY_BUFFER, format, args);
  strncpy(last_query, buffer, SIZE_QUERY_BUFFER);  // keep a backup of the last query
  errno = mysql_query(&mysql, buffer);
  printf("query: %s, errno: %d\n", buffer, errno);
  va_end(args);
 
- if (errno) return ( false );
+ if (errno) return false;
 
  if (!(result = mysql_store_result(&mysql))) {
    freed = true; // nothings has been saved, so nothing will need to be freed.
    if (mysql_field_count(&mysql) != 0) { // data was expected
      Log.Write("SYSERR: cMYSQL::query() error: %s\n", mysql_error(&mysql));
-     return ( false ); // error
+     return false; // error
    }
-   return ( true ); // not error, was a "insert", "delete"... not data to retreive.
+   return true; // not error, was a "insert", "delete"... not data to retreive.
  } 
 
  freed = false; // data has been saved, will need to release it later.
@@ -40,33 +39,31 @@ cMYSQL::query( const char * format, ... )
  if (!(row = mysql_fetch_row(result))) {
    mysql_free_result(result);
    freed = true;
-   return ( num_affected_row );
+   return num_affected_row;
  }
- return ( num_affected_row );
+ return num_affected_row;
 }
 
-const char * 
-cMYSQL::get_row(unsigned int index)
+const char *cMYSQL::get_row(unsigned int index)
 {
  if (index + 1 > num_fields) {
    Log.Write("SYSERR: cMYSQL::get_row() invalid index: %d > num_fields: %d\n"
              "SYSERR: last query was '%s'" , index, num_fields, last_query);
-   return ( "" );
+   return "";
  }
- return ( row[index] );
+ return row[index];
 }
 
-bool
-cMYSQL::fetch()
+bool cMYSQL::fetch()
 {
  if (!(row = mysql_fetch_row(result))) {
    if (!freed) {
      mysql_free_result(result);
      freed = true;
    }
-   return ( false );
+   return false;
  }
- return ( true );
+ return true;
 }
 
 cMYSQL::cMYSQL(const char *host, const char *user, const char *password, const char *db)
@@ -98,8 +95,7 @@ cMYSQL::~cMYSQL()
 }
 
 // TODO: this function is not good, because it return a Int, so can't catch an error.
-int
-cMYSQL::singleIntQuery(const char * query)
+int cMYSQL::singleIntQuery(const char * query)
 {
  int errno, value;
 
@@ -123,5 +119,5 @@ cMYSQL::singleIntQuery(const char * query)
  value = atoi(row[0]);
  mysql_free_result(result);
 
- return ( value );
+ return value;
 }

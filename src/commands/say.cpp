@@ -5,14 +5,18 @@
 
 void cSay::Execute( cDescriptor &d, cParam &param )
 {
- if (!*param.arguments) return;
+  if (!*param.arguments) return;
 
- if (!d.player) return;
+  struct cPlayer *player = d.player;
 
- if (!d.player->table) {
-   d.Socket_Write(PLAYER_NO_TABLE);
-   return;
- }
+  if (player == nullptr) return;
 
- d.player->table->Say(d, param.arguments);
+  struct cTable *table = player->table;
+
+  if (table == nullptr) {
+    d.Socket_Write(PLAYER_NO_TABLE);
+    return;
+  }
+
+  table->Say(d, param.arguments);
 }

@@ -26,7 +26,7 @@ void cLog::Write (const char *format, ...)
 
  va_list args;
  time_t ctime = time(nullptr);
- char * time_s = asctime(localtime(&ctime));
+ char *time_s = asctime(localtime(&ctime));
 
  if (format == NULL)
    format = "SYSERR: log() received a NULL format.";
