@@ -5,6 +5,9 @@
 #include "../game.h"
 #include "play.h"
 
+
+#include <stdio.h>
+
 void cPlay::Execute( cDescriptor &d, cParam &param )
 {
   struct cPlayer *player;
@@ -32,7 +35,14 @@ void cPlay::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
+  if (game->Played(chair)) {
+    d.Socket_Write(TABLE_ALREADY_PLAYED);
+    return;
+  }
+
   int card = atoi(param.arguments);
+  printf("play: chair: %d %d\r\n", chair, card);
+  game->Show(chair);
   if (!game->ValidMove(d, chair, card))
     return;
 

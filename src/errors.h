@@ -42,6 +42,8 @@
 #define TABLE_QUEEN_SPADE     "E39"
 #define TABLE_WRONG_SUIT      "E40"
 #define SOCKET_MAX_REGISTER_IP "E41"
+#define TABLE_ALREADY_PLAYED   "E42"
+#define SOCKET_ILLEGAL_INPUT   "E43"
 
 #define PLAYER_UID            "I01"
 #define PLAYER_CHOOSE_CHAIR   "I02"
@@ -59,6 +61,8 @@
 #define TABLE_FORCE_PLAY      "I14"
 #define TABLE_PLAY_TWO_CLUBS  "I15"
 #define TABLE_PLAY            "I16"
-#define TABLE_CLEAR           "I17"
+#define TABLE_HAND_SCORE      "I17"
+#define TABLE_SCORE           "I18"
+#define TABLE_WHO_AM_I        "I19"
 
 #endif

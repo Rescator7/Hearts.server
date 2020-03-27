@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <time.h>
+#include <string.h>
 
 #include "comm.h"
 #include "log.h"

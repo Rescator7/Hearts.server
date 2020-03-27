@@ -1,9 +1,9 @@
 #include "../define.h"
-#include "../player.h"
 #include "../errors.h"
-#include "leave.h"
+#include "../player.h"
+#include "moon.h"
 
-void cLeave::Execute( cDescriptor &d, cParam &param )
+void cMoon::Execute( cDescriptor &d, cParam &param )
 {
   struct cPlayer *player = d.player;
 
@@ -16,8 +16,4 @@ void cLeave::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
-  table->Stand(d);
-  player->table = nullptr;
-
-  d.Socket_Write("%s %d", TABLE_LEAVE, table->TableID());
 }

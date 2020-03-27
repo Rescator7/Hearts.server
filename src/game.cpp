@@ -13,36 +13,20 @@ cGame::cGame( int f )
   flags = f;
 
   turn = 0;
-  suit = CLUB;
   passto = pLEFT;
   game_started = false;
   game_over = false;
   game_draw = false;
-  playing = false;
-  heart_broken = false;
-  first_card = true;
-  jack_diamond = false;
 
-  hand_score[PLAYER_NORTH] = 0;
-  hand_score[PLAYER_SOUTH] = 0;
-  hand_score[PLAYER_WEST] = 0;
-  hand_score[PLAYER_EAST] = 0;
+  score[PLAYER_NORTH] = 0;
+  score[PLAYER_SOUTH] = 0;
+  score[PLAYER_WEST] = 0;
+  score[PLAYER_EAST] = 0;
 
-  num_cards[PLAYER_NORTH] = 13;
-  num_cards[PLAYER_SOUTH] = 13;
-  num_cards[PLAYER_WEST] = 13;
-  num_cards[PLAYER_EAST] = 13;
-  
+  ResetRound();
   ResetPlayed();
 
-  num_passed = 0;
-  current_score = 0;
-  won_turn = 0;
-  left_to_play = 4;
-  best_card = 0;
-
-  ResetPassed();
-  generate_cards();
+  Generate_Cards();
   Sort();
 }
 
@@ -54,6 +38,14 @@ void cGame::Run()
 {
 }
 
+void cGame::EndTurn(cTable &table)
+{
+  table.SendAll("%s %d %d", TABLE_HAND_SCORE, won_turn, hand_score[won_turn]);
+  table.Send(turn, "%s %d", TABLE_YOUR_TURN, WAIT_PLAY_CARD);
+  Wait(WAIT_PLAY_CARD);
+  state = STATE_WAIT_PLAY;
+}
+
 bool cGame::AdvanceTurn(cTable &table)
 {
   if (jack_diamond) {
@@ -61,21 +53,33 @@ bool cGame::AdvanceTurn(cTable &table)
     jack_diamond = false;
   }
 
-  hand_score[won_turn] += current_score;
-
   if (++turn == 4)
     turn = 0;
 
-  table.Send(turn, "%s %d", TABLE_YOUR_TURN, WAIT_PLAY_CARD);
-
   if (--left_to_play == 0) {
-    ResetPlayed();
     turn = won_turn;
     suit = FREESUIT;
-    table.SendAll(TABLE_CLEAR);
- // add score here
- //   return false;
-  }
+    best_card = TWO_CLUBS;
+    hand_score[won_turn] += current_score;
+    current_score = 0;
+    ResetPlayed();
+    left_to_play = 4;
+
+    if (num_cards[turn] == 0) {
+      table.SendAll("%s %d %d", TABLE_HAND_SCORE, won_turn, hand_score[won_turn]);
+      Wait(WAIT_END_ROUND);
+      state = STATE_END_ROUND;
+      return false;
+    } else {
+	Wait(WAIT_END_TURN);
+	state = STATE_END_TURN;
+	return true;
+      }
+  } 
+
+  Wait(WAIT_PLAY_CARD);
+
+  table.Send(turn, "%s %d", TABLE_YOUR_TURN, WAIT_PLAY_CARD);
 
   return true;
 }
@@ -99,10 +103,11 @@ void cGame::Play(cTable &table, usINT card)
       jack_diamond = true;
     else
     if (card == TWO_CLUBS)
-        first_card = false;
+      first_card = false;
     else
     if (card / 13 == HEART) {
       current_score++;
+      printf("score +1\r\n");
       heart_broken = true;
     }
 
@@ -111,9 +116,21 @@ void cGame::Play(cTable &table, usINT card)
     won_turn = turn;
   }
 
+  for (int i=0; i<num_cards[turn]; i++)
+//  for (int i=0; i<13; i++)
+    if (player_cards[turn][i] == card) {
+      player_cards[turn][i] = empty;
+    }
+
   num_cards[turn]--;
+  cards_in_suit[turn][card / 13]--;
   has_card[turn][card] = false;
   played[turn] = true;
+
+  std::sort(player_cards[turn], player_cards[turn]+13);
+
+  table.SendAll("%s %d %d", TABLE_PLAY, turn, card);
+  AdvanceTurn(table);
 }
 
 bool cGame::ValidMove(cDescriptor &d, usINT chair, usINT card)
@@ -178,17 +195,25 @@ void cGame::ForcePlay(cTable &table)
 
   printf("force play, turn: %d, num_cards: %d\r\n", turn, num_cards[turn]);
   for (int i=0; i<num_cards[turn]; i++) {
+//  for (int i=0; i<13; i++) {
     usINT card = player_cards[turn][i];
     if (ValidMove(turn, card) == NO_ERROR) {
       Play(table, card);
 
       if (d != nullptr)
 	d->Socket_Write("%s %d", TABLE_FORCE_PLAY, card);
-      table.SendAll("%s %d %d", TABLE_PLAY, turn, card);
       return;
     }
   }
   printf("CARD VALID NOT FOUND\r\n");
+  printf("Turn: %d, Suit: %d, num_card: %d\r\n", turn, suit, num_cards[turn]);
+  for (int i=0; i<13; i++)
+    printf("%d (%d) ", player_cards[turn][i], player_cards[turn][i]/13);
+  printf("\r\n");
+  printf("cards in suit: \r\n");
+  for (int i=0; i<4; i++)
+    printf("%d ", cards_in_suit[turn][i]);
+  exit(1);
 }
 
 // This is a simple choose 3 cards to pass.
@@ -202,7 +227,7 @@ void cGame::ForcePass(cTable *table, usINT chair)
 {
   int card, selected = 0;
 
-  for (int i=0; i<num_cards[chair]; i++) {
+  for (int i=0; i<13; i++) {
     card = player_cards[chair][i];
     if (card == QUEEN_SPADE) {
       passed_cards[chair][selected] = i;
@@ -281,6 +306,7 @@ void cGame::Pass(cTable &table)
                   has_card[PLAYER_SOUTH][e] = true;
                   has_card[PLAYER_WEST][s] = true;
                   has_card[PLAYER_EAST][n] = true;
+
 	          break;
       case pRIGHT: player_cards[PLAYER_NORTH][passed_cards[PLAYER_NORTH][i]] = e;
 	           player_cards[PLAYER_SOUTH][passed_cards[PLAYER_SOUTH][i]] = w;
@@ -332,19 +358,22 @@ void cGame::Pass(cTable &table)
                                                          player_cards[PLAYER_EAST][passed_cards[PLAYER_EAST][1]],
                                                          player_cards[PLAYER_EAST][passed_cards[PLAYER_EAST][2]]);
  
-  state = STATE_WAIT_TWO_CLUBS;
-
- // ResetPassed();
- // ResetPassed() must be done later, or ForcePass() could lead to Pass() while
- // table is still forcing Pass() and card_passed is reset which lead to ForcePass()
- // on player who already passed their cards.
   Sort();
+
+  if (player_cards[PLAYER_NORTH][0] == TWO_CLUBS) turn = PLAYER_NORTH;
+  if (player_cards[PLAYER_SOUTH][0] == TWO_CLUBS) turn = PLAYER_SOUTH;
+  if (player_cards[PLAYER_WEST][0] == TWO_CLUBS) turn = PLAYER_WEST;
+  if (player_cards[PLAYER_EAST][0] == TWO_CLUBS) turn = PLAYER_EAST;
+
+  passing_over = true;
+
+  Wait(WAIT_PLAY_TWO_CLUBS);
+  state = STATE_WAIT_PLAY;
+  table.Send(turn, "%s %d", TABLE_YOUR_TURN, WAIT_PLAY_TWO_CLUBS);  
 }
 
 usINT cGame::PlayerPass(cTable &table, usINT chair, usINT card1, usINT card2, usINT card3)
 {
-  if (playing) return ERROR_PLAYING;
-
   if (passed_cards[chair][0] != empty)
     return ERROR_CARDS_PASSED;
 
@@ -383,12 +412,17 @@ void cGame::Sort()
 		          player_cards[i][12]);
 }
 
-void cGame::generate_cards()
+void cGame::Generate_Cards()
 {
   bool card_free[DECK_SIZE];
 
-  for (int i=0; i < DECK_SIZE; i++)
+  for (int i=0; i < DECK_SIZE; i++) {
     card_free[i] = true;
+    has_card[PLAYER_NORTH][i] = false;
+    has_card[PLAYER_SOUTH][i] = false;
+    has_card[PLAYER_WEST][i] = false;
+    has_card[PLAYER_EAST][i] = false;
+  }
 
   int player = 0;
   for (int i=0; i<DECK_SIZE; i++) {
@@ -410,14 +444,90 @@ void cGame::generate_cards()
   }
 }
 
-void cGame::ResetPassed()
+void cGame::EndRound(cTable &table)
 {
+  score[PLAYER_NORTH] += hand_score[PLAYER_NORTH];
+  score[PLAYER_SOUTH] += hand_score[PLAYER_SOUTH];
+  score[PLAYER_WEST] += hand_score[PLAYER_WEST];
+  score[PLAYER_EAST] += hand_score[PLAYER_EAST];
+
+  //
+  // TODO: take care of shoot the moon, and add bonus
+  //
+
+  table.SendAll("%s %d %d %d %d", TABLE_SCORE, score[PLAYER_NORTH], score[PLAYER_SOUTH], score[PLAYER_WEST], score[PLAYER_EAST]);
+  
+  ResetRound();
+  ResetPlayed();
+
+  if (++passto == 4)
+    passto = 0;
+
+  Generate_Cards();
+  Sort();
+
+  state = STATE_SEND_CARDS; 
+}
+
+void cGame::ResetRound()
+{
+  heart_broken = false;
+  first_card = true;
+  jack_diamond = false;
+  passing_over = false;
+
+  suit = CLUB;
+  num_passed = 0;
+  current_score = 0;
+  won_turn = 0;
+  left_to_play = 4;
+  best_card = 0;
+
+  hand_score[PLAYER_NORTH] = 0;
+  hand_score[PLAYER_SOUTH] = 0;
+  hand_score[PLAYER_WEST] = 0;
+  hand_score[PLAYER_EAST] = 0;
+
+  num_cards[PLAYER_NORTH] = 13;
+  num_cards[PLAYER_SOUTH] = 13;
+  num_cards[PLAYER_WEST] = 13;
+  num_cards[PLAYER_EAST] = 13;
+
+  for (int i=0; i<4; i++) {
+    cards_in_suit[PLAYER_NORTH][i] = 0;
+    cards_in_suit[PLAYER_SOUTH][i] = 0;
+    cards_in_suit[PLAYER_WEST][i] = 0;
+    cards_in_suit[PLAYER_EAST][i] = 0;
+  }
+
   for (int i=0; i<3; i++) {
     passed_cards[PLAYER_NORTH][i] = empty;
     passed_cards[PLAYER_SOUTH][i] = empty;
     passed_cards[PLAYER_WEST][i] = empty;
     passed_cards[PLAYER_EAST][i] = empty;
   }
+}
+
+void cGame::Show(usINT chair)
+{
+  printf("cards: ");
+  for (int i=0; i<13; i++)
+    printf("%d (%d) ", player_cards[chair][i], player_cards[chair][i]/13);
+
+  printf("\r\nhas cards: ");
+  for (int i=0; i<DECK_SIZE; i++)
+    printf("%d (%d) ", i, has_card[chair][i]);
+  printf("\r\n");
+}
+
+bool cGame::Ready()
+{
+  if (passed_cards[PLAYER_NORTH][0] == empty) return false;
+  if (passed_cards[PLAYER_SOUTH][0] == empty) return false;
+  if (passed_cards[PLAYER_WEST][0] == empty) return false;
+  if (passed_cards[PLAYER_EAST][0] == empty) return false;
+
+  return true;
 }
 
 void cGame::ResetPlayed()
@@ -503,4 +613,12 @@ usINT cGame::State()
 bool cGame::Played(usINT chair)
 {
   return played[chair];
+}
+
+bool cGame::Passing()
+{
+  if (passing_over)
+    return false;
+  else
+    return true;
 }

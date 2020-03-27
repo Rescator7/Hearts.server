@@ -178,6 +178,7 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
 
    player_desc[chair] = &desc;
    player_id[chair] = desc.player->ID();
+   Send(chair, "%s %d", TABLE_WHO_AM_I, chair);
    descriptor_list->Send_To_All("%s %d %c %s", PLAYER_SIT_HERE, table_id, c, desc.player->Handle());
    expire = time(nullptr);
    num_players++;
@@ -414,8 +415,9 @@ void cTabList::Play()
 
       switch (game->State()) {
 	 case STATE_SEND_CARDS: if (passto == pNOPASS) {
-				  game->SetState(STATE_WAIT_TWO_CLUBS);
+				  game->SetState(STATE_WAIT_PLAY);
 				  delay = WAIT_PLAY_TWO_CLUBS;
+			          table->Send(turn, "%s %d", TABLE_YOUR_TURN, WAIT_PLAY_CARD);
 				}
 				else {
 				  game->SetState(STATE_WAIT_PASS);
@@ -430,34 +432,16 @@ void cTabList::Play()
                                  if (!game->Passed(PLAYER_SOUTH)) game->ForcePass(table, PLAYER_SOUTH);
                                  if (!game->Passed(PLAYER_WEST)) game->ForcePass(table, PLAYER_WEST);
                                  if (!game->Passed(PLAYER_EAST)) game->ForcePass(table, PLAYER_EAST);
-			         table->Send(turn, "%s %d", TABLE_YOUR_TURN, WAIT_PLAY_TWO_CLUBS);  
-				 game->SetState(STATE_WAIT_TWO_CLUBS);
-	                         game->Wait(WAIT_PASSED_CARDS);
-	                       }
+			       } 
 			       break; 
-	 case STATE_WAIT_TWO_CLUBS: if (game->WaitOver()) {
-				      game->SetState(STATE_FORCE_TWO_CLUBS);
-				      game->Wait(WAIT_PLAY_CARD);
-				    }
-			            break; 
-	 case STATE_FORCE_TWO_CLUBS: if (game->WaitOver()) {
-				       if (!game->Played(turn)) game->ForcePlay(*table);
-				       game->AdvanceTurn(*table);
-				       game->SetState(STATE_WAIT_PLAY);
-				     }
-				     break;
-	 case STATE_WAIT_PLAY: if (game->WaitOver()) {
-				 printf("turn: %d, played: %d\r\n", turn, game->Played(turn));
-			         if (!game->Played(turn)) game->ForcePlay(*table);
-				 if (!game->AdvanceTurn(*table)) {
-				   game->SetState(STATE_END_TURN);
-				   // End of turn
-			         } else {
-				      game->Wait(WAIT_PLAY_CARD);   
-			           }
-                               }
-			       break;
-	case STATE_END_TURN:  
+	 case STATE_WAIT_PLAY: if ((table->Player(turn) == nullptr) || game->WaitOver())
+				 game->ForcePlay(*table);
+                               break;
+	 case STATE_END_TURN:  if (!game->WaitOver()) break;
+			       game->EndTurn(*table);
+			       break; 
+	 case STATE_END_ROUND: if (!game->WaitOver()) break;
+	                       game->EndRound(*table);
 			       break;
       }
     }

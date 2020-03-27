@@ -17,10 +17,8 @@
 #include "commands.h"
 #include "errors.h"
 
-//#define perror(a) fprintf(stderr, "%s\n", (a));
 cCommandsStack cmd;
 
-const char *prompt = "%%";
 const char *login = "login:";
 const char *password = "password:";
 const char *handle = "handle:";
@@ -396,9 +394,6 @@ void cDescriptor::Set_Sit_Time(time_t t)
 // unused for now
 void cDescriptor::Send_Prompt()
 {
-// Socket_Write("%s ", player->prompt);
-// don't send until i fix the system, it mess ECODE
-// Socket_Write(prompt);
 }
 
 bool cDescriptor::Is_Connected()
@@ -436,7 +431,7 @@ bool cDescriptor::Is_Connected()
       }
     }
     else
-      Socket_Write("Your input has been dropped it contains illegal characters.\n");
+      Socket_Write(SOCKET_ILLEGAL_INPUT);
   } else {
       int idleness = 0;
       if (state < CON_PROMPT) {
