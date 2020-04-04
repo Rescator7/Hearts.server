@@ -24,15 +24,19 @@
 #define STATE_WAIT_PLAY        3
 #define STATE_END_TURN         4
 #define STATE_END_ROUND        5
-#define STATE_WAIT_MOON        6
-#define STATE_GAME_OVER        7
+#define STATE_GAME_OVER        6
 
 #define WAIT_SELECT_CARDS      10
 #define WAIT_PASSED_CARDS      2
 #define WAIT_PLAY_TWO_CLUBS    5 // 5 should be fine for release
-#define WAIT_PLAY_CARD         6 // 10 or 15 for release
+#define WAIT_PLAY_CARD         2 // 10 or 15 for release
 #define WAIT_END_ROUND         4
 #define WAIT_END_TURN          4
+#define WAIT_MOON              8
+
+const int no_trick_bonus     = 5;
+const int omnibus_bonus      = 10;
+const int GAME_OVER_SCORE    = 100;
 
 class cGame {
 public:
@@ -45,7 +49,8 @@ private:
   bool game_draw;
   bool passing_over;
   bool heart_broken;
-  bool first_card;
+  bool shoot_moon;
+  bool moon_add;
   bool has_card[4][DECK_SIZE];
   bool played[4];
   int flags;
@@ -65,8 +70,10 @@ private:
   usINT hand_score[4];
   usINT score[4];
   usINT won_turn;
-  usINT best_card;
+  usINT who_moon;
   usINT won_jack_diamond;
+  usINT best_card;
+  usINT cards_played;
   bool jack_diamond;
   char str_cards[4][80];    // 3 * 13 + 13 + 1 = 53 == 3 char for code 127 = empty cards * 13 cards + 13 spaces + 1 null char
   void Generate_Cards();
@@ -103,5 +110,7 @@ public:
   bool Ready();
   void Show(usINT chair);
   void EndTurn(cTable &table);
+  void SetMoon(bool add);
+  usINT WhoMoon();
 };
 #endif

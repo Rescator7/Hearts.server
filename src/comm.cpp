@@ -101,11 +101,11 @@ cDescriptor::cDescriptor(socket_t mother_desc)
  printf("'%s' %d\r\n", ip, descriptor_list->Connection_Per_Ip((char *) &ip));
  if (descriptor_list->Connection_Per_Ip((char *)&ip) >= MAX_CONNECTION_PER_IP) {
    Socket_Write(SOCKET_MAX_CONN_IP);
-   Disconnect();
+   state = CON_DISCONNECT;
  }
  if (server_shutoff) {
    Socket_Write(SERVER_SHUTOFF);
-   Disconnect();
+   state = CON_DISCONNECT;
  }
  if (state == CON_LOGIN)
    Socket_Write(login);
@@ -217,6 +217,7 @@ void cDescList::DisconnectPlayerID(unsigned int pID)
    }
 }
 
+// if return false, the descriptor will be disconnected
 bool cDescriptor::process_input()
 {
  char lcBuf [SOCKET_BUFSIZE] = "";
@@ -232,8 +233,7 @@ bool cDescriptor::process_input()
 	    if (sql.query("select count(*) from account where ip = '%s'", player->Ip())) {
 	      if (atoi(sql.get_row(0)) >= MAX_REGISTER_PER_IP) {
 		Socket_Write(SOCKET_MAX_REGISTER_IP);
-	        Disconnect();
-		break;
+		return false;
 	      }
 	    }
 
@@ -244,8 +244,7 @@ bool cDescriptor::process_input()
           if (IsHandleValid( lcBuf, login)) {
             if (!sql.query("select handle, password from account where handle='%s'", lcBuf)) {
               Socket_Write(HANDLE_NOT_REGISTERED);
-	      Disconnect();
-              break;
+	      return false;
             } else {
 		Socket_Write(password);
                 player->Set_Handle(strdup(lcBuf));
@@ -253,49 +252,37 @@ bool cDescriptor::process_input()
                 state = CON_PASSWORD;
               }
           } else 
-	      Disconnect();
+	      return false;
           break;
    case CON_PASSWORD :
           if (!*lcBuf) {
-//            Socket_Write(login);
-//            state = CON_LOGIN;
-            Disconnect();
-            break;
+            return false;
           }
           if (!player->doesPasswordMatch(lcBuf)) {
             Socket_Write(WRONG_PASSWORD);
-	    Disconnect();
-            break;
+	    return false;
           }
 	  descriptor_list->DisconnectPlayerID(player->SQL_ID());
           if (!player->load()) {
             Socket_Write(PLAYER_LOAD_FAILED);
-	    Disconnect();
-            return ( false );
+            return false;
           }
           state = CON_MOTD;
           goto motd;
-//   case CON_RETURN :
-//          state = CON_MOTD;
-//          break;
    case CON_NEW_HANDLE :
           Log.Write("PROCINP: CON_NEW_HANDLE");
           if (!strcmp(lcBuf, "new") ||
               !strncmp(lcBuf, "guest", 5)) {
             Socket_Write(HANDLE_RESERVED);
-	    Disconnect();
-            break;
+	    return false;
           }
           if (descriptor_list->Find_Handle( lcBuf ) || 
               sql.query("select handle from account where handle = '%s'", lcBuf)) {
             Socket_Write(HANDLE_UNAVAILABLE);
-	    Disconnect();
-            break;
+	    return false;
           }
-          if (!IsHandleValid( lcBuf, handle)) {
-	    Disconnect();
-            break;
-	  }
+          if (!IsHandleValid( lcBuf, handle))
+	    return false;
           player->Set_Handle(strdup(buffer));
 	  Socket_Write(password);
 	  state = CON_NEW_PASSWORD;
@@ -331,13 +318,11 @@ bool cDescriptor::process_input()
           Log.Write("PROCINP: CON_NEW_PASSWORD");
           if (strlen(lcBuf) > MAX_PASSWORD_LENGTH) {
             Socket_Write(PASSWORD_TOO_LONG);
-	    Disconnect();
-            break;
+	    return false;
           } 
           if (strlen(lcBuf) < MIN_PASSWORD_LENGTH) {
             Socket_Write(PASSWORD_TOO_SHORT);
-	    Disconnect();
-            break;
+	    return false;
           } 
           player->setPassword( buffer, true );
           Socket_Write(confirm);
@@ -347,12 +332,11 @@ bool cDescriptor::process_input()
           Log.Write("PROCINP: CON_CONFIRM_PASSWORD");
           if (!player->doesPasswordMatch( buffer )) {
             Socket_Write(PASSWORD_DONT_MATCH);
-	    Disconnect();
-            break;
+	    return false;
           }
           if (!player->save()) {
             Socket_Write("Account creation failed");
-            return ( false );
+            return false;
           } else {
 	      descriptor_list->DisconnectPlayerID(player->SQL_ID()); // need to do this this way, to avoid to disconnect the new connection
 	      player->load();                                        // load() we need the playerid now
@@ -367,8 +351,6 @@ motd:     Log.Write("PROCINP: CON_MOTD");
    case CON_PROMPT :
           if (*buffer)
             cmd.Process_Command(this, (char *)&buffer);
-          if (state != CON_DISCONNECT) 
-            Send_Prompt();
           break;
    case CON_DISCONNECT :
           return false;
@@ -389,11 +371,6 @@ int cDescriptor::State()
 void cDescriptor::Set_Sit_Time(time_t t)
 {
   sit_time = t;
-}
-
-// unused for now
-void cDescriptor::Send_Prompt()
-{
 }
 
 bool cDescriptor::Is_Connected()
@@ -430,8 +407,11 @@ bool cDescriptor::Is_Connected()
         return false;
       }
     }
-    else
+    else {
       Socket_Write(SOCKET_ILLEGAL_INPUT);
+      if (state < CON_PROMPT) 
+	return false;
+    }
   } else {
       int idleness = 0;
       if (state < CON_PROMPT) {

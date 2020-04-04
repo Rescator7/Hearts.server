@@ -11,8 +11,10 @@ int cMYSQL::query( const char * format, ... )
  va_list args;
  char buffer[SIZE_QUERY_BUFFER];
 
- if (!freed)
+ if (!freed) {
    mysql_free_result(result);                    // free any previous query storage
+   freed = true;
+ }
 
  va_start(args, format);
 
@@ -68,7 +70,9 @@ bool cMYSQL::fetch()
 
 cMYSQL::cMYSQL(const char *host, const char *user, const char *password, const char *db)
 {
+ bool option = true;
  mysql_init(&mysql);
+ mysql_options(&mysql, MYSQL_OPT_RECONNECT, &option);
  mysql_options(&mysql, MYSQL_OPT_COMPRESS, 0);
  mysql_options(&mysql, MYSQL_READ_DEFAULT_GROUP, "odbc");
 

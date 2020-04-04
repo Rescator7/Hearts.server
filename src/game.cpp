@@ -17,6 +17,7 @@ cGame::cGame( int f )
   game_started = false;
   game_over = false;
   game_draw = false;
+  shoot_moon = false;
 
   score[PLAYER_NORTH] = 0;
   score[PLAYER_SOUTH] = 0;
@@ -90,6 +91,8 @@ void cGame::Play(cTable &table, usINT card)
 
   int turn = game->turn;
 
+  cards_played++;
+
   if (suit == FREESUIT)
     suit = card / 13;
 
@@ -101,9 +104,6 @@ void cGame::Play(cTable &table, usINT card)
   else
     if (card == JACK_DIAMOND)
       jack_diamond = true;
-    else
-    if (card == TWO_CLUBS)
-      first_card = false;
     else
     if (card / 13 == HEART) {
       current_score++;
@@ -167,7 +167,7 @@ usINT cGame::ValidMove(usINT chair, usINT card)
 
   int card_suit = card / 13;
 
-  if ((card == QUEEN_SPADE) && first_card && (player_cards[chair][1]/13 != HEART)) 
+  if ((card == QUEEN_SPADE) && (cards_played <= 4) && (player_cards[chair][1]/13 != HEART)) 
     return ERROR_QUEEN_SPADE;
 
   if (suit == FREESUIT) {
@@ -177,7 +177,7 @@ usINT cGame::ValidMove(usINT chair, usINT card)
       if ((card_suit != suit) && cards_in_suit[chair][suit])
         return ERROR_WRONG_SUIT;
 
-  if (first_card && (card != TWO_CLUBS))
+  if (!cards_played && (card != TWO_CLUBS))
     return ERROR_PLAY_TWO_CLUBS;
 
   return NO_ERROR;
@@ -446,17 +446,105 @@ void cGame::Generate_Cards()
 
 void cGame::EndRound(cTable &table)
 {
-  score[PLAYER_NORTH] += hand_score[PLAYER_NORTH];
-  score[PLAYER_SOUTH] += hand_score[PLAYER_SOUTH];
-  score[PLAYER_WEST] += hand_score[PLAYER_WEST];
-  score[PLAYER_EAST] += hand_score[PLAYER_EAST];
+  int bonus = 0;
+  bool omnibus_set;
 
-  //
-  // TODO: take care of shoot the moon, and add bonus
-  //
+  // This function is reentrant. To support new moon.
+  if (!shoot_moon) {
+    // checking for moon
+    for (int i=0; i<4; i++)
+      if (hand_score[i] == 26) {
+        omnibus_set = flags & OMNIBUS_f; 
+        if (!omnibus_set || (omnibus_set && (won_jack_diamond == i))) {
+           shoot_moon = true;
+	   who_moon = i;
+	   table.SendAll("%s %d", TABLE_SHOOT_MOON, i);
+	   if ((flags & NEW_MOON_f) && (score[i] >= 26)) {
+	     Wait(WAIT_MOON);
+	     return; 
+	   }
+	   else
+	     break;
+	}
+      }
+  } 
+   
+  if (shoot_moon) {
+    shoot_moon = false;
+
+    if (moon_add) {
+      if (who_moon != PLAYER_NORTH) score[PLAYER_NORTH] += 26;
+      if (who_moon != PLAYER_SOUTH) score[PLAYER_SOUTH] += 26;
+      if (who_moon != PLAYER_WEST) score[PLAYER_WEST] += 26;
+      if (who_moon != PLAYER_EAST) score[PLAYER_EAST] += 26;
+    } else
+        score[who_moon] -= 26;
+  } else {
+      // Adjust the new scores, 
+      score[PLAYER_NORTH] += hand_score[PLAYER_NORTH];
+      score[PLAYER_SOUTH] += hand_score[PLAYER_SOUTH];
+      score[PLAYER_WEST] += hand_score[PLAYER_WEST];
+      score[PLAYER_EAST] += hand_score[PLAYER_EAST];
+
+      // Bonus doesn't apply, if someone shoot the moon.
+      if (flags & OMNIBUS_f) {
+        bonus = score[won_jack_diamond] < omnibus_bonus ? score[won_jack_diamond] : omnibus_bonus;
+        if (bonus) {
+          table.Send(won_jack_diamond, "%s %d", TABLE_OMNIBUS, bonus); 
+          score[won_jack_diamond] -= bonus;
+        }
+      }
+
+      if (flags & NO_TRICK_BONUS_f) {
+        for (int i=0; i<4; i++) {
+          if (!hand_score[i]) {
+            bonus = score[i] < no_trick_bonus ? score[i] : no_trick_bonus;
+            if (bonus) {
+              table.Send(i, "%s %d", TABLE_NO_TRICK_BONUS, bonus);
+              score[i] -= bonus;
+            }
+	  }
+        }
+      }
+    
+      if (flags & PERFECT_100_f) {
+        for (int i=0; i<4; i++) {
+           if (score[i] == GAME_OVER_SCORE) {
+             score[i] = 50;
+             table.Send(i, "%s %d", TABLE_PERFECT_100, 50);
+           }
+        } 
+      }
+  }
 
   table.SendAll("%s %d %d %d %d", TABLE_SCORE, score[PLAYER_NORTH], score[PLAYER_SOUTH], score[PLAYER_WEST], score[PLAYER_EAST]);
   
+  if (!(flags & NO_DRAW_f)) {
+    for (int i=0; i<4; i++)
+       if (score[i] >= GAME_OVER_SCORE) {
+	 state = STATE_GAME_OVER;
+	 return;
+       }
+  } else {
+      int lowest = 65535, c = 0;
+      bool over = false;
+
+      for (int i=0; i<4; i++) {
+        if (score[i] < lowest) {
+          c = 1;
+          lowest = score[i];
+        } else if (score[i] == lowest) c++;
+
+        if (score[i] >= GAME_OVER_SCORE) 
+          over = true;
+      }
+
+      if (over && (c == 1)) {
+        state = STATE_GAME_OVER;
+        return;
+      }
+    }
+
   ResetRound();
   ResetPlayed();
 
@@ -472,7 +560,6 @@ void cGame::EndRound(cTable &table)
 void cGame::ResetRound()
 {
   heart_broken = false;
-  first_card = true;
   jack_diamond = false;
   passing_over = false;
 
@@ -482,6 +569,10 @@ void cGame::ResetRound()
   won_turn = 0;
   left_to_play = 4;
   best_card = 0;
+  cards_played = 0;
+
+  moon_add = true;
+  who_moon = PLAYER_NOWHERE;
 
   hand_score[PLAYER_NORTH] = 0;
   hand_score[PLAYER_SOUTH] = 0;
@@ -554,6 +645,14 @@ void cGame::Start()
   state = STATE_SEND_CARDS;
 }
 
+bool cGame::Passing()
+{
+  if (passing_over)
+    return false;
+  else
+    return true;
+}
+
 void cGame::Wait(usINT d)
 {
   delay = d;
@@ -615,10 +714,12 @@ bool cGame::Played(usINT chair)
   return played[chair];
 }
 
-bool cGame::Passing()
+usINT cGame::WhoMoon()
 {
-  if (passing_over)
-    return false;
-  else
-    return true;
+  return who_moon;
+}
+
+void cGame::SetMoon(bool add)
+{
+  moon_add = add;
 }

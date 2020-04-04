@@ -18,5 +18,10 @@ void cSay::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
+  if (table->Chair(d) == PLAYER_NOWHERE) {
+    d.Socket_Write(PLAYER_NOT_SAT);
+    return;
+  }
+
   table->Say(d, param.arguments);
 }

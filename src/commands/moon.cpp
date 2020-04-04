@@ -1,6 +1,7 @@
 #include "../define.h"
 #include "../errors.h"
 #include "../player.h"
+#include "../game.h"
 #include "moon.h"
 
 void cMoon::Execute( cDescriptor &d, cParam &param )
@@ -16,4 +17,21 @@ void cMoon::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
+  usINT chair = table->Chair(d);
+  if (chair == PLAYER_NOWHERE) {
+    d.Socket_Write(PLAYER_NOT_SAT);
+    return;
+  }
+
+  struct cGame *game = table->game;
+
+  if (game->WhoMoon() != chair) {
+    d.Socket_Write(PLAYER_NOT_MOON);
+    return;
+  }
+
+  if (*param.arguments == '-')
+    game->SetMoon(false);
+  
+  game->Wait(0);
 }

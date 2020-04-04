@@ -44,6 +44,7 @@
 #define SOCKET_MAX_REGISTER_IP "E41"
 #define TABLE_ALREADY_PLAYED   "E42"
 #define SOCKET_ILLEGAL_INPUT   "E43"
+#define PLAYER_NOT_MOON        "E44"
 
 #define PLAYER_UID            "I01"
 #define PLAYER_CHOOSE_CHAIR   "I02"
@@ -64,5 +65,9 @@
 #define TABLE_HAND_SCORE      "I17"
 #define TABLE_SCORE           "I18"
 #define TABLE_WHO_AM_I        "I19"
+#define TABLE_NO_TRICK_BONUS  "I20"
+#define TABLE_OMNIBUS         "I21"
+#define TABLE_PERFECT_100     "I22"
+#define TABLE_SHOOT_MOON      "I23"
 
 #endif

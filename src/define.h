@@ -43,9 +43,8 @@
 #define CON_NEW_EMAIL        7
 #define CON_NEW_PASSWORD     8
 #define CON_CONFIRM_PASSWORD 9
-#define CON_RETURN           10
-#define CON_MOTD             11
-#define CON_PROMPT           12
+#define CON_MOTD             10
+#define CON_PROMPT           11
 
 #define LVL_GUEST            0
 #define LVL_REGISTERED       1

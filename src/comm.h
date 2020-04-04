@@ -32,7 +32,6 @@ public:
   bool Is_Connected();
   bool process_input();
   const char *process_ansi( const char *outbuf );
-  void Send_Prompt();
   bool IsHandleValid( const char *handle, const char *message );
   void Disconnect();
   void Set_Sit_Time(time_t t);
