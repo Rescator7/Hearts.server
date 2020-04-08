@@ -1,5 +1,5 @@
 #ifndef _GAME_
-#define GAME
+#define _GAME_
 
 #define QUEEN_SPADE_f          1
 #define PERFECT_100_f          1 << 1
@@ -25,14 +25,6 @@
 #define STATE_END_TURN         4
 #define STATE_END_ROUND        5
 #define STATE_GAME_OVER        6
-
-#define WAIT_SELECT_CARDS      10
-#define WAIT_PASSED_CARDS      2
-#define WAIT_PLAY_TWO_CLUBS    5 // 5 should be fine for release
-#define WAIT_PLAY_CARD         2 // 10 or 15 for release
-#define WAIT_END_ROUND         4
-#define WAIT_END_TURN          4
-#define WAIT_MOON              8
 
 const int no_trick_bonus     = 5;
 const int omnibus_bonus      = 10;
@@ -112,5 +104,6 @@ public:
   void EndTurn(cTable &table);
   void SetMoon(bool add);
   usINT WhoMoon();
+  usINT Score(usINT chair);
 };
 #endif

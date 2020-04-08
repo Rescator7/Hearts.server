@@ -32,6 +32,7 @@ public:
   void Send(usINT chair, const char *format, ... );
   void Sat(cDescriptor &desc);
   void Mute();
+  void Clear();
   bool Stand(cDescriptor &desc);
   bool PlayerLink(cDescriptor &desc);
   bool Full();

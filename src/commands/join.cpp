@@ -2,7 +2,7 @@
 #include "../define.h"
 #include "../player.h"
 #include "../game.h"
-#include "../errors.h"
+#include "../datagrams.h"
 #include "../global.h"
 #include "../commands.h"
 #include "join.h"

@@ -125,3 +125,8 @@ int cMYSQL::singleIntQuery(const char * query)
 
  return value;
 }
+
+unsigned int cMYSQL::Num_Fields()
+{
+ return num_fields;
+}

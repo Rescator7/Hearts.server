@@ -3,10 +3,11 @@
 #include <time.h>
 #include <cstdio>
 #include "define.h"
-#include "errors.h"
+#include "datagrams.h"
 #include "table.h"
 #include "game.h"
 #include "player.h"
+#include "config.h"
 
 cGame::cGame( int f )
 {
@@ -42,8 +43,8 @@ void cGame::Run()
 void cGame::EndTurn(cTable &table)
 {
   table.SendAll("%s %d %d", TABLE_HAND_SCORE, won_turn, hand_score[won_turn]);
-  table.Send(turn, "%s %d", TABLE_YOUR_TURN, WAIT_PLAY_CARD);
-  Wait(WAIT_PLAY_CARD);
+  table.Send(turn, "%s %d", TABLE_YOUR_TURN, config.Wait_Play());
+  Wait(config.Wait_Play());
   state = STATE_WAIT_PLAY;
 }
 
@@ -68,19 +69,19 @@ bool cGame::AdvanceTurn(cTable &table)
 
     if (num_cards[turn] == 0) {
       table.SendAll("%s %d %d", TABLE_HAND_SCORE, won_turn, hand_score[won_turn]);
-      Wait(WAIT_END_ROUND);
+      Wait(config.Wait_End_Round());
       state = STATE_END_ROUND;
       return false;
     } else {
-	Wait(WAIT_END_TURN);
+	Wait(config.Wait_End_Turn());
 	state = STATE_END_TURN;
 	return true;
       }
   } 
 
-  Wait(WAIT_PLAY_CARD);
+  Wait(config.Wait_Play());
 
-  table.Send(turn, "%s %d", TABLE_YOUR_TURN, WAIT_PLAY_CARD);
+  table.Send(turn, "%s %d", TABLE_YOUR_TURN, config.Wait_Play());
 
   return true;
 }
@@ -367,9 +368,9 @@ void cGame::Pass(cTable &table)
 
   passing_over = true;
 
-  Wait(WAIT_PLAY_TWO_CLUBS);
+  Wait(config.Wait_Play());
   state = STATE_WAIT_PLAY;
-  table.Send(turn, "%s %d", TABLE_YOUR_TURN, WAIT_PLAY_TWO_CLUBS);  
+  table.Send(turn, "%s %d", TABLE_YOUR_TURN, config.Wait_Play());  
 }
 
 usINT cGame::PlayerPass(cTable &table, usINT chair, usINT card1, usINT card2, usINT card3)
@@ -448,6 +449,7 @@ void cGame::EndRound(cTable &table)
 {
   int bonus = 0;
   bool omnibus_set;
+  bool new_moon;
 
   // This function is reentrant. To support new moon.
   if (!shoot_moon) {
@@ -458,9 +460,10 @@ void cGame::EndRound(cTable &table)
         if (!omnibus_set || (omnibus_set && (won_jack_diamond == i))) {
            shoot_moon = true;
 	   who_moon = i;
-	   table.SendAll("%s %d", TABLE_SHOOT_MOON, i);
-	   if ((flags & NEW_MOON_f) && (score[i] >= 26)) {
-	     Wait(WAIT_MOON);
+	   new_moon = (flags & NEW_MOON_f) && (score[i] >= 26);
+	   table.SendAll("%s %d %d", TABLE_SHOOT_MOON, i, new_moon ? config.Wait_Moon() : 0);
+	   if (new_moon) {
+	     Wait(config.Wait_Moon());
 	     return; 
 	   }
 	   else
@@ -722,4 +725,9 @@ usINT cGame::WhoMoon()
 void cGame::SetMoon(bool add)
 {
   moon_add = add;
+}
+
+usINT cGame::Score(usINT chair)
+{
+  return score[chair];
 }

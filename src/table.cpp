@@ -5,9 +5,10 @@
 #include "global.h"
 #include "player.h"
 #include "log.h"
-#include "errors.h"
+#include "datagrams.h"
 #include "game.h"
 #include "table.h"
+#include "config.h"
 
 cTable::cTable(cDescriptor &desc, int f)
 {
@@ -17,15 +18,8 @@ cTable::cTable(cDescriptor &desc, int f)
   flags = f;
   expire = time(nullptr);
   num_players = 0;
-  player_id[PLAYER_NORTH] = NOPLAYER;
-  player_id[PLAYER_SOUTH] = NOPLAYER;
-  player_id[PLAYER_WEST] = NOPLAYER;
-  player_id[PLAYER_EAST] = NOPLAYER;
-  player_desc[PLAYER_NORTH] = nullptr;
-  player_desc[PLAYER_SOUTH] = nullptr;
-  player_desc[PLAYER_WEST] = nullptr;
-  player_desc[PLAYER_EAST] = nullptr;
 
+  Clear();
   game = new cGame(f);
 }
 
@@ -108,6 +102,18 @@ bool cTable::PlayerLink(cDescriptor &desc)
  }
 
  return false;
+}
+
+void cTable::Clear()
+{
+  player_id[PLAYER_NORTH] = NOPLAYER;
+  player_id[PLAYER_SOUTH] = NOPLAYER;
+  player_id[PLAYER_WEST] = NOPLAYER;
+  player_id[PLAYER_EAST] = NOPLAYER;
+  player_desc[PLAYER_NORTH] = nullptr;
+  player_desc[PLAYER_SOUTH] = nullptr;
+  player_desc[PLAYER_WEST] = nullptr;
+  player_desc[PLAYER_EAST] = nullptr;
 }
 
 bool cTable::Stand(cDescriptor &desc)
@@ -401,27 +407,25 @@ void cTabList::Play()
   struct sList *Q = head;
   struct cGame *game;
   struct cTable *table;
-  int passto;
   int turn;
   int delay;
 
   while ( Q ) {
     table = Q->elem;
     game = table->game;
-    turn = game->Turn();
 
     if (game->Started()) {
-      passto = game->PassTo();
+      turn = game->Turn();
 
       switch (game->State()) {
-	 case STATE_SEND_CARDS: if (passto == pNOPASS) {
+	 case STATE_SEND_CARDS: if (game->PassTo() == pNOPASS) {
 				  game->SetState(STATE_WAIT_PLAY);
-				  delay = WAIT_PLAY_TWO_CLUBS;
-			          table->Send(turn, "%s %d", TABLE_YOUR_TURN, WAIT_PLAY_CARD);
+				  delay = config.Wait_Play();
+			          table->Send(turn, "%s %d", TABLE_YOUR_TURN, config.Wait_Play());
 				}
 				else {
 				  game->SetState(STATE_WAIT_PASS);
-	                          delay = WAIT_SELECT_CARDS;
+	                          delay = config.Wait_Select();
 				}
 		                for (int player = 0; player < 4; player++)
 	                           table->Send(player, "%s %d %d %s", TABLE_YOUR_CARDS, game->PassTo(), delay, game->Str_Cards(player));
@@ -442,6 +446,10 @@ void cTabList::Play()
 			       break; 
 	 case STATE_END_ROUND: if (!game->WaitOver()) break;
 	                       game->EndRound(*table);
+			       break;
+	 case STATE_GAME_OVER: table->SendAll("%s %d %d %d %d", TABLE_GAMEOVER, game->Score(PLAYER_NORTH), game->Score(PLAYER_SOUTH), 
+					                        game->Score(PLAYER_WEST), game->Score(PLAYER_EAST));
+			       table->Clear();
 			       break;
       }
     }

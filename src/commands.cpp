@@ -8,7 +8,7 @@
 #include "string.h"
 #include "includes.h"
 #include "log.h"
-#include "errors.h"
+#include "datagrams.h"
 #include "player.h"
 
 cCommandsStack::cCommandsStack(void)
@@ -25,9 +25,11 @@ cCommandsStack::cCommandsStack(void)
  Add( "pass",     LVL_GUEST, new cPass() );
  Add( "play",     LVL_GUEST, new cPlay() );
  Add( "say",      LVL_GUEST, new cSay() );
+ Add( "set",      LVL_GUEST, new cSet() ); // set to level admin before release
  Add( "shutdown", LVL_ADMIN, new cShutdown() );
  Add( "shutoff",  LVL_ADMIN, new cShutoff() );
  Add( "sit",      LVL_GUEST, new cSit() );
+ Add( "test",     LVL_GUEST, new cTest() );
  Add( "who",      LVL_GUEST, new cWho() );
  Add( "\xff",     0,         nullptr );
 }
@@ -70,7 +72,6 @@ bool cCommandsStack::Process_Command(cDescriptor *d, char *buffer)
  do {
    ptr = m_commands[command_id].name;
    len = strlen(ptr);
-//   printf("list : '%s' search: '%s'\r\n", ptr, command);
    if (m_commands[command_id].level <= d->player->Level()) {
      cmp = strncmp(command, ptr, strlen(command));
      if (!cmp)  {

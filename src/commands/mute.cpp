@@ -1,6 +1,6 @@
 #include "../define.h" 
 #include "../player.h"
-#include "../errors.h"
+#include "../datagrams.h"
 #include "mute.h"
 
 void cMute::Execute( cDescriptor &d, cParam &param )

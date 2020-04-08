@@ -1,5 +1,5 @@
 #include "../define.h"
-#include "../errors.h"
+#include "../datagrams.h"
 #include "../player.h"
 #include "../global.h"
 #include "new.h"
@@ -8,6 +8,11 @@
 
 void cNew::Execute( cDescriptor & d, cParam & param )
 {
+ if (server_shutoff) {
+   d.Socket_Write(SERVER_SHUTOFF);
+   return;
+ }
+
  struct cPlayer *player = d.player;
 
  if (player == nullptr) return;

@@ -1,9 +1,11 @@
+#include <stdlib.h>
 #include "../define.h"
-#include "../player.h"
 #include "../datagrams.h"
-#include "leave.h"
+#include "../player.h"
+#include "../game.h"
+#include "test.h"
 
-void cLeave::Execute( cDescriptor &d, cParam &param )
+void cTest::Execute( cDescriptor &d, cParam &param )
 {
   struct cPlayer *player = d.player;
 
@@ -16,8 +18,7 @@ void cLeave::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
-  table->Stand(d);
-  player->table = nullptr;
+  int chair = table->Chair(d);
 
-  d.Socket_Write("%s %d", TABLE_LEAVE, table->TableID());
+  d.Socket_Write("%s %d %d", TABLE_SHOOT_MOON, chair, atoi(param.arguments));
 }

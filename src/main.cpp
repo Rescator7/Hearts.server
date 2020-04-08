@@ -14,6 +14,7 @@
 #include "log.h"
 #include "sql.h"
 #include "table.h"
+#include "config.h"
 
 // Global Variables
 socket_t mother_desc;
@@ -25,6 +26,7 @@ bool server_shutdown = false;
 bool server_shutoff = false;
 class cLog Log ("server.log");
 class cMYSQL sql ("localhost", "hearts", "75uVmTop", "hearts");
+class cConfig config;
 int sigint = 0;
 
 // External Functions
@@ -140,24 +142,14 @@ void set_signals()
 
 int main() 
 {
- int renice = 0, 
-     server_port = 4000;
-
  srand(time(nullptr));
 
  Log.Write("Heart server is booting up");
 
  Log.Write("Connected to the MYSQL database");
 
- if (sql.query("select server_port, nice from config")) {
-   server_port = atoi(sql.get_row(0));
-   renice = atoi(sql.get_row(1)); 
- } else {
-     Log.Write("SYSERR: Server configuration failed");
-   }
-
- nice(renice); 
- Log.Write("Running in nice mode (priority = %d)", renice);
+ nice(config.Nice()); 
+ Log.Write("Running in nice mode (priority = %d)", config.Nice());
 
  descriptor_list = new cDescList;
  Log.Write("The descriptor list has been created");
@@ -167,8 +159,8 @@ int main()
 
  set_signals();
 
- mother_desc = init_socket( server_port );
- Log.Write("Listening on port: %d", server_port);
+ mother_desc = init_socket( config.Port() );
+ Log.Write("Listening on port: %d", config.Port());
 
  Log.Write("Entering the game_loop");
  game_loop( mother_desc );

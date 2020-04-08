@@ -15,7 +15,7 @@
 #include "global.h"
 #include "comm.h"
 #include "commands.h"
-#include "errors.h"
+#include "datagrams.h"
 
 cCommandsStack cmd;
 
@@ -535,8 +535,13 @@ bool cDescList::Check_Conns()
 
   while (Q) {
     N = Q->next;
-    if (!Q->elem->Is_Connected())
+    if (server_shutoff && Q->elem->player && !Q->elem->player->table) {
+      Q->elem->Socket_Write(SERVER_SHUTOFF);
       Remove(Q->elem);
+    }
+    else
+      if (!Q->elem->Is_Connected())
+        Remove(Q->elem);
     Q = N;
   }
 

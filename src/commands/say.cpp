@@ -1,6 +1,6 @@
 #include "../define.h"
 #include "../player.h"
-#include "../errors.h"
+#include "../datagrams.h"
 #include "say.h"
 
 void cSay::Execute( cDescriptor &d, cParam &param )

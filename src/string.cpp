@@ -9,7 +9,7 @@ char *extract_cmd(const char *buffer, char *cmd)
   int i = 0;
 
   do {
-    if ((buffer[i] == ' ') || (buffer[i] == '\x0') || (buffer[i] == '\r'))
+    if (isspace(buffer[i]))
       cmd[i] = '\x0';
     else
       cmd[i] = tolower(buffer[i]);
@@ -20,17 +20,19 @@ char *extract_cmd(const char *buffer, char *cmd)
 
 const char *skip_spaces(char *str)
 {
- int p = 0, s = 0, l = strlen(str);
+ int p = 0, s = 0;
 
- while (str[p] == ' ') if (++p >= l) break;
+ while (isspace(str[p]))
+   p++;
 
  if (p == 0) return str;
 
- while (p <= l) {
+ while (str[p]) {
    str[s] = str[p];
    s++;
    p++;
  }
+ str[s] = '\x0';
 
  return str;
 }
@@ -65,13 +67,14 @@ bool isBufferValid( char *buffer, bool bSupLatin1 )
    const char *normal = "AAAAAAACEEEEIIIIDNOOOOO*OUUUUYPBAAAAAAxceeeeiiiienooooo/ouuuuypy";
 
  for (unsigned int i = 0; i < strlen(buffer); i++) {
-   if ((buffer[i] == '\n') || (buffer[i] == '\r')) continue;
-   if (buffer[i] < ' ') return ( false );
+//   if ((buffer[i] == '\n') || (buffer[i] == '\r')) continue;
+   if (isspace(buffer[i])) continue;
+   if (buffer[i] < ' ') return false;
    if ((buffer[i] >= '\x7f') && (buffer[i] <= '\xbf')) return ( false ); // 127 - 191
    if (buffer[i] >= '\xc0') { // 192
      if (bSupLatin1) continue;
      buffer[i] = *(normal + buffer[i] - 192);
    }
  }
- return ( true );
+ return true;
 }

@@ -4,7 +4,7 @@
 #include "../table.h"
 #include "../game.h"
 #include "../player.h"
-#include "../errors.h"
+#include "../datagrams.h"
 #include "pass.h"
 
 // we are passing the position of our cards, not the cards themself.
