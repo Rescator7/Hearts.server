@@ -493,7 +493,7 @@ void cGame::EndRound(cTable &table)
       if (flags & OMNIBUS_f) {
         bonus = score[won_jack_diamond] < omnibus_bonus ? score[won_jack_diamond] : omnibus_bonus;
         if (bonus) {
-          table.Send(won_jack_diamond, "%s %d", TABLE_OMNIBUS, bonus); 
+          table.SendAll("%s %d %d", TABLE_OMNIBUS, won_jack_diamond, bonus); 
           score[won_jack_diamond] -= bonus;
         }
       }
@@ -503,7 +503,7 @@ void cGame::EndRound(cTable &table)
           if (!hand_score[i]) {
             bonus = score[i] < no_trick_bonus ? score[i] : no_trick_bonus;
             if (bonus) {
-              table.Send(i, "%s %d", TABLE_NO_TRICK_BONUS, bonus);
+              table.SendAll("%s %d %d", TABLE_NO_TRICK_BONUS, i, bonus);
               score[i] -= bonus;
             }
 	  }
@@ -514,7 +514,7 @@ void cGame::EndRound(cTable &table)
         for (int i=0; i<4; i++) {
            if (score[i] == GAME_OVER_SCORE) {
              score[i] = 50;
-             table.Send(i, "%s %d", TABLE_PERFECT_100, 50);
+             table.SendAll("%s %d %d", TABLE_PERFECT_100, i, 50);
            }
         } 
       }

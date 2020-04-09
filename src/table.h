@@ -16,6 +16,7 @@ private:
   unsigned int player_id[4];
   unsigned int num_players;
   bool muted;
+  bool paused;
   time_t expire;
 
 public:
@@ -33,10 +34,12 @@ public:
   void Sat(cDescriptor &desc);
   void Mute();
   void Clear();
+  void Pause(bool pause);
   bool Stand(cDescriptor &desc);
   bool PlayerLink(cDescriptor &desc);
   bool Full();
   bool Muted();
+  bool Paused();
   bool PlayerSat(cDescriptor &desc);
   usINT Chair(cDescriptor &desc);
   cDescriptor *desc(usINT chair);

@@ -23,6 +23,11 @@ void cMoon::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
+  if (table->Paused()) {
+    d.Socket_Write(TABLE_PAUSED);
+    return;
+  }
+
   struct cGame *game = table->game;
 
   if (game->WhoMoon() != chair) {

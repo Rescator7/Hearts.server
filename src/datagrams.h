@@ -72,5 +72,7 @@
 #define TABLE_SHOOT_MOON        "I23"
 #define COMMAND_SET             "I24"
 #define TABLE_GAMEOVER          "I25"
+#define TABLE_PAUSED            "I26"
+#define TABLE_UNPAUSED          "I27"
 
 #endif // _DATAGRAMS_

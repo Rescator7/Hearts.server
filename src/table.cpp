@@ -13,6 +13,7 @@
 cTable::cTable(cDescriptor &desc, int f)
 {
   muted = false;
+  paused = false;
   owner = &desc;
   table_id = ++num_table;
   flags = f;
@@ -304,6 +305,15 @@ bool cTable::Muted()
   return muted;
 }
 
+void cTable::Pause(bool pause)
+{
+ paused = pause;
+}
+
+bool cTable::Paused()
+{
+ return paused;
+}
 // *************************************************************************************************************************************
 
 bool cTabList::Add(cTable *elem)
@@ -414,7 +424,7 @@ void cTabList::Play()
     table = Q->elem;
     game = table->game;
 
-    if (game->Started()) {
+    if (game->Started() && !table->Paused()) {
       turn = game->Turn();
 
       switch (game->State()) {

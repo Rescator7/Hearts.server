@@ -37,6 +37,11 @@ void cPass::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
+  if (table->Paused()) {
+    d.Socket_Write(TABLE_PAUSED);
+    return;
+  }
+
   if (!game->Passing()) {
     d.Socket_Write(TABLE_PASSING_OVER);
     return;

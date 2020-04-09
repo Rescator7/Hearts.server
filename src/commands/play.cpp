@@ -35,6 +35,11 @@ void cPlay::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
+  if (table->Paused()) {
+    d.Socket_Write(TABLE_PAUSED);
+    return;
+  }
+
   if (game->Played(chair)) {
     d.Socket_Write(TABLE_ALREADY_PLAYED);
     return;
