@@ -1,5 +1,5 @@
-#include <stdarg.h> // va_start, etc. 
-#include <time.h>   // difftime()
+#include <cstdarg> // va_start, etc. 
+#include <ctime>   // difftime()
 #include "comm.h"
 #include "define.h"
 #include "global.h"
@@ -18,7 +18,6 @@ cTable::cTable(cDescriptor &desc, int f)
   table_id = ++num_table;
   flags = f;
   expire = time(nullptr);
-  num_players = 0;
 
   Clear();
   game = new cGame(f);
@@ -115,6 +114,7 @@ void cTable::Clear()
   player_desc[PLAYER_SOUTH] = nullptr;
   player_desc[PLAYER_WEST] = nullptr;
   player_desc[PLAYER_EAST] = nullptr;
+  num_players = 0;
 }
 
 bool cTable::Stand(cDescriptor &desc)
@@ -125,6 +125,9 @@ bool cTable::Stand(cDescriptor &desc)
    descriptor_list->Send_To_All("%s %d n", PLAYER_STAND, table_id);
    num_players--;
    expire = time(nullptr);
+#ifdef DEBUG
+   printf("num_players: %d\r\n", num_players);
+#endif
    return true;
  }
  if (player_desc[PLAYER_SOUTH] == &desc) {
@@ -132,6 +135,9 @@ bool cTable::Stand(cDescriptor &desc)
    player_id[PLAYER_SOUTH] = NOPLAYER;
    descriptor_list->Send_To_All("%s %d s", PLAYER_STAND, table_id);
    num_players--;
+#ifdef DEBUG
+   printf("num_players: %d\r\n", num_players);
+#endif
    expire = time(nullptr);
    return true;
  }
@@ -140,6 +146,9 @@ bool cTable::Stand(cDescriptor &desc)
    player_id[PLAYER_WEST] = NOPLAYER;
    descriptor_list->Send_To_All("%s %d w", PLAYER_STAND, table_id);
    num_players--;
+#ifdef DEBUG
+   printf("num_players: %d\r\n", num_players);
+#endif
    expire = time(nullptr);
    return true;
  }
@@ -148,9 +157,17 @@ bool cTable::Stand(cDescriptor &desc)
    player_id[PLAYER_EAST] = NOPLAYER;
    descriptor_list->Send_To_All("%s %d e", PLAYER_STAND, table_id);
    num_players--;
+#ifdef DEBUG
+   printf("num_players: %d\r\n", num_players);
+#endif
    expire = time(nullptr);
    return true;
  }
+#ifdef DEBUG
+ printf("(not found) num_players: %d\r\n", num_players);
+#endif
+ Log.Write("SYSERR: Stand: Player not found! (%d)", num_players);
+
  return false;
 }
 
@@ -186,7 +203,7 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
    player_desc[chair] = &desc;
    player_id[chair] = desc.player->ID();
    Send(chair, "%s %d", TABLE_WHO_AM_I, chair);
-   descriptor_list->Send_To_All("%s %d %c %s", PLAYER_SIT_HERE, table_id, c, desc.player->Handle());
+   descriptor_list->Send_To_All("%s %d %c %d %s", PLAYER_SIT_HERE, table_id, c, muted, desc.player->Handle());
    expire = time(nullptr);
    num_players++;
 
@@ -201,16 +218,16 @@ void cTable::Sat(cDescriptor &desc)
   struct cPlayer *player;
 
   if ((player = Player(PLAYER_NORTH)) != nullptr) 
-    desc.Socket_Write("%s %d n %s", PLAYER_SIT_HERE, TableID(), player->Handle());
+    desc.Socket_Write("%s %d n %d %s", PLAYER_SIT_HERE, TableID(), muted, player->Handle());
     
   if ((player = Player(PLAYER_SOUTH)) != nullptr) 
-    desc.Socket_Write("%s %d s %s", PLAYER_SIT_HERE, TableID(), player->Handle());
+    desc.Socket_Write("%s %d s %d %s", PLAYER_SIT_HERE, TableID(), muted, player->Handle());
 	    
   if ((player = Player(PLAYER_WEST)) != nullptr) 
-    desc.Socket_Write("%s %d w %s", PLAYER_SIT_HERE, TableID(), player->Handle());
+    desc.Socket_Write("%s %d w %d %s", PLAYER_SIT_HERE, TableID(), muted, player->Handle());
 
   if ((player = Player(PLAYER_EAST)) != nullptr) 
-    desc.Socket_Write("%s %d e %s", PLAYER_SIT_HERE, TableID(), player->Handle());
+    desc.Socket_Write("%s %d e %d %s", PLAYER_SIT_HERE, TableID(), muted, player->Handle());
 }
 
 usINT cTable::Chair(cDescriptor &desc)
@@ -454,9 +471,16 @@ void cTabList::Play()
 	 case STATE_END_TURN:  if (!game->WaitOver()) break;
 			       game->EndTurn(*table);
 			       break; 
-	 case STATE_END_ROUND: if (!game->WaitOver()) break;
-	                       game->EndRound(*table);
+	 case STATE_END_ROUND: game->EndRound(*table);
 			       break;
+	 case STATE_SHUFFLE:   table->SendAll(TABLE_SHUFFLE);
+			       game->SetState(STATE_WAIT_ROUND);
+                               game->Wait(config.Wait_End_Round());
+			       break;
+	 case STATE_WAIT_ROUND:
+			       if (!game->WaitOver()) break;
+			       game->SetState(STATE_SEND_CARDS);
+			       break; 
 	 case STATE_GAME_OVER: table->SendAll("%s %d %d %d %d", TABLE_GAMEOVER, game->Score(PLAYER_NORTH), game->Score(PLAYER_SOUTH), 
 					                        game->Score(PLAYER_WEST), game->Score(PLAYER_EAST));
 			       table->Clear();

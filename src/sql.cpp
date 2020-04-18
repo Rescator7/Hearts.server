@@ -1,6 +1,6 @@
-#include <string.h>
-#include <stdlib.h> // exit()
-#include <stdarg.h>
+#include <cstring>
+#include <cstdlib> // exit()
+#include <cstdarg>
 #include "define.h"
 #include "sql.h"
 #include "log.h"
@@ -21,7 +21,11 @@ int cMYSQL::query( const char * format, ... )
  vsnprintf(buffer, SIZE_QUERY_BUFFER, format, args);
  strncpy(last_query, buffer, SIZE_QUERY_BUFFER);  // keep a backup of the last query
  errno = mysql_query(&mysql, buffer);
+
+#ifdef DEBUG
  printf("query: %s, errno: %d\n", buffer, errno);
+#endif
+
  va_end(args);
 
  if (errno) return false;

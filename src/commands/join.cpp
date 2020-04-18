@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 #include "../define.h"
 #include "../player.h"
 #include "../game.h"

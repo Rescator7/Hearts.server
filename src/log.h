@@ -1,19 +1,23 @@
 #ifndef _LOG_
 #define _LOG_
 
-#include <stdio.h> // FILE 
+#include <cstdio> // FILE 
 
 class cLog {
 public:
-  cLog( const char * filename );
+  cLog(const char *fname);
   ~cLog();
 
 private:
   bool bLogging;
-  FILE * logfile;
+  long int byteswritten;
+  char *filename;
+  FILE *logfile;
 
 public:
   void Write (const char * format, ...);
+  void Open();
+  void Check_Size();
 };
 
 // external variable

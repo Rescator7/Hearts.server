@@ -46,6 +46,8 @@
 #define SOCKET_ILLEGAL_INPUT    "E43"
 #define PLAYER_NOT_MOON         "E44"
 #define COMMAND_WRONG_PARAMETER "E45"
+#define ADMIN_NOT_FOUND         "E46"
+#define ADMIN_ABOVE             "E47"
 
 #define PLAYER_UID              "I01"
 #define PLAYER_CHOOSE_CHAIR     "I02"
@@ -74,5 +76,10 @@
 #define TABLE_GAMEOVER          "I25"
 #define TABLE_PAUSED            "I26"
 #define TABLE_UNPAUSED          "I27"
+#define SERVER_ANNOUNCE         "I28"
+#define PLAYER_MOON             "I29"
+#define TABLE_CLEAR             "I30"
+#define ADMIN_SET               "I31"
+#define TABLE_SHUFFLE           "I32"
 
 #endif // _DATAGRAMS_

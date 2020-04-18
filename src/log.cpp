@@ -1,28 +1,61 @@
-#include <stdarg.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cstdarg>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 
+#include "define.h"
 #include "log.h"
 
-cLog::cLog( const char * filename )
+cLog::cLog(const char *fname)
 {
+ byteswritten = 0;
  bLogging = true;
- if (!(logfile=fopen(filename, "a"))) {
-   printf("SYSERR: failed to turn on logging.\n");
-   bLogging = false;
- }
+ filename = strdup(fname);
+
+ Open();
 }
 
 cLog::~cLog()
 {
- fclose(logfile); 
+ free(filename);
+ if (bLogging)
+   fclose(logfile); 
 }
  
+void cLog::Open()
+{
+  if (!(logfile=fopen(filename, "a"))) {
+    printf("SYSERR: failed to turn on logging.\n");
+    bLogging = false;
+  }
+}
+
+void cLog::Check_Size()
+{
+  if (byteswritten < MAX_LOG_SIZE) return;
+
+  byteswritten = 0;
+  
+  fclose(logfile);
+
+  remove("server.bak");
+
+  rename(filename, "server.bak");
+
+  if (!(logfile=fopen(filename, "w"))) {
+    printf("SYSERR: failed to turn on logging.\n");
+    bLogging = false;
+  }
+}
+
 void cLog::Write (const char *format, ...)
 {
  if (!bLogging) return;
+
+ Check_Size();
+
+ int bytes;
 
  va_list args;
  time_t ctime = time(nullptr);
@@ -33,12 +66,21 @@ void cLog::Write (const char *format, ...)
 
  time_s[strlen(time_s) - 1] = '\0';
 
- fprintf(logfile, "%-15.15s :: ", time_s + 4); // skip day of the week
+ bytes = fprintf(logfile, "%-15.15s :: ", time_s + 4); // skip day of the week
+
+ if (bytes > 0)
+   byteswritten += bytes;
 
  va_start(args, format);
- vfprintf(logfile, format, args);
+ bytes = vfprintf(logfile, format, args);
+
+ if (bytes > 0)
+   byteswritten += bytes;
+
  va_end(args);
 
  fprintf(logfile, "\n");
+ byteswritten++;
+
  fflush(logfile);
 }

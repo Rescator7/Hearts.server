@@ -1,10 +1,10 @@
+#include <cctype>
+#include <cstring>
+#include <cstdio>
 #include "define.h"
 #include "ansi.h"
 #include "comm.h"
 #include "log.h"
-#include <ctype.h>
-#include <string.h>
-#include <stdio.h>
  
 const char *cDescriptor::process_ansi( const char * outbuff )
 {

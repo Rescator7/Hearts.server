@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <cstdlib>
 #include "../define.h"
 #include "../datagrams.h"
 #include "../player.h"
@@ -20,5 +20,6 @@ void cTest::Execute( cDescriptor &d, cParam &param )
 
   int chair = table->Chair(d);
 
+  table->Pause(true);
   d.Socket_Write("%s %d %d", TABLE_SHOOT_MOON, chair, atoi(param.arguments));
 }

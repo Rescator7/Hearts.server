@@ -1,6 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 
 #include "define.h"
 #include "comm.h"
@@ -15,6 +15,8 @@ cCommandsStack::cCommandsStack(void)
 {
  m_CountCmd = 0;
 
+ Add( "admin",    LVL_SUPERUSER, new cAdmin() );
+ Add( "announce", LVL_ADMIN, new cAnnounce() );
  Add( "date",     LVL_GUEST, new cDate() );
  Add( "exit",     LVL_GUEST, new cExit() );
  Add( "join",     LVL_GUEST, new cJoin() );

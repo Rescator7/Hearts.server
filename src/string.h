@@ -1,7 +1,7 @@
 #ifndef _STRING_
 #define _STRING_
 
-#include <string.h>
+#include <cstring>
 
 extern const char * stolower(const char * str, char * new_str);
 extern const char * skip_crlf(char * str);

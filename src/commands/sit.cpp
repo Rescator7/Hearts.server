@@ -1,5 +1,5 @@
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "../define.h"
 #include "../datagrams.h"
 #include "../player.h"

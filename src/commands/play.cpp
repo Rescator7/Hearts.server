@@ -1,12 +1,9 @@
-#include <stdlib.h>
+#include <cstdlib>
 #include "../define.h"
 #include "../datagrams.h"
 #include "../player.h"
 #include "../game.h"
 #include "play.h"
-
-
-#include <stdio.h>
 
 void cPlay::Execute( cDescriptor &d, cParam &param )
 {
@@ -46,8 +43,11 @@ void cPlay::Execute( cDescriptor &d, cParam &param )
   }
 
   int card = atoi(param.arguments);
-  printf("play: chair: %d %d\r\n", chair, card);
+
+#ifdef DEBUG
   game->Show(chair);
+#endif
+
   if (!game->ValidMove(d, chair, card))
     return;
 

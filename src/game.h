@@ -24,11 +24,13 @@
 #define STATE_WAIT_PLAY        3
 #define STATE_END_TURN         4
 #define STATE_END_ROUND        5
-#define STATE_GAME_OVER        6
+#define STATE_SHUFFLE          6
+#define STATE_WAIT_ROUND       7
+#define STATE_GAME_OVER        8
 
 const int no_trick_bonus     = 5;
 const int omnibus_bonus      = 10;
-const int GAME_OVER_SCORE    = 100;
+const int GAME_OVER_SCORE    = 20;
 
 class cGame {
 public:

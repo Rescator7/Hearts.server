@@ -1,5 +1,5 @@
-#include <ctype.h>
-#include <stdio.h>
+#include <cctype>
+#include <cstdio>
 #include "define.h"
 #include "comm.h"
 #include "string.h"

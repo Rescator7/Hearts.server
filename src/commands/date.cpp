@@ -1,4 +1,4 @@
-#include <time.h>
+#include <ctime>
 #include "../define.h"
 #include "date.h"
 

@@ -4,11 +4,11 @@
 #include <sys/time.h> // setitimer()
 #include <netinet/in.h>
 #include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <signal.h>
-#include <time.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstdio>
+#include <csignal>
+#include <ctime>
+#include <cstring>
 
 #include "comm.h"
 #include "log.h"
@@ -42,15 +42,15 @@ void game_loop( socket_t mother_desc )
  null_time.tv_sec = 0;
  null_time.tv_usec = 0;
 
- FD_ZERO(&input_set);
- FD_ZERO(&output_set);
- FD_ZERO(&exc_set);
- FD_ZERO(&null_set);
-
  while (!server_shutdown) {
    server_loop++;
 
    /* Poll (without blocking) for new input, output, and exceptions */
+   FD_ZERO(&input_set);
+   FD_ZERO(&output_set);
+   FD_ZERO(&exc_set);
+   FD_ZERO(&null_set);
+
    FD_SET(mother_desc, &input_set);
    if (select(mother_desc + 1, &input_set, &output_set, &exc_set, &null_time) < 0) {
      Log.Write("SYSERR: game_loop (select() pool) error");

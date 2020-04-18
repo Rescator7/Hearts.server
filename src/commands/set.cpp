@@ -1,5 +1,5 @@
-#include <stdio.h>  // sscanf
-#include <string.h> // strcmp
+#include <cstdio>  // sscanf
+#include <cstring> // strcmp
 #include "../define.h"
 #include "../config.h"
 #include "../datagrams.h"
@@ -11,14 +11,14 @@ void cSet::Execute( cDescriptor &d, cParam &param )
   int ret, value;
  
   if (!*param.arguments) {
-    d.Socket_Write("port = %d\r\n"
+    d.Socket_Write("%s port = %d\r\n"
 		   "nice = %d\r\n"
 		   "wait_select = %d\r\n"
                    "wait_pass = %d\r\n"
 		   "wait_play = %d\r\n"
 		   "wait_end_turn = %d\r\n"
 		   "wait_end_round = %d\r\n"
-		   "wait_moon = %d\r\n", config.Port(), config.Nice(), config.Wait_Select(), config.Wait_Pass(),
+		   "wait_moon = %d\r\n", COMMAND_SET, config.Port(), config.Nice(), config.Wait_Select(), config.Wait_Pass(),
 		                         config.Wait_Play(), config.Wait_End_Turn(), config.Wait_End_Round(),
 					 config.Wait_Moon());
 
@@ -56,5 +56,7 @@ void cSet::Execute( cDescriptor &d, cParam &param )
       return;
     } 
     d.Socket_Write("%s %s = %d", COMMAND_SET, cmd, value); 
+    return;
   }
+  d.Socket_Write(COMMAND_WRONG_PARAMETER);
 }

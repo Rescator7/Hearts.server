@@ -1,7 +1,7 @@
 #include <openssl/des.h>
-#include <string.h>
-#include <stdio.h>
-#include <time.h>
+#include <cstring>
+#include <cstdio>
+#include <ctime>
 
 #include "define.h"
 #include "player.h"
@@ -28,7 +28,10 @@ cPlayer::~cPlayer()
 
 bool cPlayer::doesPasswordMatch( const char * p )
 { 
+#ifdef DEBUG
  printf("salt: %c%c, real: %s\r\ngave: %s\r\n", salt[0], salt[1], password, DES_crypt(p, salt));
+#endif
+
  salt[0] = password[0];
  salt[1] = password[1];
  salt[2] = '\x0';
@@ -54,7 +57,10 @@ void cPlayer::setPassword( const char * p, bool encrypt )
 // TODO: find a better way to get a random salt
 
  password = strdup(DES_crypt(p, salt));
+
+#ifdef DEBUG
  printf("salt: %c%c, p: %s\n", salt[0], salt[1], password);
+#endif
 }
 
 bool cPlayer::isHandle( const char * h ) 
@@ -80,7 +86,9 @@ unsigned int cPlayer::SQL_ID()
 
 bool cPlayer::save()
 {
+#ifdef DEBUG
  printf ("%s %s %s %s %s\r\n", handle, password, ip, realname, email);
+#endif
 
  return ( sql.query("insert into account values (0, '%s', '%s', '%s', '%s', '%s', now(), 0, 1 )", handle, password, ip, realname, email ));
 }
@@ -91,11 +99,17 @@ bool cPlayer::load()
    player_id = atoi(sql.get_row(0));
    if (sql.get_row(1))
      ip = strdup(sql.get_row(1));
+   level = atoi(sql.get_row(2));
+
+#ifdef DEBUG
    if (ip)
      printf("Connected from: %s\r\n", ip);
-   level = atoi(sql.get_row(2));
  }
  printf("player id: %d, userlevel: %d\r\n", player_id, level);
+#else
+ }
+#endif
+
  return ( true );
 }
 

@@ -1,6 +1,6 @@
-#include <stdlib.h>  // rand()
+#include <cstdlib>  // rand()
 #include <algorithm> // sort()
-#include <time.h>
+#include <ctime>
 #include <cstdio>
 #include "define.h"
 #include "datagrams.h"
@@ -8,6 +8,7 @@
 #include "game.h"
 #include "player.h"
 #include "config.h"
+#include "log.h"
 
 cGame::cGame( int f )
 {
@@ -42,7 +43,7 @@ void cGame::Run()
 
 void cGame::EndTurn(cTable &table)
 {
-  table.SendAll("%s %d %d", TABLE_HAND_SCORE, won_turn, hand_score[won_turn]);
+  table.SendAll(TABLE_CLEAR);
   table.Send(turn, "%s %d", TABLE_YOUR_TURN, config.Wait_Play());
   Wait(config.Wait_Play());
   state = STATE_WAIT_PLAY;
@@ -67,9 +68,8 @@ bool cGame::AdvanceTurn(cTable &table)
     ResetPlayed();
     left_to_play = 4;
 
+    table.SendAll("%s %d %d", TABLE_HAND_SCORE, won_turn, hand_score[won_turn]);
     if (num_cards[turn] == 0) {
-      table.SendAll("%s %d %d", TABLE_HAND_SCORE, won_turn, hand_score[won_turn]);
-      Wait(config.Wait_End_Round());
       state = STATE_END_ROUND;
       return false;
     } else {
@@ -108,8 +108,10 @@ void cGame::Play(cTable &table, usINT card)
     else
     if (card / 13 == HEART) {
       current_score++;
-      printf("score +1\r\n");
       heart_broken = true;
+#ifdef DEBUG
+      printf("score +1\r\n");
+#endif
     }
 
   if ((card / 13 == suit) && (card > best_card)) {
@@ -168,8 +170,12 @@ usINT cGame::ValidMove(usINT chair, usINT card)
 
   int card_suit = card / 13;
 
-  if ((card == QUEEN_SPADE) && (cards_played <= 4) && (player_cards[chair][1]/13 != HEART)) 
-    return ERROR_QUEEN_SPADE;
+  if (cards_played <= 4) {
+    if ((card == QUEEN_SPADE) && (player_cards[chair][1]/13 != HEART)) 
+      return ERROR_QUEEN_SPADE;
+    else if ((card_suit == HEART) && (player_cards[chair][0]/13 != HEART))
+	   return ERROR_BREAK_HEART;
+  }
 
   if (suit == FREESUIT) {
      if ((card_suit == HEART) && !heart_broken && (player_cards[chair][0]/13 != HEART))
@@ -194,7 +200,10 @@ void cGame::ForcePlay(cTable &table)
 
   struct cDescriptor *d = table.desc(turn);
 
+#ifdef DEBUG
   printf("force play, turn: %d, num_cards: %d\r\n", turn, num_cards[turn]);
+#endif
+
   for (int i=0; i<num_cards[turn]; i++) {
 //  for (int i=0; i<13; i++) {
     usINT card = player_cards[turn][i];
@@ -206,7 +215,9 @@ void cGame::ForcePlay(cTable &table)
       return;
     }
   }
-  printf("CARD VALID NOT FOUND\r\n");
+
+#ifdef DEBUG
+  printf("Card valid not found!\r\n");
   printf("Turn: %d, Suit: %d, num_card: %d\r\n", turn, suit, num_cards[turn]);
   for (int i=0; i<13; i++)
     printf("%d (%d) ", player_cards[turn][i], player_cards[turn][i]/13);
@@ -214,6 +225,16 @@ void cGame::ForcePlay(cTable &table)
   printf("cards in suit: \r\n");
   for (int i=0; i<4; i++)
     printf("%d ", cards_in_suit[turn][i]);
+  exit(1);
+#endif
+
+  Log.Write("SYSERR: Card valid not found!");
+  Log.Write("Turn: %d, Suit: %d, num_card: %d\r\n", turn, suit, num_cards[turn]);
+  for (int i=0; i<13; i++)
+    Log.Write("%d (%d) ", player_cards[turn][i], player_cards[turn][i]/13);
+  Log.Write("Cards in suit: ");
+  for (int i=0; i<4; i++)
+    Log.Write("%d ", cards_in_suit[turn][i]);
   exit(1);
 }
 
@@ -482,7 +503,10 @@ void cGame::EndRound(cTable &table)
       if (who_moon != PLAYER_EAST) score[PLAYER_EAST] += 26;
     } else
         score[who_moon] -= 26;
+      table.SendAll("%s %d %d", PLAYER_MOON, won_turn, moon_add);
   } else {
+      table.SendAll("%s %d %d", TABLE_HAND_SCORE, won_turn, hand_score[won_turn]);
+
       // Adjust the new scores, 
       score[PLAYER_NORTH] += hand_score[PLAYER_NORTH];
       score[PLAYER_SOUTH] += hand_score[PLAYER_SOUTH];
@@ -557,7 +581,7 @@ void cGame::EndRound(cTable &table)
   Generate_Cards();
   Sort();
 
-  state = STATE_SEND_CARDS; 
+  state = STATE_SHUFFLE; 
 }
 
 void cGame::ResetRound()
@@ -602,6 +626,7 @@ void cGame::ResetRound()
   }
 }
 
+#ifdef DEBUG
 void cGame::Show(usINT chair)
 {
   printf("cards: ");
@@ -613,6 +638,7 @@ void cGame::Show(usINT chair)
     printf("%d (%d) ", i, has_card[chair][i]);
   printf("\r\n");
 }
+#endif
 
 bool cGame::Ready()
 {

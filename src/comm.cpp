@@ -1,11 +1,11 @@
 #include <fcntl.h>
 #include <unistd.h> // close()
-#include <stdlib.h> // exit()
-#include <string.h> // memset()
-#include <stdarg.h> // va_start(), etc.
 #include <netdb.h>  // gethostbyaddr()
-#include <time.h>   // time()
-#include <ctype.h>  // isalnum()
+#include <cstdlib> // exit()
+#include <cstring> // memset()
+#include <cstdarg> // va_start(), etc.
+#include <ctime>   // time()
+#include <cctype>  // isalnum()
 
 #include "define.h"
 #include "player.h"
@@ -98,7 +98,11 @@ cDescriptor::cDescriptor(socket_t mother_desc)
  strncpy(ip, inet_ntoa(peer.sin_addr), 15);
  player->Set_Ip(ip);
  from = gethostbyaddr((char *) &peer.sin_addr, sizeof(peer.sin_addr), AF_INET);
+
+#ifdef DEBUG
  printf("'%s' %d\r\n", ip, descriptor_list->Connection_Per_Ip((char *) &ip));
+#endif
+
  if (descriptor_list->Connection_Per_Ip((char *)&ip) >= MAX_CONNECTION_PER_IP) {
    Socket_Write(SOCKET_MAX_CONN_IP);
    state = CON_DISCONNECT;
@@ -139,7 +143,11 @@ bool cDescriptor::Socket_Write( const char * format, ... )
  va_start(args, format);
  vsnprintf(buf, BUF_SIZE, format, args);
 // process_ansi( buf );
+
+#ifdef DEBUG
  printf("SOCKET_WRITE: '%s'\r\n", buf);
+#endif
+
  send(desc, buf, strlen(buf)+1, 0); // +1 allow to send the \x0, and use it as a datagram end marker
  va_end(args);
 
@@ -224,7 +232,9 @@ bool cDescriptor::process_input()
 
  stolower(buffer, lcBuf);
 
+#ifdef DEBUG
  printf("buf: '%s', lcbuf: '%s'\r\n", buffer, lcBuf);
+#endif
 
  switch ( state ) {
    case CON_LOGIN : 

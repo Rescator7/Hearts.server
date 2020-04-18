@@ -1,6 +1,8 @@
 #ifndef _DEFINE_
 #define _DEFINE_
 
+//#define DEBUG
+
 #define socket_t int
 #define usINT unsigned short int
 
@@ -13,6 +15,8 @@
 #define INVALID_SOCKET       (-1)
 #endif // INVALID_SOCKET
 
+#define MAX_LOG_SIZE         5000000    // max log files in bytes
+
 #define MAX_IDLE             3600
 #define MAX_LOGON_IDLE       60 
 
@@ -20,7 +24,7 @@
 #define SIZE_QUERY_BUFFER    1024
 #define SOCKET_BUFSIZE       512
 #define SOCKET_MAX_READ_BYTES 256
-#define SIT_DELAY            2      // in seconds
+#define SIT_DELAY            2          // in seconds
 #define TABLE_EXPIRE         10 
 #define MAX_REGISTER_PER_IP  25
 #define MAX_CONNECTION_PER_IP 50
@@ -49,6 +53,7 @@
 #define LVL_GUEST            0
 #define LVL_REGISTERED       1
 #define LVL_ADMIN            10
+#define LVL_SUPERUSER        20
 
 #define pLEFT                0
 #define pRIGHT               1

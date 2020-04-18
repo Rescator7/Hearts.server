@@ -1,10 +1,10 @@
+#include <cstdio>
+#include <cstdlib>
 #include "../define.h"
 #include "../datagrams.h"
 #include "../player.h"
 #include "../global.h"
 #include "new.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 void cNew::Execute( cDescriptor & d, cParam & param )
 {

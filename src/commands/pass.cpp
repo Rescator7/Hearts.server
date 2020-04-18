@@ -1,5 +1,5 @@
-#include <stdio.h> // sscanf()
-#include <time.h>  // required by game.h
+#include <cstdio> // sscanf()
+#include <ctime>  // required by game.h
 #include "../define.h"
 #include "../table.h"
 #include "../game.h"
@@ -14,8 +14,6 @@ void cPass::Execute( cDescriptor &d, cParam &param )
   struct cPlayer *player;
   struct cTable *table;
   struct cGame *game;
-
-  printf("passing...\r\n");
 
   if ((player = d.player) == nullptr) return;
 

@@ -1,3 +1,5 @@
+#include "commands/admin.h"
+#include "commands/announce.h"
 #include "commands/date.h"
 #include "commands/exit.h"
 #include "commands/join.h"
