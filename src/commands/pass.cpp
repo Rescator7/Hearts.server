@@ -13,7 +13,6 @@ void cPass::Execute( cDescriptor &d, cParam &param )
 {
   struct cPlayer *player;
   struct cTable *table;
-  struct cGame *game;
 
   if ((player = d.player) == nullptr) return;
 
@@ -28,7 +27,7 @@ void cPass::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
-  game = table->game;
+  struct cGame *game = table->game;
 
   if (!game->Started()) {
     d.Socket_Write(TABLE_NOT_STARTED);

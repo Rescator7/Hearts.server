@@ -27,10 +27,10 @@
 #define STATE_SHUFFLE          6
 #define STATE_WAIT_ROUND       7
 #define STATE_GAME_OVER        8
+#define STATE_CORRUPTED        9
 
 const int no_trick_bonus     = 5;
 const int omnibus_bonus      = 10;
-const int GAME_OVER_SCORE    = 20;
 
 class cGame {
 public:
@@ -105,6 +105,7 @@ public:
   void Show(usINT chair);
   void EndTurn(cTable &table);
   void SetMoon(bool add);
+  usINT CMD_Rank(usINT chair);
   usINT WhoMoon();
   usINT Score(usINT chair);
 };

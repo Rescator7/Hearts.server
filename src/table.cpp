@@ -119,6 +119,9 @@ void cTable::Clear()
 
 bool cTable::Stand(cDescriptor &desc)
 {
+ if (game->Started() && desc.player)
+   desc.player->update(CMD_FOURTH);
+
  if (player_desc[PLAYER_NORTH] == &desc) {
    player_desc[PLAYER_NORTH] = nullptr;
    player_id[PLAYER_NORTH] = NOPLAYER;
@@ -483,6 +486,13 @@ void cTabList::Play()
 			       break; 
 	 case STATE_GAME_OVER: table->SendAll("%s %d %d %d %d", TABLE_GAMEOVER, game->Score(PLAYER_NORTH), game->Score(PLAYER_SOUTH), 
 					                        game->Score(PLAYER_WEST), game->Score(PLAYER_EAST));
+			       if (table->Player(PLAYER_NORTH)) table->Player(PLAYER_NORTH)->update(game->CMD_Rank(PLAYER_NORTH));
+			       if (table->Player(PLAYER_SOUTH)) table->Player(PLAYER_SOUTH)->update(game->CMD_Rank(PLAYER_SOUTH));
+			       if (table->Player(PLAYER_WEST)) table->Player(PLAYER_WEST)->update(game->CMD_Rank(PLAYER_WEST));
+			       if (table->Player(PLAYER_EAST)) table->Player(PLAYER_EAST)->update(game->CMD_Rank(PLAYER_EAST));
+			       table->Clear();
+			       break;
+	 case STATE_CORRUPTED: table->SendAll(TABLE_CORRUPTED);
 			       table->Clear();
 			       break;
       }

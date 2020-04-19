@@ -1,15 +1,17 @@
 #include <cstring>
 #include <cstdio>
 #include "../define.h"
+#include "../global.h"
 #include "../datagrams.h"
 #include "../sql.h"
+#include "../player.h"
 #include "admin.h"
 
 void cAdmin::Execute( cDescriptor &d, cParam &param )
 {
   if (!*param.arguments) return;
 
-  char query[80];
+  char query[QUERY_SIZE];
 
   int len = strlen(param.arguments);
 
@@ -18,17 +20,24 @@ void cAdmin::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
-  sprintf(query, "select userlevel from account where handle = \"%s\";", param.arguments);
+  snprintf(query, QUERY_SIZE, "select userlevel from account where handle = \"%s\";", param.arguments);
   if (sql.query(query)) {
    int level = atoi(sql.get_row(0));
 
-   if (level >= 10) {
+   if (level >= LVL_ADMIN) {
      d.Socket_Write("%s %s", ADMIN_ABOVE, param.arguments);
      return;
    }
 
-   sprintf(query, "update account set userlevel = 10 where handle = \"%s\";", param.arguments);
+   snprintf(query, QUERY_SIZE, "update account set userlevel = %d where handle = \"%s\";", LVL_ADMIN, param.arguments);
    sql.query(query);
+
+   struct cPlayer *player;
+
+   player = descriptor_list->Find_Username(param.arguments);
+   if (player != nullptr)
+     player->Set_Level(LVL_ADMIN);
+
    d.Socket_Write("%s %s", ADMIN_SET, param.arguments);
   } else
      d.Socket_Write("%s %s", ADMIN_NOT_FOUND, param.arguments);

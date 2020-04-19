@@ -3,5 +3,5 @@
 
 void cExit::Execute( cDescriptor &d, cParam &param )
 {
- d.Disconnect();
+  d.Disconnect();
 }

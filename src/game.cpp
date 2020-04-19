@@ -235,7 +235,8 @@ void cGame::ForcePlay(cTable &table)
   Log.Write("Cards in suit: ");
   for (int i=0; i<4; i++)
     Log.Write("%d ", cards_in_suit[turn][i]);
-  exit(1);
+
+  state = STATE_CORRUPTED;
 }
 
 // This is a simple choose 3 cards to pass.
@@ -536,7 +537,7 @@ void cGame::EndRound(cTable &table)
     
       if (flags & PERFECT_100_f) {
         for (int i=0; i<4; i++) {
-           if (score[i] == GAME_OVER_SCORE) {
+           if (score[i] == config.GameOver_Score()) {
              score[i] = 50;
              table.SendAll("%s %d %d", TABLE_PERFECT_100, i, 50);
            }
@@ -548,7 +549,7 @@ void cGame::EndRound(cTable &table)
   
   if (!(flags & NO_DRAW_f)) {
     for (int i=0; i<4; i++)
-       if (score[i] >= GAME_OVER_SCORE) {
+       if (score[i] >= config.GameOver_Score()) {
 	 state = STATE_GAME_OVER;
 	 return;
        }
@@ -562,7 +563,7 @@ void cGame::EndRound(cTable &table)
           lowest = score[i];
         } else if (score[i] == lowest) c++;
 
-        if (score[i] >= GAME_OVER_SCORE) 
+        if (score[i] >= config.GameOver_Score()) 
           over = true;
       }
 
@@ -624,6 +625,22 @@ void cGame::ResetRound()
     passed_cards[PLAYER_WEST][i] = empty;
     passed_cards[PLAYER_EAST][i] = empty;
   }
+}
+
+usINT cGame::CMD_Rank(usINT chair)
+{
+ int cpt = 0;
+
+ if (score[chair] > score[PLAYER_NORTH]) cpt++;
+ if (score[chair] > score[PLAYER_SOUTH]) cpt++;
+ if (score[chair] > score[PLAYER_WEST]) cpt++;
+ if (score[chair] > score[PLAYER_EAST]) cpt++;
+
+ cpt++;
+ if (cpt == 1) return CMD_FIRST;
+ if (cpt == 2) return CMD_SECOND;
+ if (cpt == 3) return CMD_THIRD;
+ return CMD_FOURTH;
 }
 
 #ifdef DEBUG

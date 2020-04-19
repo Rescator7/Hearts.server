@@ -18,6 +18,11 @@ cPlayer::cPlayer()
  password = nullptr;
  ip = nullptr;
  table = nullptr;
+ first = 0;
+ second = 0;
+ third = 0;
+ fourth = 0;
+ login_time = time(nullptr);
 }
 
 cPlayer::~cPlayer()
@@ -90,16 +95,22 @@ bool cPlayer::save()
  printf ("%s %s %s %s %s\r\n", handle, password, ip, realname, email);
 #endif
 
- return ( sql.query("insert into account values (0, '%s', '%s', '%s', '%s', '%s', now(), 0, 1 )", handle, password, ip, realname, email ));
+ return ( sql.query("insert into account values (0, '%s', '%s', '%s', '%s', '%s', now(), now(), 0, 1, 0, 0, 0, 0 )", handle, password, ip, realname, email ));
 }
 
 bool cPlayer::load()
 {
- if (sql.query("select playerid, ip, userlevel from account where handle = '%s'", handle)) {
+ if (sql.query("select playerid, ip, userlevel, first, second, third, fourth from account where handle = '%s'", handle)) {
    player_id = atoi(sql.get_row(0));
-   if (sql.get_row(1))
+
+   if (sql.get_row(1)) // can't strdup empty string
      ip = strdup(sql.get_row(1));
+
    level = atoi(sql.get_row(2));
+   first = atoi(sql.get_row(3));
+   second = atoi(sql.get_row(4));
+   third = atoi(sql.get_row(5));
+   fourth = atoi(sql.get_row(6));
 
 #ifdef DEBUG
    if (ip)
@@ -111,6 +122,31 @@ bool cPlayer::load()
 #endif
 
  return ( true );
+}
+
+void cPlayer::update(usINT cmd)
+{
+  long int diff;
+
+  switch (cmd) {
+    case CMD_LASTLOGIN: sql.query("update account set lastlogin = now() where playerid = %d;", player_id);
+			break;
+    case CMD_TOTALTIME: diff = difftime(time(nullptr), login_time);
+			sql.query("update account set totaltime = totaltime + %d where playerid = %d;", diff, player_id);
+			break;
+    case CMD_FIRST:     sql.query("update account set first = first + 1 where playerid = %d;", player_id);
+			first++;
+			break;
+    case CMD_SECOND:    sql.query("update account set second = second + 1 where playerid = %d;", player_id);
+			second++;
+			break;
+    case CMD_THIRD:     sql.query("update account set third = third + 1 where playerid = %d;", player_id);
+                        third++;
+			break;
+    case CMD_FOURTH:    sql.query("update account set fourth = fourth + 1 where playerid = %d;", player_id);
+			fourth++;
+			break;
+  }
 }
 
 unsigned int cPlayer::Level()
@@ -148,6 +184,11 @@ void cPlayer::Set_Password(char *p)
   password = p;
 }
 
+void cPlayer::Set_Level(usINT l)
+{
+  level = l;
+}
+
 void cPlayer::Set_Ip(char *_ip)
 {
   ip = strdup(_ip);
@@ -157,4 +198,24 @@ void cPlayer::ULink_Table(unsigned int id)
 {
   if (table && (table->TableID() == id))
     table = nullptr;
+}
+
+long int cPlayer::First()
+{
+  return first;
+}
+
+long int cPlayer::Second()
+{
+  return second;
+}
+
+long int cPlayer::Third()
+{
+  return third;
+}
+
+long int cPlayer::Fourth()
+{
+  return fourth;
 }

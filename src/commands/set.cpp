@@ -18,9 +18,10 @@ void cSet::Execute( cDescriptor &d, cParam &param )
 		   "wait_play = %d\r\n"
 		   "wait_end_turn = %d\r\n"
 		   "wait_end_round = %d\r\n"
-		   "wait_moon = %d\r\n", COMMAND_SET, config.Port(), config.Nice(), config.Wait_Select(), config.Wait_Pass(),
-		                         config.Wait_Play(), config.Wait_End_Turn(), config.Wait_End_Round(),
-					 config.Wait_Moon());
+		   "wait_moon = %d\r\n"
+		   "gameover_score = %d\r\n", COMMAND_SET, config.Port(), config.Nice(), config.Wait_Select(), config.Wait_Pass(),
+		                              config.Wait_Play(), config.Wait_End_Turn(), config.Wait_End_Round(),
+					      config.Wait_Moon(), config.GameOver_Score());
 
     return;
   }
@@ -51,6 +52,9 @@ void cSet::Execute( cDescriptor &d, cParam &param )
     else
     if (!strcmp(cmd, "wait_moon"))
       config.Set(OPT_WAIT_MOON, value);
+    else
+    if (!strcmp(cmd, "gameover_score"))
+      config.Set(OPT_GAMEOVER_SCORE, value);
     else {
       d.Socket_Write(COMMAND_WRONG_PARAMETER);
       return;

@@ -53,10 +53,17 @@ int cMYSQL::query( const char * format, ... )
 const char *cMYSQL::get_row(unsigned int index)
 {
  if (index + 1 > num_fields) {
-   Log.Write("SYSERR: cMYSQL::get_row() invalid index: %d > num_fields: %d\n"
-             "SYSERR: last query was '%s'" , index, num_fields, last_query);
+   Log.Write("SYSERR: cMYSQL::get_row() invalid index: %d > num_fields: %d", index, num_fields);
+   Log.Write("SYSERR: last query was '%s'" , last_query);
    return "";
  }
+
+ if (row[index] == nullptr) {
+   Log.Write("SYSERR: cMYSQL::get_row() row[%d] == nullptr", index);
+   Log.Write("SYSERR: last query was '%s'", last_query);
+   return "";
+ }
+
  return row[index];
 }
 

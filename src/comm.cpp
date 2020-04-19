@@ -286,7 +286,7 @@ bool cDescriptor::process_input()
             Socket_Write(HANDLE_RESERVED);
 	    return false;
           }
-          if (descriptor_list->Find_Handle( lcBuf ) || 
+          if (descriptor_list->Find_Username( lcBuf ) || 
               sql.query("select handle from account where handle = '%s'", lcBuf)) {
             Socket_Write(HANDLE_UNAVAILABLE);
 	    return false;
@@ -356,6 +356,8 @@ bool cDescriptor::process_input()
 motd:     Log.Write("PROCINP: CON_MOTD");
 	  Socket_Write("%s %d", PLAYER_UID, player->ID());
 	  table_list->List(*this);
+
+	  player->update(CMD_LASTLOGIN);
           state = CON_PROMPT;
           break;
    case CON_PROMPT :
@@ -474,6 +476,9 @@ bool cDescList::Remove( cDescriptor *elem )
 {
   struct sList *Q, *prev = NULL;
 
+  if (elem->player)
+    elem->player->update(CMD_TOTALTIME);
+
   for (Q = head; Q; Q = Q->next) {
     if (Q->elem == elem) {
       if ( prev ) 
@@ -504,13 +509,13 @@ bool cDescList::Empty()
   return true;
 }
 
-bool cDescList::Find_Handle( const char * handle )
+struct cPlayer *cDescList::Find_Username( const char * handle )
 {
   for (struct sList * Q = head; Q; Q = Q->next) {
     if (Q->elem->player->isHandle( handle ))
-      return true;
+      return Q->elem->player;
   }
-  return false;
+  return nullptr;
 }
 
 bool cDescList::Send_To_All( const char * format, ... )

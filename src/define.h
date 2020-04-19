@@ -20,6 +20,7 @@
 #define MAX_IDLE             3600
 #define MAX_LOGON_IDLE       60 
 
+#define QUERY_SIZE           80
 #define BUF_SIZE             2048
 #define SIZE_QUERY_BUFFER    1024
 #define SOCKET_BUFSIZE       512

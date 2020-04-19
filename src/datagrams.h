@@ -48,6 +48,7 @@
 #define COMMAND_WRONG_PARAMETER "E45"
 #define ADMIN_NOT_FOUND         "E46"
 #define ADMIN_ABOVE             "E47"
+#define TABLE_CORRUPTED         "E48"
 
 #define PLAYER_UID              "I01"
 #define PLAYER_CHOOSE_CHAIR     "I02"
@@ -81,5 +82,6 @@
 #define TABLE_CLEAR             "I30"
 #define ADMIN_SET               "I31"
 #define TABLE_SHUFFLE           "I32"
+#define GAME_STATS              "I33"
 
 #endif // _DATAGRAMS_

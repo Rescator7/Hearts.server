@@ -11,6 +11,7 @@ extern class cConfig config;
 #define OPT_WAIT_END_TURN  5
 #define OPT_WAIT_END_ROUND 6
 #define OPT_WAIT_MOON      7
+#define OPT_GAMEOVER_SCORE 8
 
 class cConfig {
 
@@ -27,6 +28,7 @@ private:
   int wait_end_turn;
   int wait_end_round;
   int wait_moon;
+  int gameover_score;
 
   void init();
 
@@ -39,6 +41,7 @@ public:
   int Wait_End_Turn();
   int Wait_End_Round();
   int Wait_Moon();
+  int GameOver_Score();
   void Set(int opt, int value);
 };
 

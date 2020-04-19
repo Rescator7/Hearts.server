@@ -9,7 +9,6 @@ void cPlay::Execute( cDescriptor &d, cParam &param )
 {
   struct cPlayer *player;
   struct cTable *table;
-  struct cGame *game;
 
   if (!*param.arguments) return;
 
@@ -26,7 +25,7 @@ void cPlay::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
-  game = table->game;
+  struct cGame *game = table->game;
   if (!game->Started()) {
     d.Socket_Write(TABLE_NOT_STARTED);
     return;

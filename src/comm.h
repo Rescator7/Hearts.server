@@ -59,7 +59,7 @@ public:
   bool Empty();
   bool Send_To_All( const char *format, ... );
   bool Check_Conns();
-  bool Find_Handle( const char *handle );
+  struct cPlayer *Find_Username( const char *handle );
   void DisconnectPlayerID(unsigned int pID);
   unsigned int Connection_Per_Ip(char *ip);
   void ULink_TableID(unsigned int id);

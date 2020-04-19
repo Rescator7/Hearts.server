@@ -25,14 +25,15 @@ cCommandsStack::cCommandsStack(void)
  Add( "mute",     LVL_GUEST, new cMute() );
  Add( "new",      LVL_GUEST, new cNew() );
  Add( "pass",     LVL_GUEST, new cPass() );
- Add( "pause",    LVL_GUEST, new cPause() ); // set to level admin
+ Add( "pause",    LVL_SUPERUSER, new cPause() );
  Add( "play",     LVL_GUEST, new cPlay() );
  Add( "say",      LVL_GUEST, new cSay() );
- Add( "set",      LVL_GUEST, new cSet() );   // set to level admin
+ Add( "set",      LVL_ADMIN, new cSet() );
  Add( "shutdown", LVL_ADMIN, new cShutdown() );
  Add( "shutoff",  LVL_ADMIN, new cShutoff() );
  Add( "sit",      LVL_GUEST, new cSit() );
- Add( "test",     LVL_GUEST, new cTest() );  // set to level admin
+ Add( "stats",    LVL_GUEST, new cStats() );
+ Add( "test",     LVL_ADMIN, new cTest() );
  Add( "who",      LVL_GUEST, new cWho() );
  Add( "\xff",     0,         nullptr );
 }
