@@ -109,34 +109,6 @@ cMYSQL::~cMYSQL()
    mysql_free_result(result);
 }
 
-// TODO: this function is not good, because it return a Int, so can't catch an error.
-int cMYSQL::singleIntQuery(const char * query)
-{
- int errno, value;
-
- errno = mysql_query(&mysql, query);
- switch ( errno ) {
-   case CR_COMMANDS_OUT_OF_SYNC : 
-        break;
-   case CR_SERVER_GONE_ERROR : 
-        break;
-   case CR_SERVER_LOST : 
-        break;
-   case CR_UNKNOWN_ERROR :
-        break;
- }
-
-// TODO: those CR_ seem unknown from <mysql/mysql.h> to be checked
- result = mysql_store_result(&mysql);
- num_affected_row = mysql_affected_rows(&mysql);
- row = mysql_fetch_row(result);
-
- value = atoi(row[0]);
- mysql_free_result(result);
-
- return value;
-}
-
 unsigned int cMYSQL::Num_Fields()
 {
  return num_fields;

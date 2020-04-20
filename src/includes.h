@@ -8,6 +8,7 @@
 #include "commands/mute.h"
 #include "commands/new.h"
 #include "commands/pass.h"
+#include "commands/password.h"
 #include "commands/pause.h"
 #include "commands/play.h"
 #include "commands/say.h"

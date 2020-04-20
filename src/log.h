@@ -17,7 +17,7 @@ private:
 public:
   void Write (const char * format, ...);
   void Open();
-  void Check_Size();
+  bool Check_Size();
 };
 
 // external variable

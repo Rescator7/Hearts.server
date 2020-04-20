@@ -34,29 +34,32 @@ extern socket_t init_socket(unsigned int port);
 
 void game_loop( socket_t mother_desc )
 {
- fd_set rfds, input_set, output_set, exc_set, null_set;
+ fd_set input_set, output_set, exc_set;
  struct timeval tv, null_time;
- int retval;
 
- /* initialize various time values */
  null_time.tv_sec = 0;
  null_time.tv_usec = 0;
 
  while (!server_shutdown) {
    server_loop++;
 
-   /* Poll (without blocking) for new input, output, and exceptions */
+   tv.tv_sec = 0;
+   tv.tv_usec = 10000;
+
+   if (select(0, nullptr, nullptr, nullptr, &tv) < 0) {
+//     Log.Write("SYSERR: wait select()");
+   }
+
    FD_ZERO(&input_set);
    FD_ZERO(&output_set);
    FD_ZERO(&exc_set);
-   FD_ZERO(&null_set);
 
    FD_SET(mother_desc, &input_set);
    if (select(mother_desc + 1, &input_set, &output_set, &exc_set, &null_time) < 0) {
      Log.Write("SYSERR: game_loop (select() pool) error");
      continue;
    }
-    /* If there are new connections waiting, accept them. */
+
    if (FD_ISSET(mother_desc, &input_set)) {
      cDescriptor *desc = new cDescriptor( mother_desc );
      descriptor_list->Add( desc );
@@ -66,18 +69,7 @@ void game_loop( socket_t mother_desc )
    descriptor_list->Check_Conns();
 
    table_list->Remove_Expired();
-
    table_list->Play();
-
-   FD_ZERO(&rfds);
-   FD_SET(0, &rfds);
-   tv.tv_sec = 0;
-   tv.tv_usec = 1000;
-
-   retval = select(1, &rfds, NULL, NULL, &tv);
-   if (retval == -1) {
-//     Log.Write("SYSERR: wait select()");
-   }
  }
 }
 

@@ -1,4 +1,4 @@
-#include <openssl/des.h>
+#include <openssl/sha.h>
 #include <cstring>
 #include <cstdio>
 #include <ctime>
@@ -10,19 +10,19 @@
 
 cPlayer::cPlayer()
 {
- player_id = 0;
- level = 0;
- handle = nullptr;
- realname = nullptr;
- email = nullptr;
- password = nullptr;
- ip = nullptr;
- table = nullptr;
- first = 0;
- second = 0;
- third = 0;
- fourth = 0;
- login_time = time(nullptr);
+  player_id = 0;
+  level = 0;
+  handle = nullptr;
+  realname = nullptr;
+  email = nullptr;
+  password = nullptr;
+  ip = nullptr;
+  table = nullptr;
+  first = 0;
+  second = 0;
+  third = 0;
+  fourth = 0;
+  login_time = time(nullptr);
 }
 
 cPlayer::~cPlayer()
@@ -31,97 +31,93 @@ cPlayer::~cPlayer()
     free(ip);
 }
 
-bool cPlayer::doesPasswordMatch( const char * p )
+bool cPlayer::doesPasswordMatch( const char *p )
 { 
-#ifdef DEBUG
- printf("salt: %c%c, real: %s\r\ngave: %s\r\n", salt[0], salt[1], password, DES_crypt(p, salt));
-#endif
+  unsigned char obuf[SHA_DIGEST_LENGTH] = {0, };
+  char pwd[SHA_DIGEST_LENGTH * 2 + 1] = {0, };
 
- salt[0] = password[0];
- salt[1] = password[1];
- salt[2] = '\x0';
- return ( !strcmp(password, DES_crypt(p, salt)) );
-}
+  SHA1((const unsigned char *)p, strlen(p), obuf);
 
-void cPlayer::setPassword( const char * p, bool encrypt )
-{
- const char letters[63] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
- if (!encrypt) {
-   password = strdup(p);
-   salt[0] = password[0];
-   salt[1] = password[1];
-   salt[2] = '\x0';
-   return;
- } // already encrypted
-
- srand(time(nullptr));
- salt[0] = letters[rand() % 62];
- salt[1] = letters[rand() % 62];
- salt[2] = '\x0';
-// TODO: find a better way to get a random salt
-
- password = strdup(DES_crypt(p, salt));
+  for (int i=0; i<SHA_DIGEST_LENGTH; i++)
+    sprintf(pwd + i * 2, "%02x", obuf[i]); 
 
 #ifdef DEBUG
- printf("salt: %c%c, p: %s\n", salt[0], salt[1], password);
+  printf("sha: '%s'\r\n", pwd);
 #endif
+  return (!strcmp(password, pwd));
 }
 
-bool cPlayer::isHandle( const char * h ) 
+void cPlayer::setPassword( const char *p )
 {
- char buf1 [MAX_HANDLE_LENGTH], buf2 [MAX_HANDLE_LENGTH];
+  unsigned char obuf[SHA_DIGEST_LENGTH] = {0, };
+  char pwd[SHA_DIGEST_LENGTH * 2 + 1] = {0, };
 
- if (!handle || !*h) return ( false );
+  SHA1((const unsigned char*)p, strlen(p), obuf);
 
- stolower(h, buf1);
- stolower(handle, buf2);
- return ( !strcmp(buf1, buf2) ); 
+  for (int i=0; i<20; i++)
+    sprintf(pwd + i * 2, "%02x", obuf[i]); 
+
+  password = strdup(pwd);
+}
+
+void cPlayer::NewPassword(const char *p)
+{
+  if (password)
+    free(password);
+
+  setPassword(p);
+
+  sql.query("update account set password = \"%s\" where playerid = %d;", password, player_id);
+}
+
+bool cPlayer::isHandle( const char *h ) 
+{
+  return (!strcasecmp(handle, h));
 }
 
 unsigned int cPlayer::SQL_ID()
 {
- int id = 0;
+  int id = 0;
 
- if (sql.query("select playerid from account where handle = '%s'", handle)) {
-   id = atoi(sql.get_row(0));
- }
- return id;
+  if (sql.query("select playerid from account where handle = '%s'", handle))
+    id = atoi(sql.get_row(0));
+
+  return id;
 }
 
 bool cPlayer::save()
 {
 #ifdef DEBUG
- printf ("%s %s %s %s %s\r\n", handle, password, ip, realname, email);
+  printf ("%s %s %s %s %s\r\n", handle, password, ip, realname, email);
 #endif
 
- return ( sql.query("insert into account values (0, '%s', '%s', '%s', '%s', '%s', now(), now(), 0, 1, 0, 0, 0, 0 )", handle, password, ip, realname, email ));
+  return ( sql.query("insert into account values (0, '%s', '%s', '%s', '%s', '%s', now(), now(), 0, 1, 0, 0, 0, 0 )", handle, password, ip, realname, email ));
 }
 
 bool cPlayer::load()
 {
- if (sql.query("select playerid, ip, userlevel, first, second, third, fourth from account where handle = '%s'", handle)) {
-   player_id = atoi(sql.get_row(0));
+  if (sql.query("select playerid, ip, userlevel, first, second, third, fourth from account where handle = '%s'", handle)) {
+    player_id = atoi(sql.get_row(0));
 
-   if (sql.get_row(1)) // can't strdup empty string
-     ip = strdup(sql.get_row(1));
+    if (sql.get_row(1)) // can't strdup empty string
+      ip = strdup(sql.get_row(1));
 
-   level = atoi(sql.get_row(2));
-   first = atoi(sql.get_row(3));
-   second = atoi(sql.get_row(4));
-   third = atoi(sql.get_row(5));
-   fourth = atoi(sql.get_row(6));
+    level = atoi(sql.get_row(2));
+    first = atoi(sql.get_row(3));
+    second = atoi(sql.get_row(4));
+    third = atoi(sql.get_row(5));
+    fourth = atoi(sql.get_row(6));
 
 #ifdef DEBUG
-   if (ip)
-     printf("Connected from: %s\r\n", ip);
- }
- printf("player id: %d, userlevel: %d\r\n", player_id, level);
+    if (ip)
+      printf("Connected from: %s\r\n", ip);
+  }
+  printf("player id: %d, userlevel: %d\r\n", player_id, level);
 #else
- }
+}
 #endif
 
- return ( true );
+  return ( true );
 }
 
 void cPlayer::update(usINT cmd)

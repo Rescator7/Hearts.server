@@ -25,6 +25,7 @@ cCommandsStack::cCommandsStack(void)
  Add( "mute",     LVL_GUEST, new cMute() );
  Add( "new",      LVL_GUEST, new cNew() );
  Add( "pass",     LVL_GUEST, new cPass() );
+ Add( "password", LVL_GUEST, new cPassword() );
  Add( "pause",    LVL_SUPERUSER, new cPause() );
  Add( "play",     LVL_GUEST, new cPlay() );
  Add( "say",      LVL_GUEST, new cSay() );
@@ -79,6 +80,11 @@ bool cCommandsStack::Process_Command(cDescriptor *d, char *buffer)
    if (m_commands[command_id].level <= d->player->Level()) {
      cmp = strncmp(command, ptr, strlen(command));
      if (!cmp)  {
+       if (len == strlen(command)) {
+	 matches_count = 1;
+	 first = command_id;
+	 break;
+       }
        matches_count++;
        strncat(matches, ptr, len);
        strcat(matches, " ");

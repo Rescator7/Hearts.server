@@ -83,5 +83,6 @@
 #define ADMIN_SET               "I31"
 #define TABLE_SHUFFLE           "I32"
 #define GAME_STATS              "I33"
+#define PLAYER_NEW_PASSWORD     "I34"
 
 #endif // _DATAGRAMS_

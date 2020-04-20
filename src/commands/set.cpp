@@ -7,7 +7,7 @@
 
 void cSet::Execute( cDescriptor &d, cParam &param )
 {
-  char cmd[20];
+  char cmd[20 + 1]; // sscanf (%20s) will require + 1 for NULL terminator
   int ret, value;
  
   if (!*param.arguments) {

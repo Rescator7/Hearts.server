@@ -21,7 +21,6 @@ private:
 
 public:
   int query( const char * format, ... );
-  int singleIntQuery( const char * query );
   const char * get_row( unsigned int index );
   bool fetch();
   unsigned int Num_Fields();

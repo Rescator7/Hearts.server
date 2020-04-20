@@ -26,7 +26,7 @@ VERSION = -DVERSION=\"Version-0.0.1\" # about.cpp, client.cpp
 #CFLAGS = -O3 -pipe -fno-exceptions -Wall -march=i486 -fomit-frame-pointer -funroll-all-loops -mpreferred-stack-boundary=2 -mcpu=i686 $(MYFLAGS)
 CFLAGS = -g -Wall -std=c++11
 
-OBJFILES = commands/admin.o commands/announce.o commands/date.o commands/exit.o commands/join.o commands/leave.o commands/moon.o commands/mute.o commands/new.o commands/pass.o commands/pause.o commands/play.o commands/say.o commands/set.o commands/shutoff.o commands/shutdown.o commands/sit.o commands/stats.o commands/test.o commands/who.o ansi.o comm.o commands.o config.o game.o log.o player.o sql.o string.o table.o main.o
+OBJFILES = commands/admin.o commands/announce.o commands/date.o commands/exit.o commands/join.o commands/leave.o commands/moon.o commands/mute.o commands/new.o commands/pass.o commands/password.o commands/pause.o commands/play.o commands/say.o commands/set.o commands/shutoff.o commands/shutdown.o commands/sit.o commands/stats.o commands/test.o commands/who.o ansi.o comm.o commands.o config.o game.o log.o player.o sql.o string.o table.o main.o
 
 default: all
 

@@ -43,13 +43,11 @@ private:
   long int third;
   long int fourth;
 
-  char prompt   [MAX_PROMPT_LENGTH];
-  char salt     [3];
-
 public:
-  void setPassword( const char * p, bool encrypt );
-  bool doesPasswordMatch( const char * p );
-  bool isHandle( const char * h );
+  void setPassword( const char *p );
+  void NewPassword( const char *p );
+  bool doesPasswordMatch( const char *p );
+  bool isHandle( const char *h );
   bool save();
   bool load();
   void update(usINT cmd);

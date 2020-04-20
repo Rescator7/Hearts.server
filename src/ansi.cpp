@@ -6,7 +6,7 @@
 #include "comm.h"
 #include "log.h"
  
-const char *cDescriptor::process_ansi( const char * outbuff )
+const char *cDescriptor::process_ansi( const char *outbuff )
 {
  // a b c d e f g h i j k l m n o p q r s t u v w x y z
  const int colors [26] = {0, 34, 36, 30, 0, 0, 32, 0, 0, 0, 0, 0, 35, 0, 0, 0, 0, 31, 0, 0, 0, 0, 37, 0, 33, 0};

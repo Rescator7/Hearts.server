@@ -9,18 +9,18 @@
 
 cLog::cLog(const char *fname)
 {
- byteswritten = 0;
- bLogging = true;
- filename = strdup(fname);
+  byteswritten = 0;
+  bLogging = true;
+  filename = strdup(fname);
 
- Open();
+  Open();
 }
 
 cLog::~cLog()
 {
- free(filename);
- if (bLogging)
-   fclose(logfile); 
+  free(filename);
+  if (bLogging)
+    fclose(logfile); 
 }
  
 void cLog::Open()
@@ -31,9 +31,9 @@ void cLog::Open()
   }
 }
 
-void cLog::Check_Size()
+bool cLog::Check_Size()
 {
-  if (byteswritten < MAX_LOG_SIZE) return;
+  if (byteswritten < MAX_LOG_SIZE) return bLogging;
 
   byteswritten = 0;
   
@@ -47,40 +47,42 @@ void cLog::Check_Size()
     printf("SYSERR: failed to turn on logging.\n");
     bLogging = false;
   }
+
+  return bLogging;
 }
 
 void cLog::Write (const char *format, ...)
 {
- if (!bLogging) return;
+  if (!bLogging) return;
 
- Check_Size();
+  if (!Check_Size()) return;
 
- int bytes;
+  int bytes;
 
- va_list args;
- time_t ctime = time(nullptr);
- char *time_s = asctime(localtime(&ctime));
+  va_list args;
+  time_t ctime = time(nullptr);
+  char *time_s = asctime(localtime(&ctime));
 
- if (format == NULL)
-   format = "SYSERR: log() received a NULL format.";
+  if (format == NULL)
+    format = "SYSERR: log() received a NULL format.";
 
- time_s[strlen(time_s) - 1] = '\0';
+  time_s[strlen(time_s) - 1] = '\0';
 
- bytes = fprintf(logfile, "%-15.15s :: ", time_s + 4); // skip day of the week
+  bytes = fprintf(logfile, "%-15.15s :: ", time_s + 4); // skip day of the week
 
- if (bytes > 0)
-   byteswritten += bytes;
+  if (bytes > 0)
+    byteswritten += bytes;
 
- va_start(args, format);
- bytes = vfprintf(logfile, format, args);
+  va_start(args, format);
+  bytes = vfprintf(logfile, format, args);
 
- if (bytes > 0)
-   byteswritten += bytes;
+  if (bytes > 0)
+    byteswritten += bytes;
 
- va_end(args);
+  va_end(args);
 
- fprintf(logfile, "\n");
- byteswritten++;
+  fprintf(logfile, "\n");
+  byteswritten++;
 
- fflush(logfile);
+  fflush(logfile);
 }

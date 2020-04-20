@@ -506,7 +506,8 @@ void cTabList::List(cDescriptor &desc)
   struct sList *Q = head;
 
   while ( Q ) {
-    desc.Socket_Write("%s %d %d", TABLE_CREATED, Q->elem->TableID(), Q->elem->Flags());
+    if (!Q->elem->game->Started())
+      desc.Socket_Write("%s %d %d", TABLE_CREATED, Q->elem->TableID(), Q->elem->Flags());
 
     if (Q->elem->PlayerLink(desc))
       desc.Socket_Write("%s %d", PLAYER_CHOOSE_CHAIR, Q->elem->TableID());

@@ -6,6 +6,7 @@
 #include <cstdarg> // va_start(), etc.
 #include <ctime>   // time()
 #include <cctype>  // isalnum()
+#include <cerrno>
 
 #include "define.h"
 #include "player.h"
@@ -132,26 +133,45 @@ cDescriptor::~cDescriptor()
 
 void cDescriptor::Disconnect()
 {
- state = CON_DISCONNECT;
+  state = CON_DISCONNECT;
 }
 
 bool cDescriptor::Socket_Write( const char * format, ... )
 {
- va_list args;
- char buf [BUF_SIZE];
+  va_list args;
+  char buf [BUF_SIZE];
 
- va_start(args, format);
- vsnprintf(buf, BUF_SIZE, format, args);
+  va_start(args, format);
+  vsnprintf(buf, BUF_SIZE, format, args);
 // process_ansi( buf );
 
 #ifdef DEBUG
- printf("SOCKET_WRITE: '%s'\r\n", buf);
+  printf("SOCKET_WRITE: '%s'\r\n", buf);
 #endif
 
- send(desc, buf, strlen(buf)+1, 0); // +1 allow to send the \x0, and use it as a datagram end marker
- va_end(args);
+// strlen(buf) + 1 allow to send the \x0, and use it as a datagram end marker
+  int bytes, left = strlen(buf) + 1, wrote = 0;
 
- return ( true );
+  while (left > 0) {
+    bytes = send(desc, buf + wrote, left, 0);
+
+    if (bytes == -1) { 
+      if (errno == ECONNRESET) 
+        state = CON_DISCONNECT;
+      break;
+    }
+    wrote += bytes;
+    left -= bytes;
+
+#ifdef DEBUG
+    if (left > 0)
+      printf("Socket_Write: left > 0\r\n");
+#endif
+  }
+
+  va_end(args);
+
+  return true;
 }
 
 ssize_t cDescriptor::Socket_Read()
@@ -180,7 +200,10 @@ ssize_t cDescriptor::Socket_Read()
  if (ret > 0) {
    last_sockread = time(nullptr);
    skip_crlf( buffer );
-   Log.Write("RCVD %d (%s): %s", desc, ip, buffer);
+
+   if ((state != CON_PASSWORD) && (state != CON_NEW_PASSWORD) && (state != CON_CONFIRM_PASSWORD))
+     Log.Write("RCVD %d (%s): %s", desc, ip, buffer);
+
    if (!strcmp(buffer,"ÿôÿý")) {
      return -1; // ctrl-c received
    }
@@ -265,13 +288,14 @@ bool cDescriptor::process_input()
 	      return false;
           break;
    case CON_PASSWORD :
-          if (!*lcBuf) {
+          if (!*lcBuf) 
             return false;
-          }
+          
           if (!player->doesPasswordMatch(lcBuf)) {
             Socket_Write(WRONG_PASSWORD);
 	    return false;
           }
+
 	  descriptor_list->DisconnectPlayerID(player->SQL_ID());
           if (!player->load()) {
             Socket_Write(PLAYER_LOAD_FAILED);
@@ -286,11 +310,13 @@ bool cDescriptor::process_input()
             Socket_Write(HANDLE_RESERVED);
 	    return false;
           }
+
           if (descriptor_list->Find_Username( lcBuf ) || 
               sql.query("select handle from account where handle = '%s'", lcBuf)) {
             Socket_Write(HANDLE_UNAVAILABLE);
 	    return false;
           }
+
           if (!IsHandleValid( lcBuf, handle))
 	    return false;
           player->Set_Handle(strdup(buffer));
@@ -325,7 +351,7 @@ bool cDescriptor::process_input()
           break; 
 */
    case CON_NEW_PASSWORD :
-          Log.Write("PROCINP: CON_NEW_PASSWORD");
+//          Log.Write("PROCINP: CON_NEW_PASSWORD");
           if (strlen(lcBuf) > MAX_PASSWORD_LENGTH) {
             Socket_Write(PASSWORD_TOO_LONG);
 	    return false;
@@ -334,12 +360,12 @@ bool cDescriptor::process_input()
             Socket_Write(PASSWORD_TOO_SHORT);
 	    return false;
           } 
-          player->setPassword( buffer, true );
+          player->setPassword( buffer );
           Socket_Write(confirm);
           state = CON_CONFIRM_PASSWORD;
           break;
    case CON_CONFIRM_PASSWORD :
-          Log.Write("PROCINP: CON_CONFIRM_PASSWORD");
+//          Log.Write("PROCINP: CON_CONFIRM_PASSWORD");
           if (!player->doesPasswordMatch( buffer )) {
             Socket_Write(PASSWORD_DONT_MATCH);
 	    return false;
@@ -509,7 +535,7 @@ bool cDescList::Empty()
   return true;
 }
 
-struct cPlayer *cDescList::Find_Username( const char * handle )
+struct cPlayer *cDescList::Find_Username( const char *handle )
 {
   for (struct sList * Q = head; Q; Q = Q->next) {
     if (Q->elem->player->isHandle( handle ))

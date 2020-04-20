@@ -12,7 +12,7 @@ public:
 private:
   socket_t desc;
   socklen_t len;
-  char   buffer [SOCKET_BUFSIZE];
+  char buffer [SOCKET_BUFSIZE];
   struct timeval null_time;  
   fd_set input_set, output_set, exc_set, null_set;
   int    state;
