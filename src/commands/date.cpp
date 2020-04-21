@@ -1,5 +1,6 @@
 #include <ctime>
 #include "../define.h"
+#include "../datagrams.h"
 #include "date.h"
 
 void cDate::Execute( cDescriptor & d, cParam & param )
@@ -9,8 +10,8 @@ void cDate::Execute( cDescriptor & d, cParam & param )
 
  strftime(server_time, 50, "%a %b %e, %k:%M %Z %Y", localtime(&now));
  strftime(gm_time, 50, "%a %b %e, %k:%M GMT %Y", gmtime(&now));
- d.Socket_Write("Local time     - %s\n"
+ d.Socket_Write("%s Local time     - %s\n"
                 "Server time    - %s\n"
-                "GMT            - %s\n",
-                server_time, server_time, gm_time);
+                "GMT            - %s",
+                DG_TEXT, server_time, server_time, gm_time);
 }

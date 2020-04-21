@@ -19,15 +19,16 @@
 #define ERROR_WRONG_SUIT       9
 #define ERROR_PLAY_TWO_CLUBS   10
 
-#define STATE_SEND_CARDS       1
-#define STATE_WAIT_PASS        2
-#define STATE_WAIT_PLAY        3
-#define STATE_END_TURN         4
-#define STATE_END_ROUND        5
-#define STATE_SHUFFLE          6
-#define STATE_WAIT_ROUND       7
-#define STATE_GAME_OVER        8
-#define STATE_CORRUPTED        9
+#define STATE_GAME_STARTED     1
+#define STATE_SEND_CARDS       2
+#define STATE_WAIT_PASS        3
+#define STATE_WAIT_PLAY        4
+#define STATE_END_TURN         5
+#define STATE_END_ROUND        6
+#define STATE_SHUFFLE          7
+#define STATE_WAIT_ROUND       8
+#define STATE_GAME_OVER        9
+#define STATE_CORRUPTED        10
 
 const int no_trick_bonus     = 5;
 const int omnibus_bonus      = 10;

@@ -25,7 +25,8 @@ class cTabList *table_list;
 bool server_shutdown = false;
 bool server_shutoff = false;
 class cLog Log ("server.log");
-class cMYSQL sql ("localhost", "hearts", "75uVmTop", "hearts");
+//class cMYSQL sql ("localhost", "hearts", "75uVmTop", "hearts");
+class cMYSQL sql ("localhost", "hearts", "Q127vMoMo#", "hearts");
 class cConfig config;
 int sigint = 0;
 

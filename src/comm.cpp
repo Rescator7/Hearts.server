@@ -83,13 +83,14 @@ socket_t init_socket(unsigned int port)
 
 cDescriptor::cDescriptor(socket_t mother_desc)
 {
- player = NULL;
+ player = nullptr;
  bytes_read = 0;
  sit_time = 0;
  state = CON_LOGIN;
  len = sizeof(peer);
  if ((desc = accept(mother_desc, (struct sockaddr *) &peer, &len)) == INVALID_SOCKET) {
    Log.Write("SYSERR: accept");
+   state = CON_DISCONNECT;
    return;
  }
  player = new cPlayer;
@@ -537,9 +538,14 @@ bool cDescList::Empty()
 
 struct cPlayer *cDescList::Find_Username( const char *handle )
 {
+  struct cPlayer *player;
   for (struct sList * Q = head; Q; Q = Q->next) {
-    if (Q->elem->player->isHandle( handle ))
-      return Q->elem->player;
+    player = Q->elem->player;
+
+    if (player == nullptr) continue;
+
+    if (player->isHandle( handle ))
+      return player;
   }
   return nullptr;
 }
@@ -612,7 +618,7 @@ void cDescList::Who(cDescriptor &desc)
   struct sList *Q = head;
   int len, total;
 
-  total = snprintf(buf, BUFSIZE, "%s ", SERVER_WHO);
+  total = snprintf(buf, BUFSIZE, "%s ", DG_TEXT);
 
   while (Q) {
     if (Q->elem->player) {

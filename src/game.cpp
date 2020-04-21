@@ -688,7 +688,7 @@ void cGame::Start()
   wait_time = 0;
   game_started = true;
 
-  state = STATE_SEND_CARDS;
+  state = STATE_GAME_STARTED;
 }
 
 bool cGame::Passing()

@@ -34,6 +34,7 @@ cCommandsStack::cCommandsStack(void)
  Add( "shutoff",  LVL_ADMIN, new cShutoff() );
  Add( "sit",      LVL_GUEST, new cSit() );
  Add( "stats",    LVL_GUEST, new cStats() );
+ Add( "tables",   LVL_GUEST, new cTables() );
  Add( "test",     LVL_ADMIN, new cTest() );
  Add( "who",      LVL_GUEST, new cWho() );
  Add( "\xff",     0,         nullptr );

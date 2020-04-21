@@ -448,6 +448,8 @@ void cTabList::Play()
       turn = game->Turn();
 
       switch (game->State()) {
+	 case STATE_GAME_STARTED: descriptor_list->Send_To_All("%s %d", GAME_STARTED, table->TableID());
+                                 
 	 case STATE_SEND_CARDS: if (game->PassTo() == pNOPASS) {
 				  game->SetState(STATE_WAIT_PLAY);
 				  delay = config.Wait_Play();
@@ -518,3 +520,31 @@ void cTabList::List(cDescriptor &desc)
   }
 }
 
+void cTabList::Show(cDescriptor &desc)
+{
+  const char *nobody = "<nobody>";
+  const char *left = "<left>";
+  struct sList *Q = head;
+  struct cTable *table;
+  struct cDescriptor *North, *South, *West, *East;
+  const char *name_N, *name_S, *name_W, *name_E;
+  bool started;
+
+  while ( Q ) {
+    table = Q->elem;
+    started = table->game->Started();
+
+    North = table->desc(PLAYER_NORTH);
+    South = table->desc(PLAYER_SOUTH);
+    West = table->desc(PLAYER_WEST);
+    East = table->desc(PLAYER_EAST);
+
+    name_N = (North && North->player) ? North->player->Handle() : started ? left : nobody;
+    name_S = (South && South->player) ? South->player->Handle() : started ? left : nobody;
+    name_W = (West  && West->player)  ? West->player->Handle()  : started ? left : nobody;
+    name_E = (East  && East->player)  ? East->player->Handle()  : started ? left : nobody;
+
+    desc.Socket_Write("%s [%5d] %-8s %-8s %-8s %-8s", DG_TEXT, table->TableID(), name_N, name_S, name_W, name_E);
+    Q = Q->next;
+  }
+}

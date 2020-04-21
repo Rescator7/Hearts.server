@@ -66,5 +66,6 @@ public:
   void Play();
   cTable *Search(unsigned int id);
   void List(cDescriptor &desc);
+  void Show(cDescriptor &desc);
 };
 #endif // _TABLE_

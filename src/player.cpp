@@ -72,6 +72,8 @@ void cPlayer::NewPassword(const char *p)
 
 bool cPlayer::isHandle( const char *h ) 
 {
+  if ((h == nullptr) || (handle == nullptr)) return false;
+
   return (!strcasecmp(handle, h));
 }
 

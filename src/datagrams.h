@@ -59,7 +59,7 @@
 #define TABLE_SAY               "I07"
 #define TABLE_YOUR_CARDS        "I08"
 #define TABLE_YOUR_TURN         "I09"
-#define SERVER_WHO              "I10"
+//#define SERVER_WHO              "I10"  // unused, using DG_TEXT now
 #define TABLE_LEAVE             "I11"
 #define TABLE_CARDS_RECEIVED    "I12"
 #define TABLE_FORCE_PASS        "I13"
@@ -84,5 +84,7 @@
 #define TABLE_SHUFFLE           "I32"
 #define GAME_STATS              "I33"
 #define PLAYER_NEW_PASSWORD     "I34"
+#define GAME_STARTED            "I35"
+#define DG_TEXT                 "I36"
 
 #endif // _DATAGRAMS_
