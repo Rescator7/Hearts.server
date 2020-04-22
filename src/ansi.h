@@ -1,3 +1,5 @@
+#ifdef USE_ANSI
+
 #define ANSI_CUR_UP     "\x1b[2A"
 #define ANSI_CUR_DOWN   "\x1b[2B"
 #define ANSI_CUR_RIGHT  "\x1b[2C"
@@ -78,3 +80,5 @@
 #define ANSI_CWM   "\x1b[37;45m"
 #define ANSI_CWC   "\x1b[37;46m"
 #define ANSI_CWW   "\x1b[37;47m"
+
+#endif

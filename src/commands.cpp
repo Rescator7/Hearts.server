@@ -36,6 +36,7 @@ cCommandsStack::cCommandsStack(void)
  Add( "stats",    LVL_GUEST, new cStats() );
  Add( "tables",   LVL_GUEST, new cTables() );
  Add( "test",     LVL_ADMIN, new cTest() );
+ Add( "uptime",   LVL_GUEST, new cUptime() );
  Add( "who",      LVL_GUEST, new cWho() );
  Add( "\xff",     0,         nullptr );
 }

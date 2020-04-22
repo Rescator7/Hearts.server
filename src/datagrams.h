@@ -49,6 +49,7 @@
 #define ADMIN_NOT_FOUND         "E46"
 #define ADMIN_ABOVE             "E47"
 #define TABLE_CORRUPTED         "E48"
+#define WRONG_VALUE             "E49"
 
 #define PLAYER_UID              "I01"
 #define PLAYER_CHOOSE_CHAIR     "I02"

@@ -7,7 +7,7 @@ extern class cMYSQL sql;
 
 class cMYSQL {
 public:
-  cMYSQL(const char *, const char *, const char *, const char *);
+  cMYSQL();
   ~cMYSQL();
 
 private:
@@ -15,15 +15,20 @@ private:
   unsigned int num_fields;
   bool         freed;
   char         last_query[SIZE_QUERY_BUFFER];
+  char         host[QUERY_SIZE];
+  char         db[QUERY_SIZE];
+  char         user[QUERY_SIZE];
+  char         password[QUERY_SIZE];
   MYSQL mysql;
   MYSQL_RES *result;
   MYSQL_ROW row;
 
 public:
   int query( const char * format, ... );
-  const char * get_row( unsigned int index );
+  const char *get_row( unsigned int index );
   bool fetch();
   unsigned int Num_Fields();
+  void connect();
 };
 
 #endif // cMYSQL

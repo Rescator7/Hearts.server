@@ -2,22 +2,21 @@
 #define _DEFINE_
 
 //#define DEBUG
+//#define USE_ANSI
+
+#define VERSION "1.0.1"
 
 #define socket_t int
 #define usINT unsigned short int
 
 #define MAX_SERVER_CMDS      500
 
-//OPT_USEC determines how many commands will be processed by the server per
-#define OPT_USEC             100000      /* 10 passes per second */
-
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET       (-1)
 #endif // INVALID_SOCKET
 
-#define MAX_LOG_SIZE         5000000    // max log files in bytes
+#define MAX_LOG_SIZE         5000000    // max log files in bytes (5M)
 
-#define MAX_IDLE             3600
 #define MAX_LOGON_IDLE       60 
 
 #define QUERY_SIZE           80
@@ -78,24 +77,4 @@
 #define QUEEN_SPADE          23
 #define JACK_DIAMOND         35
 
-
-/*
-const int ace_clubs     = 12;
-const int two_spade     = 13;
-const int queen_spade   = 23;
-const int king_spade    = 24;
-const int ace_spade     = 25;
-const int two_diamond   = 26;
-const int jack_diamond  = 35;
-const int queen_diamond = 36;
-const int king_diamond  = 37;
-const int ace_diamond   = 38;
-const int two_heart     = 39;
-const int jack_heart    = 48;
-const int queen_heart   = 49;
-const int king_heart    = 50;
-const int ace_heart     = 51;
-const int empty         = 127;
-const int your_turn     = 255;
-*/
 #endif // _DEFINE_

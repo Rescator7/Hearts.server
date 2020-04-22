@@ -19,4 +19,5 @@
 #include "commands/stats.h"
 #include "commands/tables.h"
 #include "commands/test.h"
+#include "commands/uptime.h"
 #include "commands/who.h"

@@ -3,15 +3,17 @@
 
 extern class cConfig config;
 
-#define OPT_PORT           0
-#define OPT_NICE           1
-#define OPT_WAIT_SELECT    2
-#define OPT_WAIT_PASS      3
-#define OPT_WAIT_PLAY      4
-#define OPT_WAIT_END_TURN  5
-#define OPT_WAIT_END_ROUND 6
-#define OPT_WAIT_MOON      7
-#define OPT_GAMEOVER_SCORE 8
+#define OPT_NONE           0
+#define OPT_PORT           1
+#define OPT_NICE           2
+#define OPT_WAIT_SELECT    3
+#define OPT_WAIT_PASS      4
+#define OPT_WAIT_PLAY      5
+#define OPT_WAIT_END_TURN  6
+#define OPT_WAIT_END_ROUND 7
+#define OPT_WAIT_MOON      8
+#define OPT_GAMEOVER_SCORE 9
+#define OPT_IDLENESS       10
 
 class cConfig {
 
@@ -29,6 +31,7 @@ private:
   int wait_end_round;
   int wait_moon;
   int gameover_score;
+  int idleness;
 
   void init();
 
@@ -42,6 +45,7 @@ public:
   int Wait_End_Round();
   int Wait_Moon();
   int GameOver_Score();
+  int Idleness();
   void Set(int opt, int value);
 };
 

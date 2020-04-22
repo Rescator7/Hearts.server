@@ -2,6 +2,7 @@
 #include "../player.h"
 #include "../table.h"
 #include "../game.h"
+#include "../config.h"
 #include "../datagrams.h"
 #include "pause.h"
 
@@ -27,6 +28,12 @@ void cPause::Execute( cDescriptor &d, cParam &param )
 
   int pause = table->Paused() ^ 1;
 
-  table->SendAll(pause ? TABLE_PAUSED : TABLE_UNPAUSED);
+  if (pause)
+    table->SendAll(TABLE_PAUSED);
+  else { 
+    table->SendAll(TABLE_UNPAUSED);
+    game->Wait(config.Wait_Pass());
+  }
+
   table->Pause(pause);
 }

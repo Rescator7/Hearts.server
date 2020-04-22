@@ -1,3 +1,5 @@
+#ifdef USE_ANSI
+
 #include <cctype>
 #include <cstring>
 #include <cstdio>
@@ -50,3 +52,4 @@ const char *cDescriptor::process_ansi( const char *outbuff )
  }
  return ( (const char *) &buffer );
 }
+#endif

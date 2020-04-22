@@ -1,5 +1,4 @@
 #include <cstdarg> // va_start, etc. 
-#include <ctime>   // difftime()
 #include "comm.h"
 #include "define.h"
 #include "global.h"

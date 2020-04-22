@@ -4,11 +4,11 @@
 #include <cstdlib> // exit()
 #include <cstring> // memset()
 #include <cstdarg> // va_start(), etc.
-#include <ctime>   // time()
 #include <cctype>  // isalnum()
 #include <cerrno>
 
 #include "define.h"
+#include "config.h"
 #include "player.h"
 #include "string.h"
 #include "log.h"
@@ -43,6 +43,7 @@ socket_t init_socket(unsigned int port)
     Log.Write("SYSERR: setsockopt REUSEADDR");
     exit(1);
   }
+  Log.Write("INFO: socket using SO_REUSEADDR");
 #endif
 
  opt = 12 * 1024;
@@ -59,6 +60,7 @@ socket_t init_socket(unsigned int port)
   if (setsockopt(s, SOL_SOCKET, SO_LINGER, (char *) &ld, sizeof(ld)) < 0) {
     Log.Write("SYSERR: setsockopt SO_LINGER");
   }
+  Log.Write("INFO: socket using SO_LINGER");
 #endif
 
  memset((char *)&sa, 0, sizeof(sa));
@@ -144,7 +146,10 @@ bool cDescriptor::Socket_Write( const char * format, ... )
 
   va_start(args, format);
   vsnprintf(buf, BUF_SIZE, format, args);
-// process_ansi( buf );
+
+#ifdef USE_ANSI
+  process_ansi( buf );
+#endif
 
 #ifdef DEBUG
   printf("SOCKET_WRITE: '%s'\r\n", buf);
@@ -157,6 +162,7 @@ bool cDescriptor::Socket_Write( const char * format, ... )
     bytes = send(desc, buf + wrote, left, 0);
 
     if (bytes == -1) { 
+      Log.Write("SYSERR: socket write error: %s", strerror(errno));
       if (errno == ECONNRESET) 
         state = CON_DISCONNECT;
       break;
@@ -211,8 +217,7 @@ ssize_t cDescriptor::Socket_Read()
    return ret;
  }
 
- // TODO: maybe catch more error here.
- Log.Write("SYSERR: unkown socket error");
+ Log.Write("SYSERR: socket read error: %s", strerror(errno));
  return -1;
 }
 
@@ -456,7 +461,7 @@ bool cDescriptor::Is_Connected()
       if (state < CON_PROMPT) {
         if (time(nullptr) - last_sockread > MAX_LOGON_IDLE) idleness = MAX_LOGON_IDLE;
       } else {
-          if (time(nullptr) - last_sockread > MAX_IDLE) idleness = MAX_IDLE;
+          if (time(nullptr) - last_sockread > config.Idleness()) idleness = config.Idleness();
         }
       if (idleness) {
         Log.Write("WARNING: Idleness on socket %d (connection closed)", desc);
