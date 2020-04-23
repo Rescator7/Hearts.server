@@ -64,17 +64,14 @@ const char *skip_crlf(char *str)
 bool isBufferValid( char *buffer, bool bSupLatin1 )
 {
 // const char *latin1 = "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞ‗אבגדהוזחטיךכלםמןנסעףפץצקרשתûü‎‏ÿ";
-   const char *normal = "AAAAAAACEEEEIIIIDNOOOOO*OUUUUYPBAAAAAAxceeeeiiiienooooo/ouuuuypy";
+// const char *normal = "AAAAAAACEEEEIIIIDNOOOOO*OUUUUYPBAAAAAAxceeeeiiiienooooo/ouuuuypy";
 
  for (unsigned int i = 0; i < strlen(buffer); i++) {
-//   if ((buffer[i] == '\n') || (buffer[i] == '\r')) continue;
    if (isspace(buffer[i])) continue;
-   if (buffer[i] < ' ') return false;
-   if ((buffer[i] >= '\x7f') && (buffer[i] <= '\xbf')) return ( false ); // 127 - 191
-   if (buffer[i] >= '\xc0') { // 192
-     if (bSupLatin1) continue;
-     buffer[i] = *(normal + buffer[i] - 192);
-   }
+   if ((buffer[i] >= 32) && (buffer[i] <= 126)) continue;
+   return false;
+//   if (bSupLatin1) continue;
  }
  return true;
 }
+

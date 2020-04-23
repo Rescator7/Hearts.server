@@ -49,9 +49,9 @@ private:
   bool has_card[4][DECK_SIZE];
   bool played[4];
   int flags;
+  int delay;
   usINT state;
-  time_t wait_time;
-  usINT delay;
+  struct timeval wait_time;
   usINT suit;
   usINT passto;
   usINT turn;
@@ -77,11 +77,11 @@ private:
 public:
   usINT Turn();
   void Start();
-  void Wait(usINT d);
+  void Wait(int cs_delay);
   bool WaitOver();
-  char *Str_Cards(usINT player);
+  char *Str_Cards(usINT chair);
   usINT Cards(usINT player, usINT card);
-  usINT Num_Cards(usINT player);
+  usINT Num_Cards(usINT chair);
   usINT State();
   void SetState(usINT s);
   bool Started();
@@ -103,11 +103,13 @@ public:
   void EndRound(cTable &table);
   bool Passing();
   bool Ready();
+  bool HeartBroken();
   void Show(usINT chair);
   void EndTurn(cTable &table);
   void SetMoon(bool add);
   usINT CMD_Rank(usINT chair);
   usINT WhoMoon();
   usINT Score(usINT chair);
+  usINT HandScore(usINT chair);
 };
 #endif

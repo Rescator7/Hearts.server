@@ -87,5 +87,6 @@
 #define PLAYER_NEW_PASSWORD     "I34"
 #define GAME_STARTED            "I35"
 #define DG_TEXT                 "I36"
+#define DG_RECONNECTED          "I37"
 
 #endif // _DATAGRAMS_

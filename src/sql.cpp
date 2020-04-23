@@ -97,10 +97,10 @@ cMYSQL::cMYSQL()
   while (fgets (line, QUERY_SIZE, fp) != nullptr) {
     ret = sscanf(line, "%10s %70s", param, value);
     if (ret != 2) continue;
-    if (!strcmp(param, "host")) strncpy(host, value, 63); else
-    if (!strcmp(param, "db")) strncpy(db, value, 20); else
-    if (!strcmp(param, "user")) strncpy(user, value, 20); else
-    if (!strcmp(param, "password")) strncpy(password, value, 20);
+    if (!strcmp(param, "host")) strcpy(host, value); else
+    if (!strcmp(param, "db")) strcpy(db, value); else
+    if (!strcmp(param, "user")) strcpy(user, value); else
+    if (!strcmp(param, "password")) strcpy(password, value);
   }
 
   fclose(fp);

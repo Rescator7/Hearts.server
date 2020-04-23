@@ -2,6 +2,7 @@
 #include <algorithm> // sort()
 #include <ctime>
 #include <cstdio>
+#include <sys/time.h>
 #include "define.h"
 #include "datagrams.h"
 #include "table.h"
@@ -427,12 +428,6 @@ void cGame::Sort()
   std::sort(player_cards[PLAYER_WEST], player_cards[PLAYER_WEST]+13);
   std::sort(player_cards[PLAYER_EAST], player_cards[PLAYER_EAST]+13);
 
-  for (int i=0; i<4; i++)
-    sprintf(str_cards[i], "%d %d %d %d %d %d %d %d %d %d %d %d %d", 
-                          player_cards[i][0], player_cards[i][1], player_cards[i][2], player_cards[i][3],
-                          player_cards[i][4], player_cards[i][5], player_cards[i][6], player_cards[i][7],
-                          player_cards[i][8], player_cards[i][9], player_cards[i][10], player_cards[i][11],
-		          player_cards[i][12]);
 }
 
 void cGame::Generate_Cards()
@@ -677,7 +672,13 @@ void cGame::ResetPlayed()
 
 bool cGame::WaitOver()
 {
-  if (difftime(time(nullptr), wait_time) >= delay)
+  struct timeval now;
+ 
+  gettimeofday(&now, nullptr);
+
+  int ms = (now.tv_sec - wait_time.tv_sec) * 1000 + (now.tv_usec - wait_time.tv_usec)/1000;
+
+  if (ms >= delay * 10)
     return true;
   else
     return false;
@@ -685,7 +686,7 @@ bool cGame::WaitOver()
 
 void cGame::Start()
 {
-  wait_time = 0;
+  wait_time = (struct timeval){0};
   game_started = true;
 
   state = STATE_GAME_STARTED;
@@ -699,10 +700,10 @@ bool cGame::Passing()
     return true;
 }
 
-void cGame::Wait(usINT d)
+void cGame::Wait(int cs_delay)
 {
-  delay = d;
-  wait_time = time(nullptr);
+  delay = cs_delay;
+  gettimeofday(&wait_time, nullptr);
 }
 
 bool cGame::Passed(usINT pid)
@@ -725,14 +726,19 @@ usINT cGame::Cards(usINT player, usINT card)
   return player_cards[player][card];
 }
 
-usINT cGame::Num_Cards(usINT player)
+usINT cGame::Num_Cards(usINT chair)
 {
-  return num_cards[player];
+  return num_cards[chair];
 }
 
-char *cGame::Str_Cards(usINT player)
+char *cGame::Str_Cards(usINT chair)
 {
-  return str_cards[player];
+  sprintf(str_cards[chair], "%d %d %d %d %d %d %d %d %d %d %d %d %d", 
+                            player_cards[chair][0], player_cards[chair][1], player_cards[chair][2], player_cards[chair][3],
+                            player_cards[chair][4], player_cards[chair][5], player_cards[chair][6], player_cards[chair][7],
+                            player_cards[chair][8], player_cards[chair][9], player_cards[chair][10], player_cards[chair][11],
+                            player_cards[chair][12]);
+  return str_cards[chair];
 }
 
 void cGame::SetState(usINT s)
@@ -748,6 +754,11 @@ usINT cGame::PassTo()
 bool cGame::MyTurn(usINT chair)
 {
   return turn == chair;
+}
+
+bool cGame::HeartBroken()
+{
+  return heart_broken;
 }
 
 usINT cGame::State()
@@ -773,4 +784,9 @@ void cGame::SetMoon(bool add)
 usINT cGame::Score(usINT chair)
 {
   return score[chair];
+}
+
+usINT cGame::HandScore(usINT chair)
+{
+  return hand_score[chair];
 }

@@ -67,9 +67,9 @@ bool cCommandsStack::Process_Command(cDescriptor *d, char *buffer)
  char command [SOCKET_BUFSIZE];
  char matches [2048] = ""; // 2k is enough to match the entire command list
  int first = 0, command_id = 0, cmp, matches_count = 0;
- unsigned short int len;
- const char * ptr; 
- char * arguments;
+ unsigned int len, total = 0;
+ const char *ptr; 
+ char *arguments;
 
  skip_spaces( buffer );
  arguments = extract_cmd( buffer, command );
@@ -88,8 +88,7 @@ bool cCommandsStack::Process_Command(cDescriptor *d, char *buffer)
 	 break;
        }
        matches_count++;
-       strncat(matches, ptr, len);
-       strcat(matches, " ");
+       total += snprintf(matches + total, 2048 - total, "%s ", ptr);
        first = command_id;
      }
    }

@@ -128,7 +128,7 @@ cDescriptor::~cDescriptor()
    // class player don't have a descriptor, and table->Stand() use a descriptor
    // maybe, modify it to use playerid instead...
    if (player->table)
-     player->table->Stand(*this);
+     player->table->Stand(*this, false);
 
    delete player;
  }

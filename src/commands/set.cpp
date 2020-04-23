@@ -10,12 +10,12 @@ void cSet::Execute( cDescriptor &d, cParam &param )
   if (!*param.arguments) {
     d.Socket_Write("%s port = %d\r\n"
 		   "nice = %d\r\n"
-		   "wait_select = %d\r\n"
-                   "wait_pass = %d\r\n"
-		   "wait_play = %d\r\n"
-		   "wait_end_turn = %d\r\n"
-		   "wait_end_round = %d\r\n"
-		   "wait_moon = %d\r\n"
+		   "wait_select = %d cs\r\n"
+                   "wait_pass = %d cs\r\n"
+		   "wait_play = %d cs\r\n"
+		   "wait_end_turn = %d cs\r\n"
+		   "wait_end_round = %d cs\r\n"
+		   "wait_moon = %d cs\r\n"
 		   "gameover_score = %d\r\n" 
 		   "idleness = %d\r\n", COMMAND_SET, config.Port(), config.Nice(), config.Wait_Select(),
 		                                     config.Wait_Pass(), config.Wait_Play(), 
@@ -62,7 +62,7 @@ void cSet::Execute( cDescriptor &d, cParam &param )
       case OPT_WAIT_PLAY:
       case OPT_WAIT_END_ROUND:
       case OPT_WAIT_MOON: 
-	      if ((value < 0) || (value > 20)) good_value = false;
+	      if ((value < 0) || (value > 2500)) good_value = false;
 	      break;
       case OPT_GAMEOVER_SCORE: 
 	      if ((value < 0) || (value > 1000)) good_value = false;

@@ -9,6 +9,7 @@
 #include <csignal>
 #include <ctime>
 #include <cstring>
+#include <cerrno>
 
 #include "comm.h"
 #include "log.h"
@@ -153,8 +154,10 @@ int main()
 
  Log.Write("Connected to the MYSQL database");
 
- nice(config.Nice()); 
- Log.Write("Running in nice mode (priority = %d)", config.Nice());
+ if (nice(config.Nice()) == -1)
+   Log.Write("Setting nice mode error: %s", strerror(errno));
+ else 
+   Log.Write("Running in nice mode (priority = %d)", config.Nice());
 
  descriptor_list = new cDescList;
  Log.Write("The descriptor list has been created");

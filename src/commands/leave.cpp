@@ -16,7 +16,7 @@ void cLeave::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
-  table->Stand(d);
+  table->Stand(d, true);
   player->table = nullptr;
 
   d.Socket_Write("%s %d", TABLE_LEAVE, table->TableID());

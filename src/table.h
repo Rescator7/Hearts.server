@@ -35,12 +35,12 @@ public:
   void Mute();
   void Clear();
   void Pause(bool pause);
-  bool Stand(cDescriptor &desc);
-  bool PlayerLink(cDescriptor &desc);
+  bool Stand(cDescriptor &desc, bool leave);
   bool Full();
   bool Muted();
   bool Paused();
   bool PlayerSat(cDescriptor &desc);
+  usINT PlayerLink(cDescriptor &desc);
   usINT Chair(cDescriptor &desc);
   cDescriptor *desc(usINT chair);
 };
