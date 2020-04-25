@@ -37,7 +37,9 @@ void cJoin::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
-  if (table->game->Started()) {
+  struct cGame *game = table->game;
+
+  if (game->Started()) {
     d.Socket_Write(TABLE_STARTED);
     return;
   }
@@ -52,7 +54,10 @@ void cJoin::Execute( cDescriptor &d, cParam &param )
   }
 
   player->table = table;
-  d.Socket_Write("%s %d", PLAYER_CHOOSE_CHAIR, table->TableID());
+
+  if (table->NumPlayers() < 3)
+    d.Socket_Write("%s %d", PLAYER_CHOOSE_CHAIR, table->TableID());
+
   table->Sat(d);
 
   if (chair != PLAYER_NOWHERE)

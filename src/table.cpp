@@ -79,24 +79,28 @@ usINT cTable::PlayerLink(cDescriptor &desc)
  if (player->ID() == player_id[PLAYER_NORTH]) {
    player->table = this;
    player_desc[PLAYER_NORTH] = &desc;
+   num_players++;
    return PLAYER_NORTH;
  }
 
  if (player->ID() == player_id[PLAYER_SOUTH]) {
    player->table = this;
    player_desc[PLAYER_SOUTH] = &desc;
+   num_players++;
    return PLAYER_SOUTH;
  }
 
  if (player->ID() == player_id[PLAYER_WEST]) {
    player->table = this;
    player_desc[PLAYER_WEST] = &desc;
+   num_players++;
    return PLAYER_WEST;
  }
 
  if (player->ID() == player_id[PLAYER_EAST]) {
    player->table = this;
    player_desc[PLAYER_EAST] = &desc;
+   num_players++;
    return PLAYER_EAST;
  }
 
@@ -330,12 +334,17 @@ bool cTable::Muted()
 
 void cTable::Pause(bool pause)
 {
- paused = pause;
+  paused = pause;
 }
 
 bool cTable::Paused()
 {
- return paused;
+  return paused;
+}
+
+usINT cTable::NumPlayers()
+{
+  return num_players;
 }
 // *************************************************************************************************************************************
 
@@ -479,7 +488,8 @@ void cTabList::Play()
 	 case STATE_END_TURN:  if (!game->WaitOver()) break;
 			       game->EndTurn(*table);
 			       break; 
-	 case STATE_END_ROUND: game->EndRound(*table);
+	 case STATE_END_ROUND: if (!game->WaitOver()) break;
+			       game->EndRound(*table);
 			       break;
 	 case STATE_SHUFFLE:   table->SendAll(TABLE_SHUFFLE);
 			       game->SetState(STATE_WAIT_ROUND);
@@ -520,12 +530,15 @@ void cTabList::List(cDescriptor &desc)
     if (!game->Started())
       desc.Socket_Write("%s %d %d", TABLE_CREATED, table->TableID(), table->Flags());
 
-    if ((chair = table->PlayerLink(desc)) != PLAYER_NOWHERE)
-      desc.Socket_Write("%s %d %d %d %d %d %d %d %d %d %d %d %d %d %s", 
-		         DG_RECONNECTED, table->TableID(), 
+    if ((chair = table->PlayerLink(desc)) != PLAYER_NOWHERE) {
+      desc.Socket_Write("%s %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s", 
+		         DG_RECONNECTED, 
+			 table->TableID(), 
 		         game->Score(PLAYER_SOUTH), game->Score(PLAYER_WEST), game->Score(PLAYER_NORTH), game->Score(PLAYER_EAST),
 			 game->HandScore(PLAYER_SOUTH), game->HandScore(PLAYER_WEST), game->HandScore(PLAYER_NORTH), game->HandScore(PLAYER_EAST),
-			 chair, game->Turn(), game->PassTo(), game->HeartBroken(), game->Str_Cards(chair));
+			 game->Played(PLAYER_SOUTH), game->Played(PLAYER_WEST), game->Played(PLAYER_NORTH), game->Played(PLAYER_EAST),
+			 chair, game->Status(chair), game->TimeLeft(chair), game->PassTo(), game->HeartBroken(), game->Str_Cards(chair));
+    }
 
     table->Sat(desc);
 

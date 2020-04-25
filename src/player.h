@@ -46,22 +46,22 @@ private:
 public:
   void setPassword( const char *p );
   void NewPassword( const char *p );
+  void update(usINT cmd);
+  void Set_Handle(char *h);
+  void Set_Password(char *p);
+  void Set_Level(usINT l);
+  void Set_Ip(char *_ip);
+  void ULink_Table(unsigned int id);
   bool doesPasswordMatch( const char *p );
   bool isHandle( const char *h );
   bool save();
   bool load();
-  void update(usINT cmd);
   unsigned int SQL_ID();
   unsigned int ID();
   unsigned int Level();
   char *Handle();
   char *Password();
   char *Ip();
-  void Set_Handle(char *h);
-  void Set_Password(char *p);
-  void Set_Level(usINT l);
-  void Set_Ip(char *_ip);
-  void ULink_Table(unsigned int id);
   long int First();
   long int Second();
   long int Third();

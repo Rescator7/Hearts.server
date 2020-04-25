@@ -29,8 +29,8 @@ public:
   time_t Expire();
   void Sit(cDescriptor &desc, unsigned int chair);
   void Say(cDescriptor &desc, const char *message);
-  void SendAll(const char *format, ... );
   void Send(usINT chair, const char *format, ... );
+  void SendAll(const char *format, ... );
   void Sat(cDescriptor &desc);
   void Mute();
   void Clear();
@@ -40,8 +40,10 @@ public:
   bool Muted();
   bool Paused();
   bool PlayerSat(cDescriptor &desc);
-  usINT PlayerLink(cDescriptor &desc);
   usINT Chair(cDescriptor &desc);
+  usINT PlayerLink(cDescriptor &desc);
+  usINT TimeLeft(usINT chair);
+  usINT NumPlayers();
   cDescriptor *desc(usINT chair);
 };
 
@@ -64,8 +66,8 @@ public:
   bool Remove(cTable *elem);
   void Remove_Expired();
   void Play();
-  cTable *Search(unsigned int id);
   void List(cDescriptor &desc);
   void Show(cDescriptor &desc);
+  cTable *Search(unsigned int id);
 };
 #endif // _TABLE_

@@ -30,6 +30,12 @@
 #define STATE_GAME_OVER        9
 #define STATE_CORRUPTED        10
 
+#define STATUS_PASSING         0
+#define STATUS_PASSED          1
+#define STATUS_PLAYING         2
+#define STATUS_YOUR_TURN       3
+#define STATUS_WAITING         4
+
 const int no_trick_bonus     = 5;
 const int omnibus_bonus      = 10;
 
@@ -39,19 +45,9 @@ public:
   ~cGame();
 
 private:
-  bool game_started;
-  bool game_over;
-  bool game_draw;
-  bool passing_over;
-  bool heart_broken;
-  bool shoot_moon;
-  bool moon_add;
-  bool has_card[4][DECK_SIZE];
-  bool played[4];
-  int flags;
-  int delay;
+  void Generate_Cards();
+  void Sort();
   usINT state;
-  struct timeval wait_time;
   usINT suit;
   usINT passto;
   usINT turn;
@@ -69,47 +65,59 @@ private:
   usINT won_jack_diamond;
   usINT best_card;
   usINT cards_played;
-  bool jack_diamond;
+  usINT played[4];
+
+  struct timeval wait_time;
   char str_cards[4][80];    // 3 * 13 + 13 + 1 = 53 == 3 char for code 127 = empty cards * 13 cards + 13 spaces + 1 null char
-  void Generate_Cards();
-  void Sort();
+  bool game_started;
+  bool game_over;
+  bool game_draw;
+  bool passing_over;
+  bool heart_broken;
+  bool shoot_moon;
+  bool moon_add;
+  bool jack_diamond;
+  bool has_card[4][DECK_SIZE];
+  int flags;
+  int delay;
 
 public:
-  usINT Turn();
   void Start();
   void Wait(int cs_delay);
-  bool WaitOver();
-  char *Str_Cards(usINT chair);
-  usINT Cards(usINT player, usINT card);
-  usINT Num_Cards(usINT chair);
-  usINT State();
   void SetState(usINT s);
-  bool Started();
-  usINT PassTo();
+  void Pass(cTable &table);
+  void Play(cTable &table, usINT card);
   void ForcePass(cTable *table, usINT chair);
   void ForcePlay(cTable &table);
-  void Pass(cTable &table);
-  usINT PlayerPass(cTable &table, usINT chair, usINT card1, usINT card2, usINT card3);
-  bool Passed(usINT pid);
   void ResetRound();
-  void Run();
-  bool MyTurn(usINT chair);
-  bool ValidMove(cDescriptor &d, usINT chair, usINT card);
-  usINT ValidMove(usINT chair, usINT card);
-  void Play(cTable &table, usINT card);
-  bool AdvanceTurn(cTable &table);
-  bool Played(usINT chair);
   void ResetPlayed();
   void EndRound(cTable &table);
-  bool Passing();
-  bool Ready();
-  bool HeartBroken();
-  void Show(usINT chair);
   void EndTurn(cTable &table);
+  void Show(usINT chair);
   void SetMoon(bool add);
+  usINT Turn();
+  usINT State();
+  usINT PassTo();
+  usINT Cards(usINT player, usINT card);
+  usINT Num_Cards(usINT chair);
+  usINT PlayerPass(cTable &table, usINT chair, usINT card1, usINT card2, usINT card3);
+  usINT ValidMove(usINT chair, usINT card);
+  usINT Played(usINT chair);
   usINT CMD_Rank(usINT chair);
   usINT WhoMoon();
   usINT Score(usINT chair);
   usINT HandScore(usINT chair);
+  usINT TimeLeft(usINT chair);
+  usINT Status(usINT chair);
+  char *Str_Cards(usINT chair);
+  bool Started();
+  bool Passed(usINT chair);
+  bool MyTurn(usINT chair);
+  bool ValidMove(cDescriptor &d, usINT chair, usINT card);
+  bool AdvanceTurn(cTable &table);
+  bool Passing();
+  bool Ready();
+  bool HeartBroken();
+  bool WaitOver();
 };
 #endif

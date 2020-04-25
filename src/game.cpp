@@ -1,6 +1,5 @@
 #include <cstdlib>  // rand()
 #include <algorithm> // sort()
-#include <ctime>
 #include <cstdio>
 #include <sys/time.h>
 #include "define.h"
@@ -38,10 +37,6 @@ cGame::~cGame()
 {
 }
 
-void cGame::Run()
-{
-}
-
 void cGame::EndTurn(cTable &table)
 {
   table.SendAll(TABLE_CLEAR);
@@ -70,11 +65,14 @@ bool cGame::AdvanceTurn(cTable &table)
     left_to_play = 4;
 
     table.SendAll("%s %d %d", TABLE_HAND_SCORE, won_turn, hand_score[won_turn]);
+    // This Wait_End_Turn apply also to STATE_END_ROUND to be able to see that last cards played.
+    // Wait(config.Wait_End_Turn()) will be used to delay between the shuffle cards sounds, and
+    // showing the new cards.
+    Wait(config.Wait_End_Turn());
     if (num_cards[turn] == 0) {
       state = STATE_END_ROUND;
       return false;
     } else {
-	Wait(config.Wait_End_Turn());
 	state = STATE_END_TURN;
 	return true;
       }
@@ -129,7 +127,7 @@ void cGame::Play(cTable &table, usINT card)
   num_cards[turn]--;
   cards_in_suit[turn][card / 13]--;
   has_card[turn][card] = false;
-  played[turn] = true;
+  played[turn] = card;
 
   std::sort(player_cards[turn], player_cards[turn]+13);
 
@@ -427,7 +425,6 @@ void cGame::Sort()
   std::sort(player_cards[PLAYER_SOUTH], player_cards[PLAYER_SOUTH]+13);
   std::sort(player_cards[PLAYER_WEST], player_cards[PLAYER_WEST]+13);
   std::sort(player_cards[PLAYER_EAST], player_cards[PLAYER_EAST]+13);
-
 }
 
 void cGame::Generate_Cards()
@@ -584,7 +581,11 @@ void cGame::ResetRound()
 {
   heart_broken = false;
   jack_diamond = false;
-  passing_over = false;
+
+  if (passto == pNOPASS)
+    passing_over = true;
+  else
+    passing_over = false;
 
   suit = CLUB;
   num_passed = 0;
@@ -664,10 +665,10 @@ bool cGame::Ready()
 
 void cGame::ResetPlayed()
 {
-  played[PLAYER_NORTH] = false;
-  played[PLAYER_SOUTH] = false;
-  played[PLAYER_WEST] = false;
-  played[PLAYER_EAST] = false;
+  played[PLAYER_NORTH] = empty;
+  played[PLAYER_SOUTH] = empty;
+  played[PLAYER_WEST] = empty;
+  played[PLAYER_EAST] = empty;
 }
 
 bool cGame::WaitOver()
@@ -676,12 +677,27 @@ bool cGame::WaitOver()
  
   gettimeofday(&now, nullptr);
 
-  int ms = (now.tv_sec - wait_time.tv_sec) * 1000 + (now.tv_usec - wait_time.tv_usec)/1000;
+  int ms = (now.tv_sec - wait_time.tv_sec) * 1000 + (now.tv_usec - wait_time.tv_usec) / 1000;
 
   if (ms >= delay * 10)
     return true;
   else
     return false;
+}
+
+usINT cGame::TimeLeft(usINT chair)
+{
+  if (passing_over && (chair != turn)) return 0;
+
+  struct timeval now;
+
+  gettimeofday(&now, nullptr);
+
+  int ms = (now.tv_sec - wait_time.tv_sec) * 1000 + (now.tv_usec - wait_time.tv_usec) / 1000;
+
+  int left = (delay * 10) - ms;
+
+  return left < 0 ? 0 : left;
 }
 
 void cGame::Start()
@@ -690,6 +706,24 @@ void cGame::Start()
   game_started = true;
 
   state = STATE_GAME_STARTED;
+}
+
+usINT cGame::Status(usINT chair)
+{
+  if (passing_over) {
+    if (turn == chair)
+      return STATUS_YOUR_TURN;
+
+    return STATUS_PLAYING; 
+ } else {
+     if (passto == pNOPASS)
+       return STATUS_WAITING;
+
+     if (passed_cards[chair][0] != empty)
+       return STATUS_PASSED;
+
+     return STATUS_PASSING;
+   }
 }
 
 bool cGame::Passing()
@@ -706,9 +740,9 @@ void cGame::Wait(int cs_delay)
   gettimeofday(&wait_time, nullptr);
 }
 
-bool cGame::Passed(usINT pid)
+bool cGame::Passed(usINT chair)
 {
-  return passed_cards[pid][0] != empty;
+  return passed_cards[chair][0] != empty;
 }
 
 bool cGame::Started()
@@ -766,7 +800,7 @@ usINT cGame::State()
   return state;
 }
 
-bool cGame::Played(usINT chair)
+usINT cGame::Played(usINT chair)
 {
   return played[chair];
 }

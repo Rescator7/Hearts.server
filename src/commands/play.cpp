@@ -36,7 +36,7 @@ void cPlay::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
-  if (game->Played(chair)) {
+  if (game->Played(chair) != empty) {
     d.Socket_Write(TABLE_ALREADY_PLAYED);
     return;
   }
