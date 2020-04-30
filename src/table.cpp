@@ -7,6 +7,7 @@
 #include "datagrams.h"
 #include "game.h"
 #include "table.h"
+#include "sql.h"
 #include "config.h"
 
 cTable::cTable(cDescriptor &desc, int f)
@@ -122,13 +123,14 @@ void cTable::Clear()
 
 bool cTable::Stand(cDescriptor &desc, bool leave)
 {
- if (game->Started() && desc.player)
-   desc.player->update(CMD_FOURTH);
-
  if (player_desc[PLAYER_NORTH] == &desc) {
    player_desc[PLAYER_NORTH] = nullptr;
-   if (leave) 
+   if (leave) {
+     if (game->Started() && desc.player)
+       desc.player->update(CMD_FOURTH);
+
      player_id[PLAYER_NORTH] = NOPLAYER;
+   }
    descriptor_list->Send_To_All("%s %d n", PLAYER_STAND, table_id);
    num_players--;
    expire = time(nullptr);
@@ -139,8 +141,11 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
  }
  if (player_desc[PLAYER_SOUTH] == &desc) {
    player_desc[PLAYER_SOUTH] = nullptr;
-   if (leave)
+   if (leave) {
+     if (game->Started() && desc.player)
+       desc.player->update(CMD_FOURTH);
      player_id[PLAYER_SOUTH] = NOPLAYER;
+   }
    descriptor_list->Send_To_All("%s %d s", PLAYER_STAND, table_id);
    num_players--;
 #ifdef DEBUG
@@ -151,8 +156,11 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
  }
  if (player_desc[PLAYER_WEST] == &desc) {
    player_desc[PLAYER_WEST] = nullptr;
-   if (leave)
+   if (leave) {
+     if (game->Started() && desc.player)
+       desc.player->update(CMD_FOURTH);
      player_id[PLAYER_WEST] = NOPLAYER;
+   }
    descriptor_list->Send_To_All("%s %d w", PLAYER_STAND, table_id);
    num_players--;
 #ifdef DEBUG
@@ -163,8 +171,11 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
  }
  if (player_desc[PLAYER_EAST] == &desc) {
    player_desc[PLAYER_EAST] = nullptr;
-   if (leave)
+   if (leave) {
+     if (game->Started() && desc.player)
+       desc.player->update(CMD_FOURTH);
      player_id[PLAYER_EAST] = NOPLAYER;
+   }
    descriptor_list->Send_To_All("%s %d e", PLAYER_STAND, table_id);
    num_players--;
 #ifdef DEBUG
@@ -282,6 +293,11 @@ cPlayer *cTable::Player(unsigned int chair)
     return player_desc[chair]->player;
   else
     return nullptr;
+}
+
+usINT cTable::PID(usINT chair)
+{
+  return player_id[chair];
 }
 
 unsigned int cTable::Flags()
@@ -502,9 +518,20 @@ void cTabList::Play()
 	 case STATE_GAME_OVER: table->SendAll("%s %d %d %d %d", TABLE_GAMEOVER, game->Score(PLAYER_NORTH), game->Score(PLAYER_SOUTH), 
 					                        game->Score(PLAYER_WEST), game->Score(PLAYER_EAST));
 			       if (table->Player(PLAYER_NORTH)) table->Player(PLAYER_NORTH)->update(game->CMD_Rank(PLAYER_NORTH));
+			       else if (table->PID(PLAYER_NORTH) != NOPLAYER) 
+				      sql.query("update account set fourth = fourth + 1 where playerid = %d;", table->PID(PLAYER_NORTH));
+
 			       if (table->Player(PLAYER_SOUTH)) table->Player(PLAYER_SOUTH)->update(game->CMD_Rank(PLAYER_SOUTH));
+			       else if (table->PID(PLAYER_SOUTH) != NOPLAYER) 
+				      sql.query("update account set fourth = fourth + 1 where playerid = %d;", table->PID(PLAYER_SOUTH));
+
 			       if (table->Player(PLAYER_WEST)) table->Player(PLAYER_WEST)->update(game->CMD_Rank(PLAYER_WEST));
+			       else if (table->PID(PLAYER_WEST) != NOPLAYER)
+				      sql.query("update account set fourth = fourth + 1 where playerid = %d;", table->PID(PLAYER_WEST));
+
 			       if (table->Player(PLAYER_EAST)) table->Player(PLAYER_EAST)->update(game->CMD_Rank(PLAYER_EAST));
+			       else if (table->PID(PLAYER_EAST) != NOPLAYER)
+				      sql.query("update account set fourth = fourth + 1 where playerid = %d;", table->PID(PLAYER_EAST));
 			       table->Clear();
 			       break;
 	 case STATE_CORRUPTED: table->SendAll(TABLE_CORRUPTED);
@@ -529,15 +556,15 @@ void cTabList::List(cDescriptor &desc)
 
     if (!game->Started())
       desc.Socket_Write("%s %d %d", TABLE_CREATED, table->TableID(), table->Flags());
-
-    if ((chair = table->PlayerLink(desc)) != PLAYER_NOWHERE) {
-      desc.Socket_Write("%s %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s", 
-		         DG_RECONNECTED, 
-			 table->TableID(), 
-		         game->Score(PLAYER_SOUTH), game->Score(PLAYER_WEST), game->Score(PLAYER_NORTH), game->Score(PLAYER_EAST),
-			 game->HandScore(PLAYER_SOUTH), game->HandScore(PLAYER_WEST), game->HandScore(PLAYER_NORTH), game->HandScore(PLAYER_EAST),
-			 game->Played(PLAYER_SOUTH), game->Played(PLAYER_WEST), game->Played(PLAYER_NORTH), game->Played(PLAYER_EAST),
-			 chair, game->Status(chair), game->TimeLeft(chair), game->PassTo(), game->HeartBroken(), game->Str_Cards(chair));
+    else
+      if ((chair = table->PlayerLink(desc)) != PLAYER_NOWHERE) {
+        desc.Socket_Write("%s %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s", 
+  	                  DG_RECONNECTED, 
+		          table->TableID(), 
+		          game->Score(PLAYER_SOUTH), game->Score(PLAYER_WEST), game->Score(PLAYER_NORTH), game->Score(PLAYER_EAST),
+			  game->HandScore(PLAYER_SOUTH), game->HandScore(PLAYER_WEST), game->HandScore(PLAYER_NORTH), game->HandScore(PLAYER_EAST),
+			  game->Played(PLAYER_SOUTH), game->Played(PLAYER_WEST), game->Played(PLAYER_NORTH), game->Played(PLAYER_EAST),
+			  chair, game->Status(chair), game->TimeLeft(chair), game->PassTo(), game->HeartBroken(), game->Str_Cards(chair));
     }
 
     table->Sat(desc);

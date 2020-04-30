@@ -695,7 +695,7 @@ usINT cGame::TimeLeft(usINT chair)
 
   int ms = (now.tv_sec - wait_time.tv_sec) * 1000 + (now.tv_usec - wait_time.tv_usec) / 1000;
 
-  int left = (delay * 10) - ms;
+  int left = delay - (ms / 10);
 
   return left < 0 ? 0 : left;
 }

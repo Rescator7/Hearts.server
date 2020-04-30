@@ -53,23 +53,43 @@ void cSet::Execute( cDescriptor &d, cParam &param )
 
     switch (opt) {
       case OPT_PORT: 
-	      if ((value < 1024) || (value > 9999)) good_value = false;
+	      if ((value < 1024) || (value > 9999)) {
+	        good_value = false;
+		d.Socket_Write("%s %d %d", WRONG_VALUE, 1024, 9999);
+		return;
+              }
 	      break;
       case OPT_NICE:
-	      if ((value < -20) || (value > 19)) good_value = false;
+	      if ((value < -20) || (value > 19)) {
+		good_value = false;
+		d.Socket_Write("%s %d %d", WRONG_VALUE, -20, 19);
+		return;
+              }
 	      break;
       case OPT_WAIT_SELECT:
       case OPT_WAIT_PASS:
       case OPT_WAIT_PLAY:
       case OPT_WAIT_END_ROUND:
       case OPT_WAIT_MOON: 
-	      if ((value < 0) || (value > 2500)) good_value = false;
+	      if ((value < 0) || (value > 2500)) {
+	        good_value = false;
+		d.Socket_Write("%s %d %d", WRONG_VALUE, 0, 2500);
+		return;
+              }
 	      break;
       case OPT_GAMEOVER_SCORE: 
-	      if ((value < 0) || (value > 1000)) good_value = false;
+	      if ((value < 0) || (value > 1000)) { 
+	        good_value = false;
+		d.Socket_Write("%s %d %d", WRONG_VALUE, 0, 1000);
+		return;
+	      }
 	      break;
       case OPT_IDLENESS: 
-	      if ((value < 10) || (value > 36000)) good_value = false;
+	      if ((value < 10) || (value > 36000)) {
+	        good_value = false;
+		d.Socket_Write("%s %d %d", WRONG_VALUE, 10, 36000);
+		return;
+              }
 	      break;
     }
 
@@ -78,10 +98,7 @@ void cSet::Execute( cDescriptor &d, cParam &param )
 
       d.Socket_Write("%s %s = %d", COMMAND_SET, cmd, value); 
       return;
-    } else {
-        d.Socket_Write(WRONG_VALUE);
-        return;
-      }
+    }
   }
   d.Socket_Write(COMMAND_WRONG_PARAMETER);
 }

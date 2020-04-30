@@ -55,8 +55,7 @@ void cJoin::Execute( cDescriptor &d, cParam &param )
 
   player->table = table;
 
-  if (table->NumPlayers() < 3)
-    d.Socket_Write("%s %d", PLAYER_CHOOSE_CHAIR, table->TableID());
+  d.Socket_Write("%s %d", PLAYER_CHOOSE_CHAIR, table->TableID());
 
   table->Sat(d);
 

@@ -24,7 +24,7 @@ cCommandsStack::cCommandsStack(void)
  Add( "moon",     LVL_GUEST, new cMoon() );
  Add( "mute",     LVL_GUEST, new cMute() );
  Add( "new",      LVL_GUEST, new cNew() );
- Add( "pass",     LVL_GUEST, new cPass() );
+ Add( "pass",     LVL_ADMIN, new cPass() );
  Add( "password", LVL_GUEST, new cPassword() );
  Add( "pause",    LVL_SUPERUSER, new cPause() );
  Add( "play",     LVL_GUEST, new cPlay() );

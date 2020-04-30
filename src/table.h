@@ -44,6 +44,7 @@ public:
   usINT PlayerLink(cDescriptor &desc);
   usINT TimeLeft(usINT chair);
   usINT NumPlayers();
+  usINT PID(usINT chair);
   cDescriptor *desc(usINT chair);
 };
 
