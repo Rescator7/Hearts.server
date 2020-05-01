@@ -126,7 +126,7 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
  if (player_desc[PLAYER_NORTH] == &desc) {
    player_desc[PLAYER_NORTH] = nullptr;
    if (leave) {
-     if (game->Started() && desc.player)
+     if (game->Started())
        desc.player->update(CMD_FOURTH);
 
      player_id[PLAYER_NORTH] = NOPLAYER;
@@ -142,7 +142,7 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
  if (player_desc[PLAYER_SOUTH] == &desc) {
    player_desc[PLAYER_SOUTH] = nullptr;
    if (leave) {
-     if (game->Started() && desc.player)
+     if (game->Started())
        desc.player->update(CMD_FOURTH);
      player_id[PLAYER_SOUTH] = NOPLAYER;
    }
@@ -157,7 +157,7 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
  if (player_desc[PLAYER_WEST] == &desc) {
    player_desc[PLAYER_WEST] = nullptr;
    if (leave) {
-     if (game->Started() && desc.player)
+     if (game->Started())
        desc.player->update(CMD_FOURTH);
      player_id[PLAYER_WEST] = NOPLAYER;
    }
@@ -172,7 +172,7 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
  if (player_desc[PLAYER_EAST] == &desc) {
    player_desc[PLAYER_EAST] = nullptr;
    if (leave) {
-     if (game->Started() && desc.player)
+     if (game->Started())
        desc.player->update(CMD_FOURTH);
      player_id[PLAYER_EAST] = NOPLAYER;
    }
@@ -477,7 +477,7 @@ void cTabList::Play()
 
       switch (game->State()) {
 	 case STATE_GAME_STARTED: descriptor_list->Send_To_All("%s %d", GAME_STARTED, table->TableID());
-                                 
+				  descriptor_list->Table_Kick_Unplaying(table);
 	 case STATE_SEND_CARDS: if (game->PassTo() == pNOPASS) {
 				  game->SetState(STATE_WAIT_PLAY);
 				  delay = config.Wait_Play();

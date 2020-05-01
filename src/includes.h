@@ -2,6 +2,7 @@
 #include "commands/announce.h"
 #include "commands/date.h"
 #include "commands/exit.h"
+#include "commands/help.h"
 #include "commands/join.h"
 #include "commands/leave.h"
 #include "commands/moon.h"

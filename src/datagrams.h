@@ -1,6 +1,7 @@
 #ifndef _DATAGRAMS_
 #define _DATAGRAMS_
 
+// Users Datagrams Errors
 #define HANDLE_IS_ILLEGAL       "E01" // unused (see: E7)
 #define HANDLE_UNAVAILABLE      "E02"
 #define HANDLE_RESERVED         "E03"
@@ -51,6 +52,7 @@
 #define TABLE_CORRUPTED         "E48"
 #define WRONG_VALUE             "E49"
 
+// Users datagrams Informations
 #define PLAYER_UID              "I01"
 #define PLAYER_CHOOSE_CHAIR     "I02"
 #define PLAYER_SIT_HERE         "I03"
@@ -88,5 +90,33 @@
 #define GAME_STARTED            "I35"
 #define DG_TEXT                 "I36"
 #define DG_RECONNECTED          "I37"
+
+// Users Datagrams help commands informations
+#define DGI_HELP_DATE           "H01"
+#define DGI_HELP_EXIT           "H02"
+#define DGI_HELP_HELP           "H03"
+#define DGI_HELP_JOIN           "H04"
+#define DGI_HELP_LEAVE          "H05"
+#define DGI_HELP_MOON           "H06"
+#define DGI_HELP_MUTE           "H07"
+#define DGI_HELP_NEW            "H08"
+#define DGI_HELP_PASS           "H09"
+#define DGI_HELP_PASSWORD       "H10"
+#define DGI_HELP_PLAY           "H11"
+#define DGI_HELP_SAY            "H12"
+#define DGI_HELP_SIT            "H13"
+#define DGI_HELP_STATS          "H14"
+#define DGI_HELP_TABLES         "H15"
+#define DGI_HELP_UPTIME         "H16"
+#define DGI_HELP_WHO            "H17"
+
+// Admin Datagrams help commands informations
+#define DGI_HELP_ADMIN          "H50"
+#define DGI_HELP_ANNOUNCE       "H51"
+#define DGI_HELP_PAUSE          "H52"
+#define DGI_HELP_SET            "H53"
+#define DGI_HELP_SHUTDOWN       "H54"
+#define DGI_HELP_SHUTOFF        "H55"
+#define DGI_HELP_TEST           "H56"
 
 #endif // _DATAGRAMS_

@@ -603,6 +603,26 @@ bool cDescList::Check_Conns()
   return true;
 }
 
+void cDescList::Table_Kick_Unplaying(struct cTable *t)
+{
+  struct sList *Q = head;
+  struct cTable *table;
+  struct cDescriptor *d;
+
+  for (Q = head; Q; Q=Q->next) {
+    d = Q->elem;
+    table = d->player->table;
+
+    if (table != t) continue;
+
+    if (table->Chair(*d) == PLAYER_NOWHERE) {
+      d->player->table = nullptr;
+
+      d->Socket_Write("%s %d", TABLE_LEAVE, table->TableID());
+    }
+  }
+}
+
 void cDescList::ULink_TableID(unsigned int id)
 {
   struct sList *Q = head;

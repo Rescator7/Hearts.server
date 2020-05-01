@@ -32,7 +32,8 @@ class cCommandsStack
    int m_CountCmd;
    struct sCommand {
       const char *name;
-      unsigned int level;
+      const char *help;
+      usINT level;
       cCommand *func;
    };
    class cParam param; 
@@ -41,8 +42,10 @@ class cCommandsStack
  public:
    static cCommandsStack *GetInstance();
 
-   void Add(const char *commande, unsigned int level, cCommand *cmd);
-   bool Process_Command(cDescriptor *d, char *buffer);
+   void Add(const char *n, const char *h, unsigned int level, cCommand *cmd);
+   int Find(const char *cmd, int level, char *matches);
+   void Help(cDescriptor &d, const char *cmd);
+   bool Process_Command(cDescriptor *d, char *cmd);
 };
 
 #endif // _COMMANDS_

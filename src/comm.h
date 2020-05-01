@@ -13,26 +13,26 @@ private:
   socket_t desc;
   socklen_t len;
   char buffer [SOCKET_BUFSIZE];
-  struct timeval null_time;  
   fd_set input_set, output_set, exc_set, null_set;
-  int    state;
   time_t last_sockread;
   time_t sit_time;
+  struct timeval null_time;  
   struct sockaddr_in peer;
-  char   ip [16];       // numeric ip
   struct hostent *from;
   unsigned int bytes_read;
+  int    state;
+  char   ip [16];       // numeric ip
 
 public:
   class cPlayer *player;
 
 public:
-  bool Socket_Write( const char *format, ... );
   ssize_t Socket_Read();
+  bool Socket_Write( const char *format, ... );
   bool Is_Connected();
   bool process_input();
-  const char *process_ansi( const char *outbuf );
   bool IsHandleValid( const char *handle, const char *message );
+  const char *process_ansi( const char *outbuf );
   void Disconnect();
   void Set_Sit_Time(time_t t);
   time_t Get_Sit_Time();
@@ -60,10 +60,11 @@ public:
   bool Send_To_All( const char *format, ... );
   bool Check_Conns();
   struct cPlayer *Find_Username( const char *handle );
-  void DisconnectPlayerID(unsigned int pID);
   unsigned int Connection_Per_Ip(char *ip);
+  void DisconnectPlayerID(unsigned int pID);
   void ULink_TableID(unsigned int id);
   void Who( cDescriptor &desc);
+  void Table_Kick_Unplaying(struct cTable *t);
 };
 
 #endif // _COMM_
