@@ -14,22 +14,24 @@
 #include "comm.h"
 #include "log.h"
 #include "sql.h"
+#include "commands.h"
 #include "table.h"
 #include "config.h"
 
 // Global Variables
-socket_t mother_desc;
-unsigned long server_loop = 0, cpy_server_loop = 0;
-unsigned int num_table = 0;
-class cDescList *descriptor_list;
-class cTabList *table_list;
-bool server_shutdown = false;
-bool server_shutoff = false;
+class cCommandsStack cmd;
 class cLog Log ("server.log");
 class cMYSQL sql;
 class cConfig config;
-int sigint = 0;
+class cDescList *descriptor_list;
+class cTabList *table_list;
+socket_t mother_desc;
 time_t boot_time;
+unsigned long server_loop = 0, cpy_server_loop = 0;
+unsigned int num_table = 0;
+int sigint = 0;
+bool server_shutdown = false;
+bool server_shutoff = false;
 
 // External Functions
 extern socket_t init_socket(unsigned int port);
@@ -60,7 +62,7 @@ void game_loop( socket_t mother_desc )
 
     FD_SET(mother_desc, &input_set);
     if (select(mother_desc + 1, &input_set, &output_set, &exc_set, &null_time) < 0) {
-      Log.Write("SYSERR: game_loop (select() pool) error");
+      Log.Write("SYSERR: game_loop (select() pool) error: %s", strerror(errno));
       continue;
     }
 

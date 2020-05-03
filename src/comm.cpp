@@ -18,8 +18,6 @@
 #include "commands.h"
 #include "datagrams.h"
 
-cCommandsStack cmd;
-
 const char *login = "login:";
 const char *password = "password:";
 const char *handle = "handle:";
@@ -29,13 +27,13 @@ socket_t s;
 
 socket_t init_socket(unsigned int port)
 {
- struct sockaddr_in sa;
- int opt;
+  struct sockaddr_in sa;
+  int opt;
 
- if ((s = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-   Log.Write("SYSERR: Error creating socket");
-   exit(1);
- }
+  if ((s = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+    Log.Write("SYSERR: Error creating socket");
+    exit(1);
+  }
 
 #ifdef SO_REUSEADDR
   opt = 1;
@@ -46,11 +44,11 @@ socket_t init_socket(unsigned int port)
   Log.Write("INFO: socket using SO_REUSEADDR");
 #endif
 
- opt = 12 * 1024;
- if (setsockopt(s, SOL_SOCKET, SO_SNDBUF, (char *) &opt, sizeof(opt)) < 0) {
-   Log.Write("SYSERR: setsockopt SNDBUF");
+  opt = 12 * 1024;
+  if (setsockopt(s, SOL_SOCKET, SO_SNDBUF, (char *) &opt, sizeof(opt)) < 0) {
+    Log.Write("SYSERR: setsockopt SNDBUF");
 //   return ( -1 );
- }
+  }
 
 #ifdef SO_LINGER
   struct linger ld;
@@ -63,75 +61,75 @@ socket_t init_socket(unsigned int port)
   Log.Write("INFO: socket using SO_LINGER");
 #endif
 
- memset((char *)&sa, 0, sizeof(sa));
+  memset((char *)&sa, 0, sizeof(sa));
 
- sa.sin_family = AF_INET;
- sa.sin_port = htons(port);
- memset((char *)&sa.sin_addr, 0, sizeof(sa.sin_addr));
+  sa.sin_family = AF_INET;
+  sa.sin_port = htons(port);
+  memset((char *)&sa.sin_addr, 0, sizeof(sa.sin_addr));
 
- sa.sin_addr.s_addr = htonl(INADDR_ANY); // *(get_bind_addr());
+  sa.sin_addr.s_addr = htonl(INADDR_ANY); // *(get_bind_addr());
 
- if (bind(s, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
-   Log.Write("SYSERR: bind");
-   close(s);
-   exit(1);
- }
+  if (bind(s, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
+    Log.Write("SYSERR: bind");
+    close(s);
+    exit(1);
+  }
 
- fcntl(s, F_SETFL, O_NONBLOCK);
- listen(s, 5);
+  fcntl(s, F_SETFL, O_NONBLOCK);
+  listen(s, 5);
 
- return ( s );
+  return s;
 }
 
 cDescriptor::cDescriptor(socket_t mother_desc)
 {
- player = nullptr;
- bytes_read = 0;
- sit_time = 0;
- state = CON_LOGIN;
- len = sizeof(peer);
- if ((desc = accept(mother_desc, (struct sockaddr *) &peer, &len)) == INVALID_SOCKET) {
-   Log.Write("SYSERR: accept");
-   state = CON_DISCONNECT;
-   return;
- }
- player = new cPlayer;
- last_sockread = time(nullptr);
- fcntl(desc, F_SETFL, O_NONBLOCK);
- memset(ip, '\x0', sizeof(ip));
- strncpy(ip, inet_ntoa(peer.sin_addr), 15);
- player->Set_Ip(ip);
- from = gethostbyaddr((char *) &peer.sin_addr, sizeof(peer.sin_addr), AF_INET);
+  player = nullptr;
+  bytes_read = 0;
+  sit_time = 0;
+  state = CON_LOGIN;
+  len = sizeof(peer);
+  if ((desc = accept(mother_desc, (struct sockaddr *) &peer, &len)) == INVALID_SOCKET) {
+    Log.Write("SYSERR: accept");
+    state = CON_DISCONNECT;
+    return;
+  }
+  player = new cPlayer;
+  last_sockread = time(nullptr);
+  fcntl(desc, F_SETFL, O_NONBLOCK);
+  memset(ip, '\x0', sizeof(ip));
+  strncpy(ip, inet_ntoa(peer.sin_addr), 15);
+  player->Set_Ip(ip);
+  from = gethostbyaddr((char *) &peer.sin_addr, sizeof(peer.sin_addr), AF_INET);
 
 #ifdef DEBUG
- printf("'%s' %d\r\n", ip, descriptor_list->Connection_Per_Ip((char *) &ip));
+  printf("'%s' %d\r\n", ip, descriptor_list->Connection_Per_Ip((char *) &ip));
 #endif
 
- if (descriptor_list->Connection_Per_Ip((char *)&ip) >= MAX_CONNECTION_PER_IP) {
-   Socket_Write(SOCKET_MAX_CONN_IP);
-   state = CON_DISCONNECT;
- }
- if (server_shutoff) {
-   Socket_Write(SERVER_SHUTOFF);
-   state = CON_DISCONNECT;
- }
- if (state == CON_LOGIN)
-   Socket_Write(login);
+  if (descriptor_list->Connection_Per_Ip((char *)&ip) >= MAX_CONNECTION_PER_IP) {
+    Socket_Write(SOCKET_MAX_CONN_IP);
+    state = CON_DISCONNECT;
+  }
+  if (server_shutoff) {
+    Socket_Write(SERVER_SHUTOFF);
+    state = CON_DISCONNECT;
+  }
+  if (state == CON_LOGIN)
+    Socket_Write(login);
 }
 
 cDescriptor::~cDescriptor()
 {
- close( desc );
- if (player) {
+  close( desc );
+  if (player) {
 
-   // this should be move into player destructor?
-   // class player don't have a descriptor, and table->Stand() use a descriptor
-   // maybe, modify it to use playerid instead...
-   if (player->table)
-     player->table->Stand(*this, false);
+    // this should be move into player destructor?
+    // class player don't have a descriptor, and table->Stand() use a descriptor
+    // maybe, modify it to use playerid instead...
+    if (player->table)
+      player->table->Stand(*this, false);
 
-   delete player;
- }
+    delete player;
+  }
 }
 
 void cDescriptor::Disconnect()
@@ -183,42 +181,42 @@ bool cDescriptor::Socket_Write( const char * format, ... )
 
 ssize_t cDescriptor::Socket_Read()
 {
- int ret;
+  int ret;
 
- memset(buffer, '\x0', sizeof(buffer));
- ret = read(desc, buffer, sizeof(buffer));
- if (ret == 0) {
-   Log.Write("WARNING: EOF on socket read %d (connection broken by peer)", desc);
-   return -1;
- }
+  memset(buffer, '\x0', sizeof(buffer));
+  ret = read(desc, buffer, sizeof(buffer));
+  if (ret == 0) {
+    Log.Write("WARNING: EOF on socket read %d (connection broken by peer)", desc);
+    return -1;
+  }
  
- if (ret >= 1)
-   bytes_read += ret;
+  if (ret >= 1)
+    bytes_read += ret;
 
- if (difftime(time(nullptr), last_sockread) >= 1) {
-   if (bytes_read >= SOCKET_MAX_READ_BYTES) {
-     Socket_Write(SOCKET_FLOOD);
-     return -1;
-   }
-   else
-     bytes_read = 0;
- }
+  if (difftime(time(nullptr), last_sockread) >= 1) {
+    if (bytes_read >= SOCKET_MAX_READ_BYTES) {
+      Socket_Write(SOCKET_FLOOD);
+      return -1;
+    }
+    else
+      bytes_read = 0;
+  }
 
- if (ret > 0) {
-   last_sockread = time(nullptr);
-   skip_crlf( buffer );
+  if (ret > 0) {
+    last_sockread = time(nullptr);
+    skip_crlf( buffer );
 
-   if ((state != CON_PASSWORD) && (state != CON_NEW_PASSWORD) && (state != CON_CONFIRM_PASSWORD))
-     Log.Write("RCVD %d (%s): %s", desc, ip, buffer);
+    if ((state != CON_PASSWORD) && (state != CON_NEW_PASSWORD) && (state != CON_CONFIRM_PASSWORD))
+      Log.Write("RCVD %d (%s): %s", desc, ip, buffer);
 
-   if (!strcmp(buffer,"ÿôÿý")) {
-     return -1; // ctrl-c received
-   }
-   return ret;
- }
+    if (!strcmp(buffer,"ÿôÿý")) {
+      return -1; // ctrl-c received
+    }
+    return ret;
+  }
 
- Log.Write("SYSERR: socket read error: %s", strerror(errno));
- return -1;
+  Log.Write("SYSERR: socket read error: %s", strerror(errno));
+  return -1;
 }
 
 char *cDescriptor::IP_Adress()
@@ -228,163 +226,163 @@ char *cDescriptor::IP_Adress()
 
 bool cDescriptor::IsHandleValid( const char * handle, const char * message )
 {
- if (strlen(handle) > MAX_HANDLE_LENGTH) {
-   Socket_Write(HANDLE_TOO_LONG);
-   return false;
- }
- if (strlen(handle) < MIN_HANDLE_LENGTH) {
-   Socket_Write(HANDLE_TOO_SHORT);
-   return false;
- }
- for (unsigned int i=0; i<strlen(handle); i++) {
-   if (!isalnum(handle[i]) && (handle[i] != '_') && (handle[i] != '-')) {
-     Socket_Write(HANDLE_ILLEGAL_CHAR);
-     return false;
-   }
- }
- return true;
+  if (strlen(handle) > MAX_HANDLE_LENGTH) {
+    Socket_Write(HANDLE_TOO_LONG);
+    return false;
+  }
+  if (strlen(handle) < MIN_HANDLE_LENGTH) {
+    Socket_Write(HANDLE_TOO_SHORT);
+    return false;
+  }
+  for (unsigned int i=0; i<strlen(handle); i++) {
+    if (!isalnum(handle[i]) && (handle[i] != '_') && (handle[i] != '-')) {
+      Socket_Write(HANDLE_ILLEGAL_CHAR);
+      return false;
+    }
+  }
+  return true;
 }
 
 void cDescList::DisconnectPlayerID(unsigned int pID)
 {
- for (struct sList *Q = head; Q; Q = Q->next)
-   if (Q->elem->player->ID() == pID) {
-     Q->elem->Socket_Write(PLAYER_RECONNECT);
-     Q->elem->Disconnect();
-   }
+  for (struct sList *Q = head; Q; Q = Q->next)
+    if (Q->elem->player->ID() == pID) {
+      Q->elem->Socket_Write(PLAYER_RECONNECT);
+      Q->elem->Disconnect();
+    }
 }
 
 // if return false, the descriptor will be disconnected
 bool cDescriptor::process_input()
 {
- char lcBuf [SOCKET_BUFSIZE] = "";
+  char lcBuf [SOCKET_BUFSIZE] = "";
 
- stolower(buffer, lcBuf);
+  stolower(buffer, lcBuf);
 
 #ifdef DEBUG
- printf("buf: '%s', lcbuf: '%s'\r\n", buffer, lcBuf);
+  printf("buf: '%s', lcbuf: '%s'\r\n", buffer, lcBuf);
 #endif
 
- switch ( state ) {
-   case CON_LOGIN : 
-          Log.Write("PROCINP: CON_LOGIN");
-          if (!strcmp(lcBuf, "new")) {
-	    if (sql.query("select count(*) from account where ip = '%s'", player->Ip())) {
-	      if (atoi(sql.get_row(0)) >= MAX_REGISTER_PER_IP) {
-		Socket_Write(SOCKET_MAX_REGISTER_IP);
-		return false;
-	      }
-	    }
+  switch ( state ) {
+    case CON_LOGIN : 
+           Log.Write("PROCINP: CON_LOGIN");
+           if (!strcmp(lcBuf, "new")) {
+             if (sql.query("select count(*) from account where ip = '%s'", player->Ip())) {
+ 	       if (atoi(sql.get_row(0)) >= MAX_REGISTER_PER_IP) {
+ 	         Socket_Write(SOCKET_MAX_REGISTER_IP);
+		 return false;
+	       }
+	     }
 
-            state = CON_NEW_HANDLE;
-            Socket_Write(handle);
-            break;
-          }
-          if (IsHandleValid( lcBuf, login)) {
-            if (!sql.query("select handle, password from account where handle='%s'", lcBuf)) {
-              Socket_Write(HANDLE_NOT_REGISTERED);
-	      return false;
-            } else {
-		Socket_Write(password);
-                player->Set_Handle(strdup(lcBuf));
-                player->Set_Password(strdup(sql.get_row(1)));
-                state = CON_PASSWORD;
-              }
-          } else 
-	      return false;
-          break;
-   case CON_PASSWORD :
-          if (!*lcBuf) 
-            return false;
+             state = CON_NEW_HANDLE;
+             Socket_Write(handle);
+             break;
+           }
+           if (IsHandleValid(lcBuf, login)) {
+             if (!sql.query("select handle, password from account where handle='%s'", lcBuf)) {
+               Socket_Write(HANDLE_NOT_REGISTERED);
+	       return false;
+             } else {
+                 Socket_Write(password);
+                 player->Set_Handle(strdup(lcBuf));
+                 player->Set_Password(strdup(sql.get_row(1)));
+                 state = CON_PASSWORD;
+               }
+           } else 
+	       return false;
+           break;
+    case CON_PASSWORD :
+           if (!*lcBuf) 
+             return false;
           
-          if (!player->doesPasswordMatch(lcBuf)) {
-            Socket_Write(WRONG_PASSWORD);
-	    return false;
-          }
+           if (!player->doesPasswordMatch(lcBuf)) {
+             Socket_Write(WRONG_PASSWORD);
+             return false;
+           }
 
-	  descriptor_list->DisconnectPlayerID(player->SQL_ID());
-          if (!player->load()) {
-            Socket_Write(PLAYER_LOAD_FAILED);
-            return false;
-          }
-          state = CON_MOTD;
-          goto motd;
-   case CON_NEW_HANDLE :
-          Log.Write("PROCINP: CON_NEW_HANDLE");
-          if (!strcmp(lcBuf, "new") ||
-              !strncmp(lcBuf, "guest", 5)) {
-            Socket_Write(HANDLE_RESERVED);
-	    return false;
-          }
+	   descriptor_list->DisconnectPlayerID(player->SQL_ID());
+           if (!player->load()) {
+             Socket_Write(PLAYER_LOAD_FAILED);
+             return false;
+           }
+           state = CON_MOTD;
+           goto motd;
+    case CON_NEW_HANDLE :
+           Log.Write("PROCINP: CON_NEW_HANDLE");
+           if (!strcmp(lcBuf, "new") ||
+               !strncmp(lcBuf, "guest", 5)) {
+             Socket_Write(HANDLE_RESERVED);
+           return false;
+           }
 
-          if (descriptor_list->Find_Username( lcBuf ) || 
-              sql.query("select handle from account where handle = '%s'", lcBuf)) {
-            Socket_Write(HANDLE_UNAVAILABLE);
-	    return false;
-          }
+           if (descriptor_list->Find_Username( lcBuf ) || 
+               sql.query("select handle from account where handle = '%s'", lcBuf)) {
+             Socket_Write(HANDLE_UNAVAILABLE);
+	     return false;
+           }
 
-          if (!IsHandleValid( lcBuf, handle))
-	    return false;
-          player->Set_Handle(strdup(buffer));
-	  Socket_Write(password);
-	  state = CON_NEW_PASSWORD;
+           if (!IsHandleValid(lcBuf, handle))
+	     return false;
+           player->Set_Handle(strdup(buffer));
+	   Socket_Write(password);
+	   state = CON_NEW_PASSWORD;
 //          state = CON_NEW_REALNAME;
-          break;
+           break;
 /*
-   case CON_NEW_REALNAME :
-          Log.Write("PROCINP: CON_NEW_REALNAME");
-          if (strlen(lcBuf) > MAX_REALNAME_LENGTH) {
-            Socket_Write("Your real name is too long. It should contains a maximum of %d characters.\n"
-                         "Enter your real name: ", MAX_REALNAME_LENGTH);
-            break;
-          }
-          Socket_Write("Enter your email address: ");
-          player->realname = strdup(buffer);
-          state = CON_NEW_EMAIL;
-          break;
-   case CON_NEW_EMAIL :
-          Log.Write("PROCINP: CON_NEW_EMAIL");
-          if (strlen(lcBuf) > MAX_EMAIL_LENGTH) {
-            Socket_Write("Your email address is too long. It should contains a maximum of %d characters.\n"
-                         "Enter your email address: ", MAX_EMAIL_LENGTH);
-            break;
-          }
-          Socket_Write("Thanks for registering. You should receive your password via email soon.\n");
-          return ( false );
-          Socket_Write("Enter your password: ");
-          player->email = strdup(buffer);
-          state = CON_NEW_PASSWORD;
-          break; 
+    case CON_NEW_REALNAME :
+           Log.Write("PROCINP: CON_NEW_REALNAME");
+           if (strlen(lcBuf) > MAX_REALNAME_LENGTH) {
+             Socket_Write("Your real name is too long. It should contains a maximum of %d characters.\n"
+                          "Enter your real name: ", MAX_REALNAME_LENGTH);
+             break;
+           }
+           Socket_Write("Enter your email address: ");
+           player->realname = strdup(buffer);
+           state = CON_NEW_EMAIL;
+           break;
+    case CON_NEW_EMAIL :
+           Log.Write("PROCINP: CON_NEW_EMAIL");
+           if (strlen(lcBuf) > MAX_EMAIL_LENGTH) {
+             Socket_Write("Your email address is too long. It should contains a maximum of %d characters.\n"
+                          "Enter your email address: ", MAX_EMAIL_LENGTH);
+             break;
+           }
+           Socket_Write("Thanks for registering. You should receive your password via email soon.\n");
+           return ( false );
+           Socket_Write("Enter your password: ");
+           player->email = strdup(buffer);
+           state = CON_NEW_PASSWORD;
+           break; 
 */
-   case CON_NEW_PASSWORD :
+    case CON_NEW_PASSWORD :
 //          Log.Write("PROCINP: CON_NEW_PASSWORD");
-          if (strlen(lcBuf) > MAX_PASSWORD_LENGTH) {
-            Socket_Write(PASSWORD_TOO_LONG);
-	    return false;
-          } 
-          if (strlen(lcBuf) < MIN_PASSWORD_LENGTH) {
-            Socket_Write(PASSWORD_TOO_SHORT);
-	    return false;
-          } 
-          player->setPassword( buffer );
-          Socket_Write(confirm);
-          state = CON_CONFIRM_PASSWORD;
-          break;
-   case CON_CONFIRM_PASSWORD :
+           if (strlen(lcBuf) > MAX_PASSWORD_LENGTH) {
+             Socket_Write(PASSWORD_TOO_LONG);
+             return false;
+           } 
+           if (strlen(lcBuf) < MIN_PASSWORD_LENGTH) {
+             Socket_Write(PASSWORD_TOO_SHORT);
+	     return false;
+           } 
+           player->setPassword(buffer);
+           Socket_Write(confirm);
+           state = CON_CONFIRM_PASSWORD;
+           break;
+    case CON_CONFIRM_PASSWORD :
 //          Log.Write("PROCINP: CON_CONFIRM_PASSWORD");
-          if (!player->doesPasswordMatch( buffer )) {
-            Socket_Write(PASSWORD_DONT_MATCH);
-	    return false;
-          }
-          if (!player->save()) {
-            Socket_Write("Account creation failed");
-            return false;
-          } else {
-	      descriptor_list->DisconnectPlayerID(player->SQL_ID()); // need to do this this way, to avoid to disconnect the new connection
-	      player->load();                                        // load() we need the playerid now
-	    }
-          state = CON_MOTD;
-   case CON_MOTD :
+           if (!player->doesPasswordMatch(buffer)) {
+             Socket_Write(PASSWORD_DONT_MATCH);
+             return false;
+           }
+           if (!player->save()) {
+             Socket_Write("Account creation failed");
+             return false;
+           } else {
+               descriptor_list->DisconnectPlayerID(player->SQL_ID()); // need to do this this way, to avoid to disconnect the new connection
+	       player->load();                                        // load() we need the playerid now
+	     }
+           state = CON_MOTD;
+    case CON_MOTD :
 motd:     Log.Write("PROCINP: CON_MOTD");
 	  Socket_Write("%s %d", PLAYER_UID, player->ID());
 	  table_list->List(*this);
@@ -392,13 +390,13 @@ motd:     Log.Write("PROCINP: CON_MOTD");
 	  player->update(CMD_LASTLOGIN);
           state = CON_PROMPT;
           break;
-   case CON_PROMPT :
+    case CON_PROMPT :
           if (*buffer)
             cmd.Process_Command(this, (char *)&buffer);
           break;
-   case CON_DISCONNECT :
+    case CON_DISCONNECT :
           return false;
- }
+  }
   return true;
 }
 
@@ -433,7 +431,7 @@ bool cDescriptor::Is_Connected()
   FD_SET(desc, &output_set);
   FD_SET(desc, &exc_set);
   if (select(desc + 1, &input_set, &output_set, &exc_set, &null_time) < 0) {
-    Log.Write("SYSERR: Is_Connected() select pool");
+    Log.Write("SYSERR: Is_Connected(): socket select error: %s", strerror(errno));
     return false;
   }
   if (FD_ISSET(desc, &exc_set)) {

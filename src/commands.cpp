@@ -16,37 +16,41 @@ const int CMD_MATCHES   = -2;
 
 cCommandsStack::cCommandsStack(void)
 {
- m_CountCmd = 0;
+  m_CountCmd = 0;
 
- Add( "admin",    DGI_HELP_ADMIN,    LVL_SUPERUSER, new cAdmin() );
- Add( "announce", DGI_HELP_ANNOUNCE, LVL_ADMIN,     new cAnnounce() );
- Add( "date",     DGI_HELP_DATE,     LVL_GUEST,     new cDate() );
- Add( "exit",     DGI_HELP_EXIT,     LVL_GUEST,     new cExit() );
- Add( "help",     DGI_HELP_HELP,     LVL_GUEST,     new cHelp() );
- Add( "join",     DGI_HELP_JOIN,     LVL_GUEST,     new cJoin() );
- Add( "leave",    DGI_HELP_LEAVE,    LVL_GUEST,     new cLeave() );
- Add( "moon",     DGI_HELP_MOON,     LVL_GUEST,     new cMoon() );
- Add( "mute",     DGI_HELP_MUTE,     LVL_GUEST,     new cMute() );
- Add( "new",      DGI_HELP_NEW,      LVL_GUEST,     new cNew() );
- Add( "pass",     DGI_HELP_PASS,     LVL_GUEST,     new cPass() );
- Add( "password", DGI_HELP_PASSWORD, LVL_GUEST,     new cPassword() );
- Add( "pause",    DGI_HELP_PAUSE,    LVL_SUPERUSER, new cPause() );
- Add( "play",     DGI_HELP_PLAY,     LVL_GUEST,     new cPlay() );
- Add( "say",      DGI_HELP_SAY,      LVL_GUEST,     new cSay() );
- Add( "set",      DGI_HELP_SET,      LVL_ADMIN,     new cSet() );
- Add( "shutdown", DGI_HELP_SHUTDOWN, LVL_ADMIN,     new cShutdown() );
- Add( "shutoff",  DGI_HELP_SHUTOFF,  LVL_ADMIN,     new cShutoff() );
- Add( "sit",      DGI_HELP_SIT,      LVL_GUEST,     new cSit() );
- Add( "stats",    DGI_HELP_STATS,    LVL_GUEST,     new cStats() );
- Add( "tables",   DGI_HELP_TABLES,   LVL_GUEST,     new cTables() );
- Add( "test",     DGI_HELP_TEST,     LVL_ADMIN,     new cTest() );
- Add( "uptime",   DGI_HELP_UPTIME,   LVL_GUEST,     new cUptime() );
- Add( "who",      DGI_HELP_WHO,      LVL_GUEST,     new cWho() );
- Add( "\xff",     nullptr,           0,             nullptr );
+  Add( "admin",    DGI_HELP_ADMIN,    LVL_SUPERUSER, new cAdmin() );
+  Add( "announce", DGI_HELP_ANNOUNCE, LVL_ADMIN,     new cAnnounce() );
+  Add( "date",     DGI_HELP_DATE,     LVL_GUEST,     new cDate() );
+  Add( "exit",     DGI_HELP_EXIT,     LVL_GUEST,     new cExit() );
+  Add( "help",     DGI_HELP_HELP,     LVL_GUEST,     new cHelp() );
+  Add( "join",     DGI_HELP_JOIN,     LVL_GUEST,     new cJoin() );
+  Add( "leave",    DGI_HELP_LEAVE,    LVL_GUEST,     new cLeave() );
+  Add( "moon",     DGI_HELP_MOON,     LVL_GUEST,     new cMoon() );
+  Add( "mute",     DGI_HELP_MUTE,     LVL_GUEST,     new cMute() );
+  Add( "new",      DGI_HELP_NEW,      LVL_GUEST,     new cNew() );
+  Add( "pass",     DGI_HELP_PASS,     LVL_GUEST,     new cPass() );
+  Add( "password", DGI_HELP_PASSWORD, LVL_GUEST,     new cPassword() );
+  Add( "pause",    DGI_HELP_PAUSE,    LVL_SUPERUSER, new cPause() );
+  Add( "play",     DGI_HELP_PLAY,     LVL_GUEST,     new cPlay() );
+  Add( "say",      DGI_HELP_SAY,      LVL_GUEST,     new cSay() );
+  Add( "set",      DGI_HELP_SET,      LVL_ADMIN,     new cSet() );
+  Add( "shutdown", DGI_HELP_SHUTDOWN, LVL_ADMIN,     new cShutdown() );
+  Add( "shutoff",  DGI_HELP_SHUTOFF,  LVL_ADMIN,     new cShutoff() );
+  Add( "sit",      DGI_HELP_SIT,      LVL_GUEST,     new cSit() );
+  Add( "stats",    DGI_HELP_STATS,    LVL_GUEST,     new cStats() );
+  Add( "tables",   DGI_HELP_TABLES,   LVL_GUEST,     new cTables() );
+  Add( "test",     DGI_HELP_TEST,     LVL_ADMIN,     new cTest() );
+  Add( "uptime",   DGI_HELP_UPTIME,   LVL_GUEST,     new cUptime() );
+  Add( "who",      DGI_HELP_WHO,      LVL_GUEST,     new cWho() );
+  Add( "\xff",     nullptr,           0,             nullptr );
 }
 
 cCommandsStack::~cCommandsStack(void)
 {
+  for (int i=0; i<m_CountCmd - 1; i++) {
+    free(m_commands[i].name);
+    delete m_commands[i].func;
+  }
 }
 
 cCommandsStack *cCommandsStack::GetInstance()
@@ -55,16 +59,16 @@ cCommandsStack *cCommandsStack::GetInstance()
  return &S_CommandsStack;
 }
 
-void cCommandsStack::Add(const char *n, const char *h, unsigned int level, cCommand *cmd )
+void cCommandsStack::Add(const char *name, const char *help, unsigned int level, cCommand *cmd )
 {
- m_commands[m_CountCmd].name = strdup(n);
- m_commands[m_CountCmd].help = h;
- m_commands[m_CountCmd].level = level;
- m_commands[m_CountCmd].func = cmd;
- if (m_CountCmd++ >= MAX_SERVER_CMDS) {
-   Log.Write("SYSERR: Maximum server commands reached.\n");
-   exit(1);
- }
+  m_commands[m_CountCmd].name = strdup(name);
+  m_commands[m_CountCmd].help = help;
+  m_commands[m_CountCmd].level = level;
+  m_commands[m_CountCmd].func = cmd;
+  if (m_CountCmd++ >= MAX_SERVER_CMDS) {
+    Log.Write("SYSERR: Maximum server commands reached.\n");
+    exit(1);
+  }
 }
 
 int cCommandsStack::Find(const char *cmd, int level, char *matches)
