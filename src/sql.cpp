@@ -67,18 +67,6 @@ const char *cMYSQL::get_row(unsigned int index)
   return row[index];
 }
 
-bool cMYSQL::fetch()
-{
-  if (!(row = mysql_fetch_row(result))) {
-    if (!freed) {
-      mysql_free_result(result);
-      freed = true;
-    }
-    return false;
-  }
-  return true;
-}
-
 cMYSQL::cMYSQL()
 {
   FILE *fp;

@@ -27,47 +27,41 @@ socket_t s;
 
 socket_t init_socket(unsigned int port)
 {
-  struct sockaddr_in sa;
-  int opt;
+  struct sockaddr_in sa = {0};
+  int reuse, sndbuf;
 
   if ((s = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-    Log.Write("SYSERR: Error creating socket");
+    Log.Write("SYSERR: socket SOCK_STREAM");
     exit(1);
   }
 
 #ifdef SO_REUSEADDR
-  opt = 1;
-  if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt)) < 0){
-    Log.Write("SYSERR: setsockopt REUSEADDR");
+  reuse = 1;
+  if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)) < 0){
+    Log.Write("SYSERR: setsockopt SO_REUSEADDR");
     exit(1);
   }
   Log.Write("INFO: socket using SO_REUSEADDR");
 #endif
 
-  opt = 12 * 1024;
-  if (setsockopt(s, SOL_SOCKET, SO_SNDBUF, (char *) &opt, sizeof(opt)) < 0) {
-    Log.Write("SYSERR: setsockopt SNDBUF");
-//   return ( -1 );
+  sndbuf = 12 * 1024;
+  if (setsockopt(s, SOL_SOCKET, SO_SNDBUF, (char *) &sndbuf, sizeof(int)) < 0) {
+    Log.Write("SYSERR: setsockopt SO_SNDBUF");
   }
 
 #ifdef SO_LINGER
-  struct linger ld;
+  struct linger l;
 
-  ld.l_onoff = 0;
-  ld.l_linger = 0;
-  if (setsockopt(s, SOL_SOCKET, SO_LINGER, (char *) &ld, sizeof(ld)) < 0) {
+  l.l_onoff = 0;
+  l.l_linger = 0;
+  if (setsockopt(s, SOL_SOCKET, SO_LINGER, (char *) &l, sizeof(l)) < 0) {
     Log.Write("SYSERR: setsockopt SO_LINGER");
   }
   Log.Write("INFO: socket using SO_LINGER");
 #endif
 
-  memset((char *)&sa, 0, sizeof(sa));
-
   sa.sin_family = AF_INET;
   sa.sin_port = htons(port);
-  memset((char *)&sa.sin_addr, 0, sizeof(sa.sin_addr));
-
-  sa.sin_addr.s_addr = htonl(INADDR_ANY); // *(get_bind_addr());
 
   if (bind(s, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
     Log.Write("SYSERR: bind");
@@ -644,7 +638,7 @@ void cDescList::Who(cDescriptor &desc)
   total = snprintf(buf, BUFSIZE, "%s ", DG_TEXT);
 
   while (Q) {
-    if (Q->elem->player) {
+    if (Q->elem->State() >= CON_MOTD) {
       len = snprintf(buf + total, BUFSIZE - total, "%s ", Q->elem->player->Handle());      
       total += len;
       if (total >= BUFSIZE) {
