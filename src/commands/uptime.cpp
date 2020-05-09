@@ -16,5 +16,5 @@ void cUptime::Execute( cDescriptor &d, cParam &param )
   hours = (seconds / 3600) % 24;
   minutes = (seconds / 60) % 60;
 
-  d.Socket_Write("%s Hearts server version %s\r\nUp since %s: %d day%s, %d:%02d", DG_TEXT, VERSION, server_time, days, days == 1 ? "" : "s", hours, minutes);
+  d.Socket_Write("%s Hearts server version %s\r\nUp since %s: %d day%s, %d:%02d", DGI_TEXT, VERSION, server_time, days, days == 1 ? "" : "s", hours, minutes);
 }

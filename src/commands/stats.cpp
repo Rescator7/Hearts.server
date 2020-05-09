@@ -9,5 +9,5 @@ void cStats::Execute( cDescriptor &d, cParam &param )
 
   if (player == nullptr) return;
 
-  d.Socket_Write("%s %d %d %d %d", GAME_STATS, player->First(), player->Second(), player->Third(), player->Fourth());
+  d.Socket_Write("%s %d %d %d %d", DGI_GAME_STATS, player->First(), player->Second(), player->Third(), player->Fourth());
 }

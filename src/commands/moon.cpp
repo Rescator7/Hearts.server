@@ -13,25 +13,25 @@ void cMoon::Execute( cDescriptor &d, cParam &param )
   struct cTable *table = player->table;
 
   if (table == nullptr) {
-    d.Socket_Write(PLAYER_NO_TABLE);
+    d.Socket_Write(DGE_PLAYER_NO_TABLE);
     return;
   }
 
   usINT chair = table->Chair(d);
   if (chair == PLAYER_NOWHERE) {
-    d.Socket_Write(PLAYER_NOT_SAT);
+    d.Socket_Write(DGE_PLAYER_NOT_SAT);
     return;
   }
 
   if (table->Paused()) {
-    d.Socket_Write(TABLE_PAUSED);
+    d.Socket_Write(DGI_TABLE_PAUSED);
     return;
   }
 
   struct cGame *game = table->game;
 
   if (game->WhoMoon() != chair) {
-    d.Socket_Write(PLAYER_NOT_MOON);
+    d.Socket_Write(DGE_PLAYER_NOT_MOON);
     return;
   }
 

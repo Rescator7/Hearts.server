@@ -14,12 +14,12 @@ void cSay::Execute( cDescriptor &d, cParam &param )
   struct cTable *table = player->table;
 
   if (table == nullptr) {
-    d.Socket_Write(PLAYER_NO_TABLE);
+    d.Socket_Write(DGE_PLAYER_NO_TABLE);
     return;
   }
 
   if (table->Chair(d) == PLAYER_NOWHERE) {
-    d.Socket_Write(PLAYER_NOT_SAT);
+    d.Socket_Write(DGE_PLAYER_NOT_SAT);
     return;
   }
 

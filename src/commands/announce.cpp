@@ -12,5 +12,5 @@ void cAnnounce::Execute( cDescriptor &d, cParam &param )
 
   if (player == nullptr) return;
 
-  descriptor_list->Send_To_All("%s [%s]: %s", SERVER_ANNOUNCE, player->Handle(), param.arguments);
+  descriptor_list->Send_To_All("%s [%s]: %s", DGI_SERVER_ANNOUNCE, player->Handle(), param.arguments);
 }

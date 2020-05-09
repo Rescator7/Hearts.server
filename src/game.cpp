@@ -39,8 +39,8 @@ cGame::~cGame()
 
 void cGame::EndTurn(cTable &table)
 {
-  table.SendAll(TABLE_CLEAR);
-  table.Send(turn, "%s %d", TABLE_YOUR_TURN, config.Wait_Play());
+  table.SendAll(DGI_TABLE_CLEAR);
+  table.Send(turn, "%s %d", DGI_TABLE_YOUR_TURN, config.Wait_Play());
   Wait(config.Wait_Play());
   state = STATE_WAIT_PLAY;
 }
@@ -64,7 +64,7 @@ bool cGame::AdvanceTurn(cTable &table)
     ResetPlayed();
     left_to_play = 4;
 
-    table.SendAll("%s %d %d", TABLE_HAND_SCORE, won_turn, hand_score[won_turn]);
+    table.SendAll("%s %d %d", DGI_TABLE_HAND_SCORE, won_turn, hand_score[won_turn]);
     // This Wait_End_Turn apply also to STATE_END_ROUND to be able to see that last cards played.
     // Wait(config.Wait_End_Turn()) will be used to delay between the shuffle cards sounds, and
     // showing the new cards.
@@ -80,7 +80,7 @@ bool cGame::AdvanceTurn(cTable &table)
 
   Wait(config.Wait_Play());
 
-  table.Send(turn, "%s %d", TABLE_YOUR_TURN, config.Wait_Play());
+  table.Send(turn, "%s %d", DGI_TABLE_YOUR_TURN, config.Wait_Play());
 
   return true;
 }
@@ -131,7 +131,7 @@ void cGame::Play(cTable &table, usINT card)
 
   std::sort(player_cards[turn], player_cards[turn]+13);
 
-  table.SendAll("%s %d %d", TABLE_PLAY, turn, card);
+  table.SendAll("%s %d %d", DGI_TABLE_PLAY, turn, card);
   AdvanceTurn(table);
 }
 
@@ -140,17 +140,17 @@ bool cGame::ValidMove(cDescriptor &d, usINT chair, usINT card)
   usINT error = ValidMove(chair, card);
 
   switch (error) {
-    case ERROR_NOT_YOUR_TURN:  d.Socket_Write(TABLE_NOT_YOUR_TURN);
+    case ERROR_NOT_YOUR_TURN:  d.Socket_Write(DGE_TABLE_NOT_YOUR_TURN);
 			       return false;
-    case ERROR_ILLEGAL_CARD:   d.Socket_Write(TABLE_ILLEGAL_CARD);
+    case ERROR_ILLEGAL_CARD:   d.Socket_Write(DGE_TABLE_ILLEGAL_CARD);
 			       return false;
-    case ERROR_QUEEN_SPADE:    d.Socket_Write(TABLE_QUEEN_SPADE);
+    case ERROR_QUEEN_SPADE:    d.Socket_Write(DGE_TABLE_QUEEN_SPADE);
 			       return false;
-    case ERROR_BREAK_HEART:    d.Socket_Write(TABLE_CANT_BREAK_HEART);
+    case ERROR_BREAK_HEART:    d.Socket_Write(DGE_TABLE_CANT_BREAK_HEART);
 			       return false;
-    case ERROR_WRONG_SUIT:     d.Socket_Write(TABLE_WRONG_SUIT);
+    case ERROR_WRONG_SUIT:     d.Socket_Write(DGE_TABLE_WRONG_SUIT);
 			       return false;
-    case ERROR_PLAY_TWO_CLUBS: d.Socket_Write(TABLE_PLAY_TWO_CLUBS);
+    case ERROR_PLAY_TWO_CLUBS: d.Socket_Write(DGI_TABLE_PLAY_TWO_CLUBS);
 			       return false;
   }
   return true;
@@ -210,7 +210,7 @@ void cGame::ForcePlay(cTable &table)
       Play(table, card);
 
       if (d != nullptr)
-	d->Socket_Write("%s %d", TABLE_FORCE_PLAY, card);
+	d->Socket_Write("%s %d", DGI_TABLE_FORCE_PLAY, card);
       return;
     }
   }
@@ -282,7 +282,7 @@ void cGame::ForcePass(cTable *table, usINT chair)
   cDescriptor *desc = table->desc(chair);
 
   if (desc != nullptr)
-    desc->Socket_Write("%s %d %d %d", TABLE_FORCE_PASS,       passed_cards[chair][0], 
+    desc->Socket_Write("%s %d %d %d", DGI_TABLE_FORCE_PASS,   passed_cards[chair][0], 
                                       passed_cards[chair][1], passed_cards[chair][2]);  
 
   if (++num_passed == 4)
@@ -364,21 +364,21 @@ void cGame::Pass(cTable &table)
   }
 
   if ((d = table.desc(PLAYER_NORTH)) != nullptr) 
-    d->Socket_Write("%s %d %d %d", TABLE_CARDS_RECEIVED, player_cards[PLAYER_NORTH][passed_cards[PLAYER_NORTH][0]],
-                                                         player_cards[PLAYER_NORTH][passed_cards[PLAYER_NORTH][1]],
-		                                         player_cards[PLAYER_NORTH][passed_cards[PLAYER_NORTH][2]]);
+    d->Socket_Write("%s %d %d %d", DGI_TABLE_CARDS_RECEIVED, player_cards[PLAYER_NORTH][passed_cards[PLAYER_NORTH][0]],
+                                                             player_cards[PLAYER_NORTH][passed_cards[PLAYER_NORTH][1]],
+		                                             player_cards[PLAYER_NORTH][passed_cards[PLAYER_NORTH][2]]);
   if ((d = table.desc(PLAYER_SOUTH)) != nullptr)
-    d->Socket_Write("%s %d %d %d", TABLE_CARDS_RECEIVED, player_cards[PLAYER_SOUTH][passed_cards[PLAYER_SOUTH][0]],
-                                                         player_cards[PLAYER_SOUTH][passed_cards[PLAYER_SOUTH][1]],
-                                                         player_cards[PLAYER_SOUTH][passed_cards[PLAYER_SOUTH][2]]);
+    d->Socket_Write("%s %d %d %d", DGI_TABLE_CARDS_RECEIVED, player_cards[PLAYER_SOUTH][passed_cards[PLAYER_SOUTH][0]],
+                                                             player_cards[PLAYER_SOUTH][passed_cards[PLAYER_SOUTH][1]],
+                                                             player_cards[PLAYER_SOUTH][passed_cards[PLAYER_SOUTH][2]]);
   if ((d = table.desc(PLAYER_WEST)) != nullptr)
-    d->Socket_Write("%s %d %d %d", TABLE_CARDS_RECEIVED, player_cards[PLAYER_WEST][passed_cards[PLAYER_WEST][0]],
-                                                         player_cards[PLAYER_WEST][passed_cards[PLAYER_WEST][1]],
-                                                         player_cards[PLAYER_WEST][passed_cards[PLAYER_WEST][2]]);
+    d->Socket_Write("%s %d %d %d", DGI_TABLE_CARDS_RECEIVED, player_cards[PLAYER_WEST][passed_cards[PLAYER_WEST][0]],
+                                                             player_cards[PLAYER_WEST][passed_cards[PLAYER_WEST][1]],
+                                                             player_cards[PLAYER_WEST][passed_cards[PLAYER_WEST][2]]);
   if ((d = table.desc(PLAYER_EAST)) != nullptr)
-    d->Socket_Write("%s %d %d %d", TABLE_CARDS_RECEIVED, player_cards[PLAYER_EAST][passed_cards[PLAYER_EAST][0]],
-                                                         player_cards[PLAYER_EAST][passed_cards[PLAYER_EAST][1]],
-                                                         player_cards[PLAYER_EAST][passed_cards[PLAYER_EAST][2]]);
+    d->Socket_Write("%s %d %d %d", DGI_TABLE_CARDS_RECEIVED, player_cards[PLAYER_EAST][passed_cards[PLAYER_EAST][0]],
+                                                             player_cards[PLAYER_EAST][passed_cards[PLAYER_EAST][1]],
+                                                             player_cards[PLAYER_EAST][passed_cards[PLAYER_EAST][2]]);
  
   Sort();
 
@@ -391,7 +391,7 @@ void cGame::Pass(cTable &table)
 
   Wait(config.Wait_Play());
   state = STATE_WAIT_PLAY;
-  table.Send(turn, "%s %d", TABLE_YOUR_TURN, config.Wait_Play());  
+  table.Send(turn, "%s %d", DGI_TABLE_YOUR_TURN, config.Wait_Play());  
 }
 
 usINT cGame::PlayerPass(cTable &table, usINT chair, usINT card1, usINT card2, usINT card3)
@@ -475,7 +475,7 @@ void cGame::EndRound(cTable &table)
            shoot_moon = true;
 	   who_moon = i;
 	   new_moon = (flags & NEW_MOON_f) && (score[i] >= 26);
-	   table.SendAll("%s %d %d", TABLE_SHOOT_MOON, i, new_moon ? config.Wait_Moon() : 0);
+	   table.SendAll("%s %d %d", DGI_TABLE_SHOOT_MOON, i, new_moon ? config.Wait_Moon() : 0);
 	   if (new_moon) {
 	     Wait(config.Wait_Moon());
 	     return; 
@@ -496,9 +496,9 @@ void cGame::EndRound(cTable &table)
       if (who_moon != PLAYER_EAST) score[PLAYER_EAST] += 26;
     } else
         score[who_moon] -= 26;
-      table.SendAll("%s %d %d", PLAYER_MOON, won_turn, moon_add);
+      table.SendAll("%s %d %d", DGI_PLAYER_MOON, won_turn, moon_add);
   } else {
-      table.SendAll("%s %d %d", TABLE_HAND_SCORE, won_turn, hand_score[won_turn]);
+      table.SendAll("%s %d %d", DGI_TABLE_HAND_SCORE, won_turn, hand_score[won_turn]);
 
       // Adjust the new scores, 
       score[PLAYER_NORTH] += hand_score[PLAYER_NORTH];
@@ -510,7 +510,7 @@ void cGame::EndRound(cTable &table)
       if (flags & OMNIBUS_f) {
         bonus = score[won_jack_diamond] < omnibus_bonus ? score[won_jack_diamond] : omnibus_bonus;
         if (bonus) {
-          table.SendAll("%s %d %d", TABLE_OMNIBUS, won_jack_diamond, bonus); 
+          table.SendAll("%s %d %d", DGI_TABLE_OMNIBUS, won_jack_diamond, bonus); 
           score[won_jack_diamond] -= bonus;
         }
       }
@@ -520,7 +520,7 @@ void cGame::EndRound(cTable &table)
           if (!hand_score[i]) {
             bonus = score[i] < no_trick_bonus ? score[i] : no_trick_bonus;
             if (bonus) {
-              table.SendAll("%s %d %d", TABLE_NO_TRICK_BONUS, i, bonus);
+              table.SendAll("%s %d %d", DGI_TABLE_NO_TRICK_BONUS, i, bonus);
               score[i] -= bonus;
             }
 	  }
@@ -531,13 +531,13 @@ void cGame::EndRound(cTable &table)
         for (int i=0; i<4; i++) {
            if (score[i] == config.GameOver_Score()) {
              score[i] = 50;
-             table.SendAll("%s %d %d", TABLE_PERFECT_100, i, 50);
+             table.SendAll("%s %d %d", DGI_TABLE_PERFECT_100, i, 50);
            }
         } 
       }
   }
 
-  table.SendAll("%s %d %d %d %d", TABLE_SCORE, score[PLAYER_NORTH], score[PLAYER_SOUTH], score[PLAYER_WEST], score[PLAYER_EAST]);
+  table.SendAll("%s %d %d %d %d", DGI_TABLE_SCORE, score[PLAYER_NORTH], score[PLAYER_SOUTH], score[PLAYER_WEST], score[PLAYER_EAST]);
   
   if (!(flags & NO_DRAW_f)) {
     for (int i=0; i<4; i++)

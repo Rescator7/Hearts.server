@@ -50,25 +50,25 @@ void cTable::Say(cDescriptor &desc, const char *message)
  struct cDescriptor *player;
 
  if (muted) {
-   desc.Socket_Write(TABLE_MUTED);
+   desc.Socket_Write(DGE_TABLE_MUTED);
    return;
  }
 
  player = player_desc[PLAYER_NORTH];
  if ((player != nullptr) && (player != &desc))
-   player->Socket_Write("%s %s %s", TABLE_SAY, desc.player->Handle(), message);
+   player->Socket_Write("%s %s %s", DGI_TABLE_SAY, desc.player->Handle(), message);
 
  player = player_desc[PLAYER_SOUTH];
  if ((player != nullptr) && (player != &desc))
-   player->Socket_Write("%s %s %s", TABLE_SAY, desc.player->Handle(), message);
+   player->Socket_Write("%s %s %s", DGI_TABLE_SAY, desc.player->Handle(), message);
 
  player = player_desc[PLAYER_WEST]; 
  if ((player != nullptr) && (player != &desc))
-   player->Socket_Write("%s %s %s", TABLE_SAY, desc.player->Handle(), message);
+   player->Socket_Write("%s %s %s", DGI_TABLE_SAY, desc.player->Handle(), message);
 
  player = player_desc[PLAYER_EAST]; 
  if ((player != nullptr) && (player != &desc))
-   player->Socket_Write("%s %s %s", TABLE_SAY, desc.player->Handle(), message);
+   player->Socket_Write("%s %s %s", DGI_TABLE_SAY, desc.player->Handle(), message);
 }
 
 usINT cTable::PlayerLink(cDescriptor &desc)
@@ -131,7 +131,7 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
 
      player_id[PLAYER_NORTH] = NOPLAYER;
    }
-   descriptor_list->Send_To_All("%s %d n", PLAYER_STAND, table_id);
+   descriptor_list->Send_To_All("%s %d n", DGI_PLAYER_STAND, table_id);
    num_players--;
    expire = time(nullptr);
 #ifdef DEBUG
@@ -146,7 +146,7 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
        desc.player->update(CMD_FOURTH);
      player_id[PLAYER_SOUTH] = NOPLAYER;
    }
-   descriptor_list->Send_To_All("%s %d s", PLAYER_STAND, table_id);
+   descriptor_list->Send_To_All("%s %d s", DGI_PLAYER_STAND, table_id);
    num_players--;
 #ifdef DEBUG
    printf("num_players: %d\r\n", num_players);
@@ -161,7 +161,7 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
        desc.player->update(CMD_FOURTH);
      player_id[PLAYER_WEST] = NOPLAYER;
    }
-   descriptor_list->Send_To_All("%s %d w", PLAYER_STAND, table_id);
+   descriptor_list->Send_To_All("%s %d w", DGI_PLAYER_STAND, table_id);
    num_players--;
 #ifdef DEBUG
    printf("num_players: %d\r\n", num_players);
@@ -176,7 +176,7 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
        desc.player->update(CMD_FOURTH);
      player_id[PLAYER_EAST] = NOPLAYER;
    }
-   descriptor_list->Send_To_All("%s %d e", PLAYER_STAND, table_id);
+   descriptor_list->Send_To_All("%s %d e", DGI_PLAYER_STAND, table_id);
    num_players--;
 #ifdef DEBUG
    printf("num_players: %d\r\n", num_players);
@@ -195,7 +195,7 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
 void cTable::Sit(cDescriptor &desc, unsigned int chair)
 {
   if (game->Started()) {
-    desc.Socket_Write(TABLE_STARTED);
+    desc.Socket_Write(DGE_TABLE_STARTED);
     return;
   }
 
@@ -203,7 +203,7 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
   if (player_desc[chair] == nullptr) {
     // do we have a delay before sitting again?
     if (desc.Get_Sit_Time() && (difftime(time(nullptr), desc.Get_Sit_Time()) <= SIT_DELAY)) {
-      desc.Socket_Write(PLAYER_SIT_DELAY);
+      desc.Socket_Write(DGE_PLAYER_SIT_DELAY);
       return;
     } else
         desc.Set_Sit_Time(time(nullptr));
@@ -223,8 +223,8 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
 
    player_desc[chair] = &desc;
    player_id[chair] = desc.player->ID();
-   Send(chair, "%s %d", TABLE_WHO_AM_I, chair);
-   descriptor_list->Send_To_All("%s %d %c %d %s", PLAYER_SIT_HERE, table_id, c, muted, desc.player->Handle());
+   Send(chair, "%s %d", DGI_TABLE_WHO_AM_I, chair);
+   descriptor_list->Send_To_All("%s %d %c %d %s", DGI_PLAYER_SIT_HERE, table_id, c, muted, desc.player->Handle());
    expire = time(nullptr);
    num_players++;
 
@@ -239,16 +239,16 @@ void cTable::Sat(cDescriptor &desc)
   struct cPlayer *player;
 
   if ((player = Player(PLAYER_NORTH)) != nullptr) 
-    desc.Socket_Write("%s %d n %d %s", PLAYER_SIT_HERE, TableID(), muted, player->Handle());
+    desc.Socket_Write("%s %d n %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player->Handle());
     
   if ((player = Player(PLAYER_SOUTH)) != nullptr) 
-    desc.Socket_Write("%s %d s %d %s", PLAYER_SIT_HERE, TableID(), muted, player->Handle());
+    desc.Socket_Write("%s %d s %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player->Handle());
 	    
   if ((player = Player(PLAYER_WEST)) != nullptr) 
-    desc.Socket_Write("%s %d w %d %s", PLAYER_SIT_HERE, TableID(), muted, player->Handle());
+    desc.Socket_Write("%s %d w %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player->Handle());
 
   if ((player = Player(PLAYER_EAST)) != nullptr) 
-    desc.Socket_Write("%s %d e %d %s", PLAYER_SIT_HERE, TableID(), muted, player->Handle());
+    desc.Socket_Write("%s %d e %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player->Handle());
 }
 
 usINT cTable::Chair(cDescriptor &desc)
@@ -382,7 +382,7 @@ bool cTabList::Add(cTable *elem)
   num_elem++;
   Log.Write("SOCKETS: created table: %d", num_elem);
 
-  descriptor_list->Send_To_All("%s %d %d", TABLE_CREATED, elem->TableID(), elem->Flags());
+  descriptor_list->Send_To_All("%s %d %d", DGI_TABLE_CREATED, elem->TableID(), elem->Flags());
 
   return ( true );
 }
@@ -414,7 +414,7 @@ bool cTabList::Remove(cTable *elem)
       delete Q;
       num_elem--;
 
-      descriptor_list->Send_To_All("%s %d", TABLE_DELETED, elem->TableID());
+      descriptor_list->Send_To_All("%s %d", DGI_TABLE_DELETED, elem->TableID());
       return ( true );
     }
     prev = Q;
@@ -476,19 +476,19 @@ void cTabList::Play()
       turn = game->Turn();
 
       switch (game->State()) {
-	 case STATE_GAME_STARTED: descriptor_list->Send_To_All("%s %d", GAME_STARTED, table->TableID());
+	 case STATE_GAME_STARTED: descriptor_list->Send_To_All("%s %d", DGI_GAME_STARTED, table->TableID());
 				  descriptor_list->Table_Kick_Unplaying(table);
 	 case STATE_SEND_CARDS: if (game->PassTo() == pNOPASS) {
 				  game->SetState(STATE_WAIT_PLAY);
 				  delay = config.Wait_Play();
-			          table->Send(turn, "%s %d", TABLE_YOUR_TURN, config.Wait_Play());
+			          table->Send(turn, "%s %d", DGI_TABLE_YOUR_TURN, config.Wait_Play());
 				}
 				else {
 				  game->SetState(STATE_WAIT_PASS);
 	                          delay = config.Wait_Select();
 				}
 		                for (int player = 0; player < 4; player++)
-	                           table->Send(player, "%s %d %d %s", TABLE_YOUR_CARDS, game->PassTo(), delay, game->Str_Cards(player));
+	                           table->Send(player, "%s %d %d %s", DGI_TABLE_YOUR_CARDS, game->PassTo(), delay, game->Str_Cards(player));
 				game->Wait(delay);
 		                break;
 	 case STATE_WAIT_PASS: if (game->WaitOver()) {
@@ -507,7 +507,7 @@ void cTabList::Play()
 	 case STATE_END_ROUND: if (!game->WaitOver()) break;
 			       game->EndRound(*table);
 			       break;
-	 case STATE_SHUFFLE:   table->SendAll(TABLE_SHUFFLE);
+	 case STATE_SHUFFLE:   table->SendAll(DGI_TABLE_SHUFFLE);
 			       game->SetState(STATE_WAIT_ROUND);
                                game->Wait(config.Wait_End_Round());
 			       break;
@@ -515,7 +515,7 @@ void cTabList::Play()
 			       if (!game->WaitOver()) break;
 			       game->SetState(STATE_SEND_CARDS);
 			       break; 
-	 case STATE_GAME_OVER: table->SendAll("%s %d %d %d %d", TABLE_GAMEOVER, game->Score(PLAYER_NORTH), game->Score(PLAYER_SOUTH), 
+	 case STATE_GAME_OVER: table->SendAll("%s %d %d %d %d", DGI_TABLE_GAMEOVER, game->Score(PLAYER_NORTH), game->Score(PLAYER_SOUTH), 
 					                        game->Score(PLAYER_WEST), game->Score(PLAYER_EAST));
 			       if (table->Player(PLAYER_NORTH)) table->Player(PLAYER_NORTH)->update(game->CMD_Rank(PLAYER_NORTH));
 			       else if (table->PID(PLAYER_NORTH) != NOPLAYER) 
@@ -534,7 +534,7 @@ void cTabList::Play()
 				      sql.query("update account set fourth = fourth + 1 where playerid = %d;", table->PID(PLAYER_EAST));
 			       table->Clear();
 			       break;
-	 case STATE_CORRUPTED: table->SendAll(TABLE_CORRUPTED);
+	 case STATE_CORRUPTED: table->SendAll(DGE_TABLE_CORRUPTED);
 			       table->Clear();
 			       break;
       }
@@ -555,11 +555,11 @@ void cTabList::List(cDescriptor &desc)
     game = table->game;
 
     if (!game->Started())
-      desc.Socket_Write("%s %d %d", TABLE_CREATED, table->TableID(), table->Flags());
+      desc.Socket_Write("%s %d %d", DGI_TABLE_CREATED, table->TableID(), table->Flags());
     else
       if ((chair = table->PlayerLink(desc)) != PLAYER_NOWHERE) {
         desc.Socket_Write("%s %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s", 
-  	                  DG_RECONNECTED, 
+  	                  DGI_RECONNECTED, 
 		          table->TableID(), 
 		          game->Score(PLAYER_SOUTH), game->Score(PLAYER_WEST), game->Score(PLAYER_NORTH), game->Score(PLAYER_EAST),
 			  game->HandScore(PLAYER_SOUTH), game->HandScore(PLAYER_WEST), game->HandScore(PLAYER_NORTH), game->HandScore(PLAYER_EAST),
@@ -597,7 +597,7 @@ void cTabList::Show(cDescriptor &desc)
     name_W = (West  && West->player)  ? West->player->Handle()  : started ? left : nobody;
     name_E = (East  && East->player)  ? East->player->Handle()  : started ? left : nobody;
 
-    desc.Socket_Write("%s [%5d] %-8s %-8s %-8s %-8s", DG_TEXT, table->TableID(), name_N, name_S, name_W, name_E);
+    desc.Socket_Write("%s [%5d] %-8s %-8s %-8s %-8s", DGI_TEXT, table->TableID(), name_N, name_S, name_W, name_E);
     Q = Q->next;
   }
 }

@@ -16,7 +16,7 @@ void cJoin::Execute( cDescriptor &d, cParam &param )
   if (!*param.arguments) return;
 
   if (player->table != nullptr) {
-    d.Socket_Write(PLAYER_AT_TABLE);
+    d.Socket_Write(DGE_PLAYER_AT_TABLE);
     return;
   } 
  
@@ -28,19 +28,19 @@ void cJoin::Execute( cDescriptor &d, cParam &param )
   cTable *table;
 
   if ((table = table_list->Search(id)) == nullptr) {
-    d.Socket_Write("%s %d", TABLE_NOT_FOUND, id);
+    d.Socket_Write("%s %d", DGE_TABLE_NOT_FOUND, id);
     return;
   }
 
   if (table->Full()) {
-    d.Socket_Write(TABLE_FULL);
+    d.Socket_Write(DGE_TABLE_FULL);
     return;
   }
 
   struct cGame *game = table->game;
 
   if (game->Started()) {
-    d.Socket_Write(TABLE_STARTED);
+    d.Socket_Write(DGE_TABLE_STARTED);
     return;
   }
 
@@ -48,14 +48,14 @@ void cJoin::Execute( cDescriptor &d, cParam &param )
   if (ret == 2) {
     Direction(direction, chair);
     if (chair == PLAYER_NOWHERE) {
-      d.Socket_Write(TABLE_WRONG_CHAIR);
+      d.Socket_Write(DGE_TABLE_WRONG_CHAIR);
       return;
     }
   }
 
   player->table = table;
 
-  d.Socket_Write("%s %d", PLAYER_CHOOSE_CHAIR, table->TableID());
+  d.Socket_Write("%s %d", DGI_PLAYER_CHOOSE_CHAIR, table->TableID());
 
   table->Sat(d);
 

@@ -16,7 +16,7 @@ void cAdmin::Execute( cDescriptor &d, cParam &param )
   int len = strlen(param.arguments);
 
   if ((len < MIN_HANDLE_LENGTH) || (len > MAX_HANDLE_LENGTH)) {
-    d.Socket_Write("%s %s", ADMIN_NOT_FOUND, param.arguments);
+    d.Socket_Write("%s %s", DGE_ADMIN_NOT_FOUND, param.arguments);
     return;
   }
 
@@ -25,7 +25,7 @@ void cAdmin::Execute( cDescriptor &d, cParam &param )
    int level = atoi(sql.get_row(0));
 
    if (level >= LVL_ADMIN) {
-     d.Socket_Write("%s %s", ADMIN_ABOVE, param.arguments);
+     d.Socket_Write("%s %s", DGE_ADMIN_ABOVE, param.arguments);
      return;
    }
 
@@ -38,7 +38,7 @@ void cAdmin::Execute( cDescriptor &d, cParam &param )
    if (player != nullptr)
      player->Set_Level(LVL_ADMIN);
 
-   d.Socket_Write("%s %s", ADMIN_SET, param.arguments);
+   d.Socket_Write("%s %s", DGI_ADMIN_SET, param.arguments);
   } else
-     d.Socket_Write("%s %s", ADMIN_NOT_FOUND, param.arguments);
+     d.Socket_Write("%s %s", DGE_ADMIN_NOT_FOUND, param.arguments);
 }

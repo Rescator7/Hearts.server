@@ -14,12 +14,12 @@ void cTest::Execute( cDescriptor &d, cParam &param )
   struct cTable *table = player->table;
 
   if (table == nullptr) {
-    d.Socket_Write(PLAYER_NO_TABLE);
+    d.Socket_Write(DGE_PLAYER_NO_TABLE);
     return;
   }
 
   int chair = table->Chair(d);
 
   table->Pause(true);
-  d.Socket_Write("%s %d %d", TABLE_SHOOT_MOON, chair, atoi(param.arguments));
+  d.Socket_Write("%s %d %d", DGI_TABLE_SHOOT_MOON, chair, atoi(param.arguments));
 }

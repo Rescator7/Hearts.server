@@ -26,23 +26,23 @@ void cPassword::Execute( cDescriptor &d, cParam &param )
   if (ret != 2) return;
 
   if (!player->doesPasswordMatch(old_password)) {
-    d.Socket_Write(WRONG_PASSWORD);
+    d.Socket_Write(DGE_WRONG_PASSWORD);
     return;
   }
 
   int len = strlen(new_password);
 
   if (len < MIN_PASSWORD_LENGTH) {
-    d.Socket_Write(PASSWORD_TOO_SHORT);
+    d.Socket_Write(DGE_PASSWORD_TOO_SHORT);
     return;
   }
 
   if ((len > MAX_PASSWORD_LENGTH) || (strlen(old_password) > MAX_PASSWORD_LENGTH)) {
-    d.Socket_Write(PASSWORD_TOO_LONG);
+    d.Socket_Write(DGE_PASSWORD_TOO_LONG);
     return;
   }
 
   player->NewPassword(new_password);
 
-  d.Socket_Write(PLAYER_NEW_PASSWORD);
+  d.Socket_Write(DGI_PLAYER_NEW_PASSWORD);
 }

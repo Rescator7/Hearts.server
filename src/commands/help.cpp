@@ -11,7 +11,7 @@ void cHelp::Execute( cDescriptor &d, cParam &param )
 		   "moon	mute	new	pass	password\r\n"
 		   "play	say	sit	stats	tables\r\n"
 		   "uptime	who\r\n", 
-		   DG_TEXT);
+		   DGI_TEXT);
     return;
   }
 

@@ -12,12 +12,12 @@ void cLeave::Execute( cDescriptor &d, cParam &param )
   struct cTable *table = player->table;
 
   if (table == nullptr) {
-    d.Socket_Write(PLAYER_NO_TABLE);
+    d.Socket_Write(DGE_PLAYER_NO_TABLE);
     return;
   }
 
   table->Stand(d, true);
   player->table = nullptr;
 
-  d.Socket_Write("%s %d", TABLE_LEAVE, table->TableID());
+  d.Socket_Write("%s %d", DGI_TABLE_LEAVE, table->TableID());
 }

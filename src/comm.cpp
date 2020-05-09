@@ -100,11 +100,11 @@ cDescriptor::cDescriptor(socket_t mother_desc)
 #endif
 
   if (descriptor_list->Connection_Per_Ip((char *)&ip) >= MAX_CONNECTION_PER_IP) {
-    Socket_Write(SOCKET_MAX_CONN_IP);
+    Socket_Write(DGE_SOCKET_MAX_CONN_IP);
     state = CON_DISCONNECT;
   }
   if (server_shutoff) {
-    Socket_Write(SERVER_SHUTOFF);
+    Socket_Write(DGE_SERVER_SHUTOFF);
     state = CON_DISCONNECT;
   }
   if (state == CON_LOGIN)
@@ -189,7 +189,7 @@ ssize_t cDescriptor::Socket_Read()
 
   if (difftime(time(nullptr), last_sockread) >= 1) {
     if (bytes_read >= SOCKET_MAX_READ_BYTES) {
-      Socket_Write(SOCKET_FLOOD);
+      Socket_Write(DGE_SOCKET_FLOOD);
       return -1;
     }
     else
@@ -221,16 +221,16 @@ char *cDescriptor::IP_Adress()
 bool cDescriptor::IsHandleValid( const char * handle, const char * message )
 {
   if (strlen(handle) > MAX_HANDLE_LENGTH) {
-    Socket_Write(HANDLE_TOO_LONG);
+    Socket_Write(DGE_HANDLE_TOO_LONG);
     return false;
   }
   if (strlen(handle) < MIN_HANDLE_LENGTH) {
-    Socket_Write(HANDLE_TOO_SHORT);
+    Socket_Write(DGE_HANDLE_TOO_SHORT);
     return false;
   }
   for (unsigned int i=0; i<strlen(handle); i++) {
     if (!isalnum(handle[i]) && (handle[i] != '_') && (handle[i] != '-')) {
-      Socket_Write(HANDLE_ILLEGAL_CHAR);
+      Socket_Write(DGE_HANDLE_ILLEGAL_CHAR);
       return false;
     }
   }
@@ -241,7 +241,7 @@ void cDescList::DisconnectPlayerID(unsigned int pID)
 {
   for (struct sList *Q = head; Q; Q = Q->next)
     if (Q->elem->player->ID() == pID) {
-      Q->elem->Socket_Write(PLAYER_RECONNECT);
+      Q->elem->Socket_Write(DGE_PLAYER_RECONNECT);
       Q->elem->Disconnect();
     }
 }
@@ -263,7 +263,7 @@ bool cDescriptor::process_input()
            if (!strcmp(lcBuf, "new")) {
              if (sql.query("select count(*) from account where ip = '%s'", player->Ip())) {
  	       if (atoi(sql.get_row(0)) >= MAX_REGISTER_PER_IP) {
- 	         Socket_Write(SOCKET_MAX_REGISTER_IP);
+ 	         Socket_Write(DGE_SOCKET_MAX_REGISTER_IP);
 		 return false;
 	       }
 	     }
@@ -274,7 +274,7 @@ bool cDescriptor::process_input()
            }
            if (IsHandleValid(lcBuf, login)) {
              if (!sql.query("select handle, password from account where handle='%s'", lcBuf)) {
-               Socket_Write(HANDLE_NOT_REGISTERED);
+               Socket_Write(DGE_HANDLE_NOT_REGISTERED);
 	       return false;
              } else {
                  Socket_Write(password);
@@ -290,13 +290,13 @@ bool cDescriptor::process_input()
              return false;
           
            if (!player->doesPasswordMatch(lcBuf)) {
-             Socket_Write(WRONG_PASSWORD);
+             Socket_Write(DGE_WRONG_PASSWORD);
              return false;
            }
 
 	   descriptor_list->DisconnectPlayerID(player->SQL_ID());
            if (!player->load()) {
-             Socket_Write(PLAYER_LOAD_FAILED);
+             Socket_Write(DGE_PLAYER_LOAD_FAILED);
              return false;
            }
            state = CON_MOTD;
@@ -305,13 +305,13 @@ bool cDescriptor::process_input()
            Log.Write("PROCINP: CON_NEW_HANDLE");
            if (!strcmp(lcBuf, "new") ||
                !strncmp(lcBuf, "guest", 5)) {
-             Socket_Write(HANDLE_RESERVED);
+             Socket_Write(DGE_HANDLE_RESERVED);
            return false;
            }
 
            if (descriptor_list->Find_Username( lcBuf ) || 
                sql.query("select handle from account where handle = '%s'", lcBuf)) {
-             Socket_Write(HANDLE_UNAVAILABLE);
+             Socket_Write(DGE_HANDLE_UNAVAILABLE);
 	     return false;
            }
 
@@ -351,11 +351,11 @@ bool cDescriptor::process_input()
     case CON_NEW_PASSWORD :
 //          Log.Write("PROCINP: CON_NEW_PASSWORD");
            if (strlen(lcBuf) > MAX_PASSWORD_LENGTH) {
-             Socket_Write(PASSWORD_TOO_LONG);
+             Socket_Write(DGE_PASSWORD_TOO_LONG);
              return false;
            } 
            if (strlen(lcBuf) < MIN_PASSWORD_LENGTH) {
-             Socket_Write(PASSWORD_TOO_SHORT);
+             Socket_Write(DGE_PASSWORD_TOO_SHORT);
 	     return false;
            } 
            player->setPassword(buffer);
@@ -365,7 +365,7 @@ bool cDescriptor::process_input()
     case CON_CONFIRM_PASSWORD :
 //          Log.Write("PROCINP: CON_CONFIRM_PASSWORD");
            if (!player->doesPasswordMatch(buffer)) {
-             Socket_Write(PASSWORD_DONT_MATCH);
+             Socket_Write(DGE_PASSWORD_DONT_MATCH);
              return false;
            }
            if (!player->save()) {
@@ -378,7 +378,7 @@ bool cDescriptor::process_input()
            state = CON_MOTD;
     case CON_MOTD :
 motd:     Log.Write("PROCINP: CON_MOTD");
-	  Socket_Write("%s %d", PLAYER_UID, player->ID());
+	  Socket_Write("%s %d", DGI_PLAYER_UID, player->ID());
 	  table_list->List(*this);
 
 	  player->update(CMD_LASTLOGIN);
@@ -444,7 +444,7 @@ bool cDescriptor::Is_Connected()
       }
     }
     else {
-      Socket_Write(SOCKET_ILLEGAL_INPUT);
+      Socket_Write(DGE_SOCKET_ILLEGAL_INPUT);
       if (state < CON_PROMPT) 
 	return false;
     }
@@ -457,7 +457,7 @@ bool cDescriptor::Is_Connected()
         }
       if (idleness) {
         Log.Write("WARNING: Idleness on socket %d (connection closed)", desc);
-        Socket_Write("%s %d", AUTO_LOGOUT_IDLENESS, idleness);
+        Socket_Write("%s %d", DGE_AUTO_LOGOUT_IDLENESS, idleness);
         return false;
       }
     }
@@ -580,7 +580,7 @@ bool cDescList::Check_Conns()
   while (Q) {
     N = Q->next;
     if (server_shutoff && Q->elem->player && !Q->elem->player->table) {
-      Q->elem->Socket_Write(SERVER_SHUTOFF);
+      Q->elem->Socket_Write(DGE_SERVER_SHUTOFF);
       Remove(Q->elem);
     }
     else
@@ -610,7 +610,7 @@ void cDescList::Table_Kick_Unplaying(struct cTable *t)
     if (table->Chair(*d) == PLAYER_NOWHERE) {
       d->player->table = nullptr;
 
-      d->Socket_Write("%s %d", TABLE_LEAVE, table->TableID());
+      d->Socket_Write("%s %d", DGI_TABLE_LEAVE, table->TableID());
     }
   }
 }
@@ -635,7 +635,7 @@ void cDescList::Who(cDescriptor &desc)
   struct sList *Q = head;
   int len, total;
 
-  total = snprintf(buf, BUFSIZE, "%s ", DG_TEXT);
+  total = snprintf(buf, BUFSIZE, "%s ", DGI_TEXT);
 
   while (Q) {
     if (Q->elem->State() >= CON_MOTD) {

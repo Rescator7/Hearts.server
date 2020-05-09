@@ -17,12 +17,12 @@ void cSet::Execute( cDescriptor &d, cParam &param )
 		   "wait_end_round = %d cs\r\n"
 		   "wait_moon = %d cs\r\n"
 		   "gameover_score = %d\r\n" 
-		   "idleness = %d\r\n", COMMAND_SET, config.Port(), config.Nice(), config.Wait_Select(),
-//		                                     config.Wait_Pass(), 
-						     config.Wait_Play(), 
-						     config.Wait_End_Turn(), config.Wait_End_Round(),
-					             config.Wait_Moon(), config.GameOver_Score(),
-						     config.Idleness());
+		   "idleness = %d\r\n", DGI_COMMAND_SET, config.Port(), config.Nice(), config.Wait_Select(),
+//		                                         config.Wait_Pass(), 
+						         config.Wait_Play(), 
+						         config.Wait_End_Turn(), config.Wait_End_Round(),
+					                 config.Wait_Moon(), config.GameOver_Score(),
+						         config.Idleness());
     return;
   }
 
@@ -45,7 +45,7 @@ void cSet::Execute( cDescriptor &d, cParam &param )
     if (!strcmp(cmd, "gameover_score")) opt = OPT_GAMEOVER_SCORE; else 
     if (!strcmp(cmd, "idleness")) opt = OPT_IDLENESS; else
     {
-      d.Socket_Write(COMMAND_WRONG_PARAMETER);
+      d.Socket_Write(DGE_COMMAND_WRONG_PARAMETER);
       return;
     } 
 
@@ -55,14 +55,14 @@ void cSet::Execute( cDescriptor &d, cParam &param )
       case OPT_PORT: 
 	      if ((value < 1024) || (value > 9999)) {
 	        good_value = false;
-		d.Socket_Write("%s %d %d", WRONG_VALUE, 1024, 9999);
+		d.Socket_Write("%s %d %d", DGE_WRONG_VALUE, 1024, 9999);
 		return;
               }
 	      break;
       case OPT_NICE:
 	      if ((value < -20) || (value > 19)) {
 		good_value = false;
-		d.Socket_Write("%s %d %d", WRONG_VALUE, -20, 19);
+		d.Socket_Write("%s %d %d", DGE_WRONG_VALUE, -20, 19);
 		return;
               }
 	      break;
@@ -73,21 +73,21 @@ void cSet::Execute( cDescriptor &d, cParam &param )
       case OPT_WAIT_MOON: 
 	      if ((value < 0) || (value > 2500)) {
 	        good_value = false;
-		d.Socket_Write("%s %d %d", WRONG_VALUE, 0, 2500);
+		d.Socket_Write("%s %d %d", DGE_WRONG_VALUE, 0, 2500);
 		return;
               }
 	      break;
       case OPT_GAMEOVER_SCORE: 
 	      if ((value < 0) || (value > 1000)) { 
 	        good_value = false;
-		d.Socket_Write("%s %d %d", WRONG_VALUE, 0, 1000);
+		d.Socket_Write("%s %d %d", DGE_WRONG_VALUE, 0, 1000);
 		return;
 	      }
 	      break;
       case OPT_IDLENESS: 
 	      if ((value < 10) || (value > 36000)) {
 	        good_value = false;
-		d.Socket_Write("%s %d %d", WRONG_VALUE, 10, 36000);
+		d.Socket_Write("%s %d %d", DGE_WRONG_VALUE, 10, 36000);
 		return;
               }
 	      break;
@@ -96,9 +96,9 @@ void cSet::Execute( cDescriptor &d, cParam &param )
     if (good_value) {
       config.Set(opt, value);
 
-      d.Socket_Write("%s %s = %d", COMMAND_SET, cmd, value); 
+      d.Socket_Write("%s %s = %d", DGI_COMMAND_SET, cmd, value); 
       return;
     }
   }
-  d.Socket_Write(COMMAND_WRONG_PARAMETER);
+  d.Socket_Write(DGE_COMMAND_WRONG_PARAMETER);
 }

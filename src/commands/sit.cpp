@@ -14,7 +14,7 @@ void cSit::Execute( cDescriptor &d, cParam &param )
   struct cTable *table = player->table;
 
   if (table == nullptr) {
-    d.Socket_Write(PLAYER_NO_TABLE);
+    d.Socket_Write(DGE_PLAYER_NO_TABLE);
     return;
   }
 
@@ -27,7 +27,7 @@ void cSit::Execute( cDescriptor &d, cParam &param )
 
   Direction(param.arguments[0], chair);
   if (chair == PLAYER_NOWHERE) {
-    d.Socket_Write(TABLE_WRONG_CHAIR);
+    d.Socket_Write(DGE_TABLE_WRONG_CHAIR);
     return;
   }
 

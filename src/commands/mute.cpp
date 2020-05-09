@@ -12,7 +12,7 @@ void cMute::Execute( cDescriptor &d, cParam &param )
  struct cTable *table = player->table;
 
  if (table == nullptr) {
-   d.Socket_Write(PLAYER_NO_TABLE);
+   d.Socket_Write(DGE_PLAYER_NO_TABLE);
    return;
  }
 
@@ -20,7 +20,7 @@ void cMute::Execute( cDescriptor &d, cParam &param )
 
  if (table->PlayerSat(d))  {
    table->Mute();
-   table->SendAll("%s", TABLE_MUTED);
+   table->SendAll("%s", DGE_TABLE_MUTED);
  } else
-     d.Socket_Write(PLAYER_NOT_SAT);
+     d.Socket_Write(DGE_PLAYER_NOT_SAT);
 }

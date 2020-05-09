@@ -9,7 +9,7 @@
 void cNew::Execute( cDescriptor & d, cParam & param )
 {
  if (server_shutoff) {
-   d.Socket_Write(SERVER_SHUTOFF);
+   d.Socket_Write(DGE_SERVER_SHUTOFF);
    return;
  }
 
@@ -25,7 +25,7 @@ void cNew::Execute( cDescriptor & d, cParam & param )
    player->table = table;
    table_list->Add(table);   
 
-   d.Socket_Write("%s %d", PLAYER_CHOOSE_CHAIR, table->TableID());
+   d.Socket_Write("%s %d", DGI_PLAYER_CHOOSE_CHAIR, table->TableID());
  } else
-     d.Socket_Write(PLAYER_AT_TABLE);
+     d.Socket_Write(DGE_PLAYER_AT_TABLE);
 }

@@ -6,6 +6,6 @@
 
 void cShutdown::Execute( cDescriptor & d, cParam & param )
 {
-  descriptor_list->Send_To_All(SERVER_SHUTDOWN);
+  descriptor_list->Send_To_All(DGE_SERVER_SHUTDOWN);
   server_shutdown = true;
 }

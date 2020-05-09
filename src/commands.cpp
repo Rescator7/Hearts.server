@@ -18,36 +18,35 @@ cCommandsStack::cCommandsStack(void)
 {
   m_CountCmd = 0;
 
-  Add( "admin",    DGI_HELP_ADMIN,    LVL_SUPERUSER, new cAdmin() );
-  Add( "announce", DGI_HELP_ANNOUNCE, LVL_ADMIN,     new cAnnounce() );
-  Add( "date",     DGI_HELP_DATE,     LVL_GUEST,     new cDate() );
-  Add( "exit",     DGI_HELP_EXIT,     LVL_GUEST,     new cExit() );
-  Add( "help",     DGI_HELP_HELP,     LVL_GUEST,     new cHelp() );
-  Add( "join",     DGI_HELP_JOIN,     LVL_GUEST,     new cJoin() );
-  Add( "leave",    DGI_HELP_LEAVE,    LVL_GUEST,     new cLeave() );
-  Add( "moon",     DGI_HELP_MOON,     LVL_GUEST,     new cMoon() );
-  Add( "mute",     DGI_HELP_MUTE,     LVL_GUEST,     new cMute() );
-  Add( "new",      DGI_HELP_NEW,      LVL_GUEST,     new cNew() );
-  Add( "pass",     DGI_HELP_PASS,     LVL_GUEST,     new cPass() );
-  Add( "password", DGI_HELP_PASSWORD, LVL_GUEST,     new cPassword() );
-  Add( "pause",    DGI_HELP_PAUSE,    LVL_SUPERUSER, new cPause() );
-  Add( "play",     DGI_HELP_PLAY,     LVL_GUEST,     new cPlay() );
-  Add( "say",      DGI_HELP_SAY,      LVL_GUEST,     new cSay() );
-  Add( "set",      DGI_HELP_SET,      LVL_ADMIN,     new cSet() );
-  Add( "shutdown", DGI_HELP_SHUTDOWN, LVL_ADMIN,     new cShutdown() );
-  Add( "shutoff",  DGI_HELP_SHUTOFF,  LVL_ADMIN,     new cShutoff() );
-  Add( "sit",      DGI_HELP_SIT,      LVL_GUEST,     new cSit() );
-  Add( "stats",    DGI_HELP_STATS,    LVL_GUEST,     new cStats() );
-  Add( "tables",   DGI_HELP_TABLES,   LVL_GUEST,     new cTables() );
-  Add( "test",     DGI_HELP_TEST,     LVL_ADMIN,     new cTest() );
-  Add( "uptime",   DGI_HELP_UPTIME,   LVL_GUEST,     new cUptime() );
-  Add( "who",      DGI_HELP_WHO,      LVL_GUEST,     new cWho() );
-  Add( "\xff",     nullptr,           0,             nullptr );
+  Add( "admin",    DGH_HELP_ADMIN,    LVL_SUPERUSER, new cAdmin() );
+  Add( "announce", DGH_HELP_ANNOUNCE, LVL_ADMIN,     new cAnnounce() );
+  Add( "date",     DGH_HELP_DATE,     LVL_GUEST,     new cDate() );
+  Add( "exit",     DGH_HELP_EXIT,     LVL_GUEST,     new cExit() );
+  Add( "help",     DGH_HELP_HELP,     LVL_GUEST,     new cHelp() );
+  Add( "join",     DGH_HELP_JOIN,     LVL_GUEST,     new cJoin() );
+  Add( "leave",    DGH_HELP_LEAVE,    LVL_GUEST,     new cLeave() );
+  Add( "moon",     DGH_HELP_MOON,     LVL_GUEST,     new cMoon() );
+  Add( "mute",     DGH_HELP_MUTE,     LVL_GUEST,     new cMute() );
+  Add( "new",      DGH_HELP_NEW,      LVL_GUEST,     new cNew() );
+  Add( "pass",     DGH_HELP_PASS,     LVL_GUEST,     new cPass() );
+  Add( "password", DGH_HELP_PASSWORD, LVL_GUEST,     new cPassword() );
+  Add( "pause",    DGH_HELP_PAUSE,    LVL_SUPERUSER, new cPause() );
+  Add( "play",     DGH_HELP_PLAY,     LVL_GUEST,     new cPlay() );
+  Add( "say",      DGH_HELP_SAY,      LVL_GUEST,     new cSay() );
+  Add( "set",      DGH_HELP_SET,      LVL_ADMIN,     new cSet() );
+  Add( "shutdown", DGH_HELP_SHUTDOWN, LVL_ADMIN,     new cShutdown() );
+  Add( "shutoff",  DGH_HELP_SHUTOFF,  LVL_ADMIN,     new cShutoff() );
+  Add( "sit",      DGH_HELP_SIT,      LVL_GUEST,     new cSit() );
+  Add( "stats",    DGH_HELP_STATS,    LVL_GUEST,     new cStats() );
+  Add( "tables",   DGH_HELP_TABLES,   LVL_GUEST,     new cTables() );
+  Add( "test",     DGH_HELP_TEST,     LVL_ADMIN,     new cTest() );
+  Add( "uptime",   DGH_HELP_UPTIME,   LVL_GUEST,     new cUptime() );
+  Add( "who",      DGH_HELP_WHO,      LVL_GUEST,     new cWho() );
 }
 
 cCommandsStack::~cCommandsStack(void)
 {
-  for (int i=0; i<m_CountCmd - 1; i++) {
+  for (int i=0; i<m_CountCmd; i++) {
     free(m_commands[i].name);
     delete m_commands[i].func;
   }
@@ -92,7 +91,7 @@ int cCommandsStack::Find(const char *cmd, int level, char *matches)
       }
     }
     cmd_id++;
-  } while (cmd_id < m_CountCmd - 1);
+  } while (cmd_id < m_CountCmd);
 
   if (matches_count == 0)
     return CMD_NOT_FOUND;
@@ -111,12 +110,12 @@ void cCommandsStack::Help(cDescriptor &d, const char *cmd)
   found = Find(cmd, d.player->Level(), (char *)&matches);
 
   if (found == CMD_NOT_FOUND) {
-    d.Socket_Write(UNKNOWN_COMMAND);
+    d.Socket_Write(DGE_UNKNOWN_COMMAND);
     return;
   }
 
   if (found == CMD_MATCHES) {
-    d.Socket_Write("%s %s", AMBIGOUS_COMMAND, matches);
+    d.Socket_Write("%s %s", DGE_AMBIGOUS_COMMAND, matches);
     return;
   }
 
@@ -139,12 +138,12 @@ bool cCommandsStack::Process_Command(cDescriptor *d, char *buffer)
   found = Find(command, d->player->Level(), (char *)&matches);
 
   if (found == CMD_NOT_FOUND) {
-    d->Socket_Write(UNKNOWN_COMMAND);
+    d->Socket_Write(DGE_UNKNOWN_COMMAND);
     return false;
   }
 
   if (found == CMD_MATCHES) {
-    d->Socket_Write("%s %s", AMBIGOUS_COMMAND, matches);
+    d->Socket_Write("%s %s", DGE_AMBIGOUS_COMMAND, matches);
     return false;
   }
 
