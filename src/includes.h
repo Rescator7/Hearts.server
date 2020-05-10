@@ -18,6 +18,7 @@
 #include "commands/shutoff.h"
 #include "commands/sit.h"
 #include "commands/stats.h"
+#include "commands/start.h"
 #include "commands/tables.h"
 #include "commands/test.h"
 #include "commands/uptime.h"

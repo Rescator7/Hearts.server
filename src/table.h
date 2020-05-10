@@ -15,6 +15,7 @@ private:
   unsigned int flags;
   unsigned int player_id[4];
   unsigned int num_players;
+  char player_name[4][20] = {0};
   bool muted;
   bool paused;
   time_t expire;
@@ -35,17 +36,20 @@ public:
   void Mute();
   void Clear();
   void Pause(bool pause);
+  void Bot();
   bool Stand(cDescriptor &desc, bool leave);
   bool Full();
   bool Muted();
   bool Paused();
   bool PlayerSat(cDescriptor &desc);
+  bool Owner(cDescriptor &d);
   usINT Chair(cDescriptor &desc);
   usINT PlayerLink(cDescriptor &desc);
   usINT TimeLeft(usINT chair);
   usINT NumPlayers();
   usINT PID(usINT chair);
   cDescriptor *desc(usINT chair);
+  char *Name(usINT chair);
 };
 
 class cTabList {

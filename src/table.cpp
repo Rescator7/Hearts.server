@@ -1,4 +1,5 @@
 #include <cstdarg> // va_start, etc. 
+#include <cstring> // strncpy
 #include "comm.h"
 #include "define.h"
 #include "global.h"
@@ -81,6 +82,7 @@ usINT cTable::PlayerLink(cDescriptor &desc)
    player->table = this;
    player_desc[PLAYER_NORTH] = &desc;
    num_players++;
+   descriptor_list->Send_To_All("%s %d n %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, desc.player->Handle());
    return PLAYER_NORTH;
  }
 
@@ -88,6 +90,7 @@ usINT cTable::PlayerLink(cDescriptor &desc)
    player->table = this;
    player_desc[PLAYER_SOUTH] = &desc;
    num_players++;
+   descriptor_list->Send_To_All("%s %d s %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, desc.player->Handle());
    return PLAYER_SOUTH;
  }
 
@@ -95,6 +98,7 @@ usINT cTable::PlayerLink(cDescriptor &desc)
    player->table = this;
    player_desc[PLAYER_WEST] = &desc;
    num_players++;
+   descriptor_list->Send_To_All("%s %d w %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, desc.player->Handle());
    return PLAYER_WEST;
  }
 
@@ -102,6 +106,7 @@ usINT cTable::PlayerLink(cDescriptor &desc)
    player->table = this;
    player_desc[PLAYER_EAST] = &desc;
    num_players++;
+   descriptor_list->Send_To_All("%s %d e %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, desc.player->Handle());
    return PLAYER_EAST;
  }
 
@@ -125,6 +130,7 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
 {
  if (player_desc[PLAYER_NORTH] == &desc) {
    player_desc[PLAYER_NORTH] = nullptr;
+   snprintf(player_name[PLAYER_NORTH], 20, "(%s)", desc.player->Handle());
    if (leave) {
      if (game->Started())
        desc.player->update(CMD_FOURTH);
@@ -141,6 +147,7 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
  }
  if (player_desc[PLAYER_SOUTH] == &desc) {
    player_desc[PLAYER_SOUTH] = nullptr;
+   snprintf(player_name[PLAYER_SOUTH], 20, "(%s)", desc.player->Handle());
    if (leave) {
      if (game->Started())
        desc.player->update(CMD_FOURTH);
@@ -156,6 +163,7 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
  }
  if (player_desc[PLAYER_WEST] == &desc) {
    player_desc[PLAYER_WEST] = nullptr;
+   snprintf(player_name[PLAYER_WEST], 20, "(%s)", desc.player->Handle());
    if (leave) {
      if (game->Started())
        desc.player->update(CMD_FOURTH);
@@ -171,6 +179,7 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
  }
  if (player_desc[PLAYER_EAST] == &desc) {
    player_desc[PLAYER_EAST] = nullptr;
+   snprintf(player_name[PLAYER_EAST], 20, "(%s)", desc.player->Handle());
    if (leave) {
      if (game->Started())
        desc.player->update(CMD_FOURTH);
@@ -240,15 +249,23 @@ void cTable::Sat(cDescriptor &desc)
 
   if ((player = Player(PLAYER_NORTH)) != nullptr) 
     desc.Socket_Write("%s %d n %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player->Handle());
+  else
+    desc.Socket_Write("%s %d n %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player_name[PLAYER_NORTH]);
     
   if ((player = Player(PLAYER_SOUTH)) != nullptr) 
     desc.Socket_Write("%s %d s %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player->Handle());
+  else
+    desc.Socket_Write("%s %d s %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player_name[PLAYER_SOUTH]);
 	    
   if ((player = Player(PLAYER_WEST)) != nullptr) 
     desc.Socket_Write("%s %d w %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player->Handle());
+  else
+    desc.Socket_Write("%s %d w %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player_name[PLAYER_WEST]);
 
   if ((player = Player(PLAYER_EAST)) != nullptr) 
     desc.Socket_Write("%s %d e %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player->Handle());
+  else
+    desc.Socket_Write("%s %d e %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player_name[PLAYER_EAST]);
 }
 
 usINT cTable::Chair(cDescriptor &desc)
@@ -285,6 +302,26 @@ bool cTable::PlayerSat(cDescriptor &desc)
   if (player_desc[PLAYER_EAST] == &desc) return true;
 
   return false;
+}
+
+void cTable::Bot()
+{
+  if (player_desc[PLAYER_NORTH] == nullptr) {
+    strcpy(player_name[PLAYER_NORTH], "*North");
+    descriptor_list->Send_To_All("%s %d n %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player_name[PLAYER_NORTH]);
+  }
+  if (player_desc[PLAYER_SOUTH] == nullptr) {
+    strcpy(player_name[PLAYER_SOUTH], "*South");
+    descriptor_list->Send_To_All("%s %d s %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player_name[PLAYER_SOUTH]);
+  }
+  if (player_desc[PLAYER_WEST] == nullptr) {
+    strcpy(player_name[PLAYER_WEST], "*West");
+    descriptor_list->Send_To_All("%s %d w %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player_name[PLAYER_WEST]);
+  }
+  if (player_desc[PLAYER_EAST] == nullptr) {
+    strcpy(player_name[PLAYER_EAST], "*East");
+    descriptor_list->Send_To_All("%s %d e %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player_name[PLAYER_EAST]);
+  }
 }
 
 cPlayer *cTable::Player(unsigned int chair)
@@ -358,10 +395,21 @@ bool cTable::Paused()
   return paused;
 }
 
+bool cTable::Owner(cDescriptor &d)
+{
+  return (owner == &d);
+}
+
 usINT cTable::NumPlayers()
 {
   return num_players;
 }
+
+char *cTable::Name(usINT chair)
+{
+  return player_name[chair];
+}
+
 // *************************************************************************************************************************************
 
 bool cTabList::Add(cTable *elem)
@@ -576,7 +624,6 @@ void cTabList::List(cDescriptor &desc)
 void cTabList::Show(cDescriptor &desc)
 {
   const char *nobody = "<nobody>";
-  const char *left = "<left>";
   struct sList *Q = head;
   struct cTable *table;
   struct cDescriptor *North, *South, *West, *East;
@@ -592,10 +639,10 @@ void cTabList::Show(cDescriptor &desc)
     West = table->desc(PLAYER_WEST);
     East = table->desc(PLAYER_EAST);
 
-    name_N = (North && North->player) ? North->player->Handle() : started ? left : nobody;
-    name_S = (South && South->player) ? South->player->Handle() : started ? left : nobody;
-    name_W = (West  && West->player)  ? West->player->Handle()  : started ? left : nobody;
-    name_E = (East  && East->player)  ? East->player->Handle()  : started ? left : nobody;
+    name_N = (North && North->player) ? North->player->Handle() : started ? table->Name(PLAYER_NORTH) : nobody;
+    name_S = (South && South->player) ? South->player->Handle() : started ? table->Name(PLAYER_SOUTH) : nobody;
+    name_W = (West  && West->player)  ? West->player->Handle()  : started ? table->Name(PLAYER_WEST) : nobody;
+    name_E = (East  && East->player)  ? East->player->Handle()  : started ? table->Name(PLAYER_EAST) : nobody;
 
     desc.Socket_Write("%s [%5d] %-8s %-8s %-8s %-8s", DGI_TEXT, table->TableID(), name_N, name_S, name_W, name_E);
     Q = Q->next;

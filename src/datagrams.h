@@ -51,6 +51,7 @@
 #define DGE_ADMIN_ABOVE             "E47"
 #define DGE_TABLE_CORRUPTED         "E48"
 #define DGE_WRONG_VALUE             "E49"
+#define DGE_TABLE_NOT_OWNER         "E50"
 
 // Users datagrams Informations
 #define DGI_PLAYER_UID              "I01"
@@ -109,6 +110,7 @@
 #define DGH_HELP_TABLES             "H15"
 #define DGH_HELP_UPTIME             "H16"
 #define DGH_HELP_WHO                "H17"
+#define DGH_HELP_START              "H18"
 
 // Admin Datagrams help commands informations
 #define DGH_HELP_ADMIN              "H50"

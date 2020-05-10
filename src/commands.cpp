@@ -38,6 +38,7 @@ cCommandsStack::cCommandsStack(void)
   Add( "shutoff",  DGH_HELP_SHUTOFF,  LVL_ADMIN,     new cShutoff() );
   Add( "sit",      DGH_HELP_SIT,      LVL_GUEST,     new cSit() );
   Add( "stats",    DGH_HELP_STATS,    LVL_GUEST,     new cStats() );
+  Add( "start",    DGH_HELP_START,    LVL_GUEST,     new cStart() );
   Add( "tables",   DGH_HELP_TABLES,   LVL_GUEST,     new cTables() );
   Add( "test",     DGH_HELP_TEST,     LVL_ADMIN,     new cTest() );
   Add( "uptime",   DGH_HELP_UPTIME,   LVL_GUEST,     new cUptime() );
