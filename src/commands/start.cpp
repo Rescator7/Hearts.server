@@ -42,5 +42,5 @@ void cStart::Execute( cDescriptor &d, cParam &param )
   }
 
   table->Bot();
-  table->game->Start();
+  game->Start();
 }

@@ -47,15 +47,14 @@ void cGame::EndTurn(cTable &table)
 
 bool cGame::AdvanceTurn(cTable &table)
 {
-  if (jack_diamond) {
-    won_jack_diamond = won_turn;
-    jack_diamond = false;
-  }
-
   if (++turn == 4)
     turn = 0;
 
   if (--left_to_play == 0) {
+    if (jack_diamond) {
+      won_jack_diamond = won_turn;
+      jack_diamond = false;
+    }
     turn = won_turn;
     suit = FREESUIT;
     best_card = TWO_CLUBS;

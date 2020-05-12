@@ -82,7 +82,7 @@ usINT cTable::PlayerLink(cDescriptor &desc)
    player->table = this;
    player_desc[PLAYER_NORTH] = &desc;
    num_players++;
-   descriptor_list->Send_To_All("%s %d n %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, desc.player->Handle());
+   descriptor_list->Send_To_All("%s %d n %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player->Handle());
    return PLAYER_NORTH;
  }
 
@@ -90,7 +90,7 @@ usINT cTable::PlayerLink(cDescriptor &desc)
    player->table = this;
    player_desc[PLAYER_SOUTH] = &desc;
    num_players++;
-   descriptor_list->Send_To_All("%s %d s %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, desc.player->Handle());
+   descriptor_list->Send_To_All("%s %d s %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player->Handle());
    return PLAYER_SOUTH;
  }
 
@@ -98,7 +98,7 @@ usINT cTable::PlayerLink(cDescriptor &desc)
    player->table = this;
    player_desc[PLAYER_WEST] = &desc;
    num_players++;
-   descriptor_list->Send_To_All("%s %d w %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, desc.player->Handle());
+   descriptor_list->Send_To_All("%s %d w %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player->Handle());
    return PLAYER_WEST;
  }
 
@@ -106,7 +106,7 @@ usINT cTable::PlayerLink(cDescriptor &desc)
    player->table = this;
    player_desc[PLAYER_EAST] = &desc;
    num_players++;
-   descriptor_list->Send_To_All("%s %d e %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, desc.player->Handle());
+   descriptor_list->Send_To_All("%s %d e %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player->Handle());
    return PLAYER_EAST;
  }
 
@@ -128,12 +128,14 @@ void cTable::Clear()
 
 bool cTable::Stand(cDescriptor &desc, bool leave)
 {
+ struct cPlayer *player = desc.player;
+
  if (player_desc[PLAYER_NORTH] == &desc) {
    player_desc[PLAYER_NORTH] = nullptr;
-   snprintf(player_name[PLAYER_NORTH], 20, "(%s)", desc.player->Handle());
+   snprintf(player_name[PLAYER_NORTH], 20, "(%s)", player->Handle());
    if (leave) {
      if (game->Started())
-       desc.player->update(CMD_FOURTH);
+       player->update(CMD_FOURTH);
 
      player_id[PLAYER_NORTH] = NOPLAYER;
    }
@@ -147,10 +149,10 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
  }
  if (player_desc[PLAYER_SOUTH] == &desc) {
    player_desc[PLAYER_SOUTH] = nullptr;
-   snprintf(player_name[PLAYER_SOUTH], 20, "(%s)", desc.player->Handle());
+   snprintf(player_name[PLAYER_SOUTH], 20, "(%s)", player->Handle());
    if (leave) {
      if (game->Started())
-       desc.player->update(CMD_FOURTH);
+       player->update(CMD_FOURTH);
      player_id[PLAYER_SOUTH] = NOPLAYER;
    }
    descriptor_list->Send_To_All("%s %d s", DGI_PLAYER_STAND, table_id);
@@ -163,10 +165,10 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
  }
  if (player_desc[PLAYER_WEST] == &desc) {
    player_desc[PLAYER_WEST] = nullptr;
-   snprintf(player_name[PLAYER_WEST], 20, "(%s)", desc.player->Handle());
+   snprintf(player_name[PLAYER_WEST], 20, "(%s)", player->Handle());
    if (leave) {
      if (game->Started())
-       desc.player->update(CMD_FOURTH);
+       player->update(CMD_FOURTH);
      player_id[PLAYER_WEST] = NOPLAYER;
    }
    descriptor_list->Send_To_All("%s %d w", DGI_PLAYER_STAND, table_id);
@@ -179,10 +181,10 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
  }
  if (player_desc[PLAYER_EAST] == &desc) {
    player_desc[PLAYER_EAST] = nullptr;
-   snprintf(player_name[PLAYER_EAST], 20, "(%s)", desc.player->Handle());
+   snprintf(player_name[PLAYER_EAST], 20, "(%s)", player->Handle());
    if (leave) {
      if (game->Started())
-       desc.player->update(CMD_FOURTH);
+       player->update(CMD_FOURTH);
      player_id[PLAYER_EAST] = NOPLAYER;
    }
    descriptor_list->Send_To_All("%s %d e", DGI_PLAYER_STAND, table_id);
