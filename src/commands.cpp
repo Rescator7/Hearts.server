@@ -106,7 +106,18 @@ int cCommandsStack::Find(const char *cmd, int level, char *matches)
 void cCommandsStack::Help(cDescriptor &d, const char *cmd)
 {
   char matches[BUF_SIZE];
-  int found;
+  int len, cpt = 0, found;
+
+  if (!*cmd) {
+    len = snprintf(matches, BUF_SIZE, "Commands list: \r\n");
+    for (int i=0; i < m_CountCmd; i++) 
+      if (m_commands[i].level <= d.player->Level()) {
+	cpt++;
+        len += snprintf(matches + len, BUF_SIZE - len, "%s		%s", m_commands[i].name, cpt % 4 ? "" : "\r\n");
+     }
+    d.Socket_Write("%s %s", DGI_TEXT, matches);
+    return;
+  }
 
   found = Find(cmd, d.player->Level(), (char *)&matches);
 

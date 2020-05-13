@@ -23,12 +23,13 @@
 #define STATE_SEND_CARDS       2
 #define STATE_WAIT_PASS        3
 #define STATE_WAIT_PLAY        4
-#define STATE_END_TURN         5
-#define STATE_END_ROUND        6
-#define STATE_SHUFFLE          7
-#define STATE_WAIT_ROUND       8
-#define STATE_GAME_OVER        9
-#define STATE_CORRUPTED        10
+#define STATE_WAIT_BOT         5
+#define STATE_END_TURN         6
+#define STATE_END_ROUND        7
+#define STATE_SHUFFLE          8
+#define STATE_WAIT_ROUND       9
+#define STATE_GAME_OVER        10
+#define STATE_CORRUPTED        11
 
 #define STATUS_PASSING         0
 #define STATUS_PASSED          1

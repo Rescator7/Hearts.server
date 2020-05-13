@@ -13,6 +13,7 @@ void cSet::Execute( cDescriptor &d, cParam &param )
 		   "wait_select = %d cs\r\n"
 //                   "wait_pass = %d cs\r\n"
 		   "wait_play = %d cs\r\n"
+		   "wait_bot = %d cs\r\n"
 		   "wait_end_turn = %d cs\r\n"
 		   "wait_end_round = %d cs\r\n"
 		   "wait_moon = %d cs\r\n"
@@ -20,6 +21,7 @@ void cSet::Execute( cDescriptor &d, cParam &param )
 		   "idleness = %d\r\n", DGI_COMMAND_SET, config.Port(), config.Nice(), config.Wait_Select(),
 //		                                         config.Wait_Pass(), 
 						         config.Wait_Play(), 
+							 config.Wait_Bot(),
 						         config.Wait_End_Turn(), config.Wait_End_Round(),
 					                 config.Wait_Moon(), config.GameOver_Score(),
 						         config.Idleness());
@@ -37,6 +39,7 @@ void cSet::Execute( cDescriptor &d, cParam &param )
     if (!strcmp(cmd, "port")) opt = OPT_PORT; else
     if (!strcmp(cmd, "nice")) opt = OPT_NICE; else
     if (!strcmp(cmd, "wait_select")) opt = OPT_WAIT_SELECT; else
+    if (!strcmp(cmd, "wait_bot")) opt = OPT_WAIT_BOT; else
 //    if (!strcmp(cmd, "wait_pass")) opt = OPT_WAIT_PASS; else
     if (!strcmp(cmd, "wait_play")) opt = OPT_WAIT_PLAY; else
     if (!strcmp(cmd, "wait_end_round")) opt = OPT_WAIT_END_ROUND; else
@@ -69,6 +72,7 @@ void cSet::Execute( cDescriptor &d, cParam &param )
       case OPT_WAIT_SELECT:
       case OPT_WAIT_PASS:
       case OPT_WAIT_PLAY:
+      case OPT_WAIT_BOT:
       case OPT_WAIT_END_ROUND:
       case OPT_WAIT_MOON: 
 	      if ((value < 0) || (value > 2500)) {

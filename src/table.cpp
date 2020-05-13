@@ -548,9 +548,17 @@ void cTabList::Play()
                                  if (!game->Passed(PLAYER_EAST)) game->ForcePass(table, PLAYER_EAST);
 			       } 
 			       break; 
-	 case STATE_WAIT_PLAY: if ((table->Player(turn) == nullptr) || game->WaitOver())
+	 case STATE_WAIT_PLAY: if (table->Player(turn) == nullptr) {
+				 game->Wait(config.Wait_Bot());
+				 game->SetState(STATE_WAIT_BOT);
+				 break;
+			       }
+			       if (game->WaitOver())
 				 game->ForcePlay(*table);
                                break;
+	 case STATE_WAIT_BOT:  if (game->WaitOver())
+				 game->ForcePlay(*table);
+			       break;
 	 case STATE_END_TURN:  if (!game->WaitOver()) break;
 			       game->EndTurn(*table);
 			       break; 

@@ -77,6 +77,7 @@ bool cGame::AdvanceTurn(cTable &table)
       }
   } 
 
+  state = STATE_WAIT_PLAY;
   Wait(config.Wait_Play());
 
   table.Send(turn, "%s %d", DGI_TABLE_YOUR_TURN, config.Wait_Play());
