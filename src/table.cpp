@@ -562,20 +562,23 @@ void cTabList::Play()
 			          table->Send(turn, "%s %d", DGI_TABLE_YOUR_TURN, config.Wait_Play());
 				}
 				else {
-				  game->SetState(STATE_WAIT_PASS);
+				  game->SetState(STATE_WAIT_SELECT);
 	                          delay = config.Wait_Select();
 				}
 				for (int player = 0; player < 4; player++)
 	                          table->Send(player, "%s %d %d %s", DGI_TABLE_YOUR_CARDS, game->PassTo(), delay, game->Str_Cards(player));
 				game->Wait(delay);
 		                break;
-	 case STATE_WAIT_PASS: if (game->WaitOver()) {
-                                 if (!game->Passed(PLAYER_NORTH)) game->ForcePass(table, PLAYER_NORTH);
-                                 if (!game->Passed(PLAYER_SOUTH)) game->ForcePass(table, PLAYER_SOUTH);
-                                 if (!game->Passed(PLAYER_WEST)) game->ForcePass(table, PLAYER_WEST);
-                                 if (!game->Passed(PLAYER_EAST)) game->ForcePass(table, PLAYER_EAST);
-			       } 
-			       break; 
+	 case STATE_WAIT_SELECT: if (game->WaitOver()) {
+                                   if (!game->Passed(PLAYER_NORTH)) game->ForcePass(table, PLAYER_NORTH);
+                                   if (!game->Passed(PLAYER_SOUTH)) game->ForcePass(table, PLAYER_SOUTH);
+                                   if (!game->Passed(PLAYER_WEST)) game->ForcePass(table, PLAYER_WEST);
+                                   if (!game->Passed(PLAYER_EAST)) game->ForcePass(table, PLAYER_EAST);
+			         } 
+			         break; 
+	 case STATE_WAIT_PASS: if (game->WaitOver())
+				 game->YourTurn(*table);
+			       break;
 	 case STATE_WAIT_PLAY: if (table->Player(turn) == nullptr) {
 				 game->Wait(config.Wait_Bot());
 				 game->SetState(STATE_WAIT_BOT);
@@ -585,7 +588,7 @@ void cTabList::Play()
 				 if (time_bank) {
 				   game->Wait(time_bank);
 				   game->SetState(STATE_TIME_BANK);
-	                           table->SendAll("%s %d %d", DGI_TIME_BANK, turn, time_bank);
+	                           table->SendAll("%s %d %d %d", DGI_TIME_BANK, turn, time_bank, config.Time_Bank());
 			         } else
 				     game->ForcePlay(*table);
 				 break;

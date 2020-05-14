@@ -389,6 +389,12 @@ void cGame::Pass(cTable &table)
 
   passing_over = true;
 
+  Wait(config.Wait_Pass());
+  state = STATE_WAIT_PASS;
+}
+
+void cGame::YourTurn(cTable &table)
+{
   Wait(config.Wait_Play());
   state = STATE_WAIT_PLAY;
   table.Send(turn, "%s %d", DGI_TABLE_YOUR_TURN, config.Wait_Play());  

@@ -11,7 +11,7 @@ void cSet::Execute( cDescriptor &d, cParam &param )
     d.Socket_Write("%s port = %d\r\n"
 		   "nice = %d\r\n"
 		   "wait_select = %d cs\r\n"
-//                   "wait_pass = %d cs\r\n"
+                   "wait_pass = %d cs\r\n"
 		   "wait_play = %d cs\r\n"
 		   "wait_bot = %d cs\r\n"
 		   "wait_end_turn = %d cs\r\n"
@@ -21,7 +21,7 @@ void cSet::Execute( cDescriptor &d, cParam &param )
 		   "gameover_score = %d\r\n" 
 		   "idleness = %d\r\n", DGI_COMMAND_SET, config.Port(), config.Nice(), 
 		                                         config.Wait_Select(),
-//		                                         config.Wait_Pass(), 
+		                                         config.Wait_Pass(), 
 						         config.Wait_Play(), 
 							 config.Wait_Bot(),
 						         config.Wait_End_Turn(), 
@@ -45,7 +45,7 @@ void cSet::Execute( cDescriptor &d, cParam &param )
     if (!strcmp(cmd, "nice")) opt = OPT_NICE; else
     if (!strcmp(cmd, "wait_select")) opt = OPT_WAIT_SELECT; else
     if (!strcmp(cmd, "wait_bot")) opt = OPT_WAIT_BOT; else
-//    if (!strcmp(cmd, "wait_pass")) opt = OPT_WAIT_PASS; else
+    if (!strcmp(cmd, "wait_pass")) opt = OPT_WAIT_PASS; else
     if (!strcmp(cmd, "wait_play")) opt = OPT_WAIT_PLAY; else
     if (!strcmp(cmd, "wait_end_round")) opt = OPT_WAIT_END_ROUND; else
     if (!strcmp(cmd, "wait_end_turn")) opt = OPT_WAIT_END_TURN; else

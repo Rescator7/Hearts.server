@@ -21,16 +21,17 @@
 
 #define STATE_GAME_STARTED     1
 #define STATE_SEND_CARDS       2
-#define STATE_WAIT_PASS        3
-#define STATE_WAIT_PLAY        4
-#define STATE_TIME_BANK        5
-#define STATE_WAIT_BOT         6
-#define STATE_END_TURN         7
-#define STATE_END_ROUND        8
-#define STATE_SHUFFLE          9
-#define STATE_WAIT_ROUND       10
-#define STATE_GAME_OVER        11
-#define STATE_CORRUPTED        12
+#define STATE_WAIT_SELECT      3
+#define STATE_WAIT_PASS        4
+#define STATE_WAIT_PLAY        5
+#define STATE_TIME_BANK        6
+#define STATE_WAIT_BOT         7
+#define STATE_END_TURN         8
+#define STATE_END_ROUND        9
+#define STATE_SHUFFLE          10
+#define STATE_WAIT_ROUND       11
+#define STATE_GAME_OVER        12
+#define STATE_CORRUPTED        13
 
 #define STATUS_PASSING         0
 #define STATUS_PASSED          1
@@ -97,6 +98,7 @@ public:
   void EndTurn(cTable &table);
   void Show(usINT chair);
   void SetMoon(bool add);
+  void YourTurn(cTable &table);
   usINT Turn();
   usINT State();
   usINT PassTo();
