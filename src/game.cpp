@@ -169,7 +169,7 @@ usINT cGame::ValidMove(usINT chair, usINT card)
 
   int card_suit = card / 13;
 
-  if (cards_played <= 4) {
+  if (cards_played < 4) {
     if ((card == QUEEN_SPADE) && (player_cards[chair][1]/13 != HEART)) 
       return ERROR_QUEEN_SPADE;
     else if ((card_suit == HEART) && (player_cards[chair][0]/13 != HEART))
