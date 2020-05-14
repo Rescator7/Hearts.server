@@ -91,6 +91,7 @@
 #define DGI_GAME_STARTED            "I35"
 #define DGI_TEXT                    "I36"
 #define DGI_RECONNECTED             "I37"
+#define DGI_TIME_BANK               "I38"
 
 // Users Datagrams help commands informations
 #define DGH_HELP_DATE               "H01"

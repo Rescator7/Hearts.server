@@ -50,5 +50,7 @@ void cPlay::Execute( cDescriptor &d, cParam &param )
   if (!game->ValidMove(d, chair, card))
     return;
 
+  table->Adjust_Time_Bank(chair);
+
   game->Play(*table, card);
 }

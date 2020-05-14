@@ -20,6 +20,8 @@ cTable::cTable(cDescriptor &desc, int f)
   flags = f;
   expire = time(nullptr);
 
+  Reset_Time_Bank();
+
   Clear();
   game = new cGame(f);
 }
@@ -326,12 +328,28 @@ void cTable::Bot()
   }
 }
 
+void cTable::Adjust_Time_Bank(usINT chair)
+{
+  if (!time_bank[chair]) return;
+  if (game->State() != STATE_TIME_BANK) return;
+
+  time_bank[chair] = game->TimeLeft(chair);
+}
+
 cPlayer *cTable::Player(unsigned int chair)
 {
   if (player_desc[chair] != nullptr)
     return player_desc[chair]->player;
   else
     return nullptr;
+}
+
+void cTable::Reset_Time_Bank()
+{
+  time_bank[0] = config.Time_Bank();
+  time_bank[1] = config.Time_Bank();
+  time_bank[2] = config.Time_Bank();
+  time_bank[3] = config.Time_Bank();
 }
 
 usINT cTable::PID(usINT chair)
@@ -412,6 +430,15 @@ char *cTable::Name(usINT chair)
   return player_name[chair];
 }
 
+unsigned int cTable::Time_Bank(usINT chair)
+{
+  return time_bank[chair];
+}
+
+void cTable::Purge_Time_Bank(usINT chair)
+{
+  time_bank[chair] = 0;
+}
 // *************************************************************************************************************************************
 
 bool cTabList::Add(cTable *elem)
@@ -515,7 +542,7 @@ void cTabList::Play()
   struct sList *Q = head;
   struct cGame *game;
   struct cTable *table;
-  int turn;
+  int turn, time_bank;
   int delay;
 
   while ( Q ) {
@@ -524,6 +551,7 @@ void cTabList::Play()
 
     if (game->Started() && !table->Paused()) {
       turn = game->Turn();
+      time_bank = table->Time_Bank(turn);
 
       switch (game->State()) {
 	 case STATE_GAME_STARTED: descriptor_list->Send_To_All("%s %d", DGI_GAME_STARTED, table->TableID());
@@ -537,8 +565,8 @@ void cTabList::Play()
 				  game->SetState(STATE_WAIT_PASS);
 	                          delay = config.Wait_Select();
 				}
-		                for (int player = 0; player < 4; player++)
-	                           table->Send(player, "%s %d %d %s", DGI_TABLE_YOUR_CARDS, game->PassTo(), delay, game->Str_Cards(player));
+				for (int player = 0; player < 4; player++)
+	                          table->Send(player, "%s %d %d %s", DGI_TABLE_YOUR_CARDS, game->PassTo(), delay, game->Str_Cards(player));
 				game->Wait(delay);
 		                break;
 	 case STATE_WAIT_PASS: if (game->WaitOver()) {
@@ -553,17 +581,30 @@ void cTabList::Play()
 				 game->SetState(STATE_WAIT_BOT);
 				 break;
 			       }
-			       if (game->WaitOver())
-				 game->ForcePlay(*table);
+			       if (game->WaitOver()) {
+				 if (time_bank) {
+				   game->Wait(time_bank);
+				   game->SetState(STATE_TIME_BANK);
+	                           table->SendAll("%s %d %d", DGI_TIME_BANK, turn, time_bank);
+			         } else
+				     game->ForcePlay(*table);
+				 break;
+			       }
                                break;
 	 case STATE_WAIT_BOT:  if (game->WaitOver())
 				 game->ForcePlay(*table);
+			       break;
+	 case STATE_TIME_BANK: if (game->WaitOver()) {
+				 game->ForcePlay(*table);
+				 table->Purge_Time_Bank(turn);
+			       }
 			       break;
 	 case STATE_END_TURN:  if (!game->WaitOver()) break;
 			       game->EndTurn(*table);
 			       break; 
 	 case STATE_END_ROUND: if (!game->WaitOver()) break;
 			       game->EndRound(*table);
+			       table->Reset_Time_Bank();
 			       break;
 	 case STATE_SHUFFLE:   table->SendAll(DGI_TABLE_SHUFFLE);
 			       game->SetState(STATE_WAIT_ROUND);

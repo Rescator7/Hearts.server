@@ -13,8 +13,9 @@ extern class cConfig config;
 #define OPT_WAIT_END_TURN  7
 #define OPT_WAIT_END_ROUND 8
 #define OPT_WAIT_MOON      9
-#define OPT_GAMEOVER_SCORE 10
-#define OPT_IDLENESS       11
+#define OPT_TIME_BANK      10
+#define OPT_GAMEOVER_SCORE 11
+#define OPT_IDLENESS       12
 
 class cConfig {
 
@@ -32,6 +33,7 @@ private:
   int wait_end_turn;
   int wait_end_round;
   int wait_moon;
+  int time_bank;
   int gameover_score;
   int idleness;
 
@@ -47,6 +49,7 @@ public:
   int Wait_End_Turn();
   int Wait_End_Round();
   int Wait_Moon();
+  int Time_Bank();
   int GameOver_Score();
   int Idleness();
   void Set(int opt, int value);

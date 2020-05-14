@@ -11,7 +11,7 @@ cConfig::cConfig()
 
  if (sql.query("select * from config")) {
    fields = sql.Num_Fields();
-   if (fields != 11) {
+   if (fields != 12) {
      Log.Write("SYSERR: Server configuration. Num_Fields: %d", fields);
      return;
    }
@@ -24,8 +24,9 @@ cConfig::cConfig()
    wait_end_turn = atoi(sql.get_row(6));
    wait_end_round = atoi(sql.get_row(7));
    wait_moon = atoi(sql.get_row(8));
-   gameover_score = atoi(sql.get_row(9));
-   idleness = atoi(sql.get_row(10));
+   time_bank = atoi(sql.get_row(9));
+   gameover_score = atoi(sql.get_row(10));
+   idleness = atoi(sql.get_row(11));
    Log.Write("Configuration parameters loaded");
  } else {
      Log.Write("SYSERR: Server configuration failed");
@@ -47,6 +48,7 @@ void cConfig::init()
  wait_end_turn = 200;
  wait_end_round = 200;
  wait_moon = 800;
+ time_bank = 6000;
  gameover_score = 100;
  idleness = 3600;
 }
@@ -99,6 +101,11 @@ void cConfig::Set(int opt, int value)
 	      Log.Write("SYSERR: config set failed on wait_moon");
 	    wait_moon = value;
 	    break;
+    case OPT_TIME_BANK:
+	    if (!sql.query("update config set time_bank = %d;", value))
+	      Log.Write("SYSERR: config set failed on time_bank");
+	    time_bank = value;
+	    break;
     case OPT_GAMEOVER_SCORE:
 	    if (!sql.query("update config set gameover_score = %d;", value))
 	      Log.Write("SYSERR: config set failed on gameover_score");
@@ -150,6 +157,11 @@ int cConfig::Wait_End_Round()
 int cConfig::Wait_Moon()
 {
   return wait_moon;
+}
+
+int cConfig::Time_Bank()
+{
+  return time_bank;
 }
 
 int cConfig::Wait_Bot()

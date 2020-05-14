@@ -15,6 +15,7 @@ private:
   unsigned int flags;
   unsigned int player_id[4];
   unsigned int num_players;
+  unsigned int time_bank[4];
   char player_name[4][20] = {0};
   bool muted;
   bool paused;
@@ -27,16 +28,20 @@ public:
   unsigned int TableID();
   unsigned int Flags();
   unsigned int Num_Players();
+  unsigned int Time_Bank(usINT chair);
   time_t Expire();
   void Sit(cDescriptor &desc, unsigned int chair);
   void Say(cDescriptor &desc, const char *message);
   void Send(usINT chair, const char *format, ... );
   void SendAll(const char *format, ... );
   void Sat(cDescriptor &desc);
+  void Reset_Time_Bank();
   void Mute();
   void Clear();
   void Pause(bool pause);
   void Bot();
+  void Adjust_Time_Bank(usINT chair);
+  void Purge_Time_Bank(usINT chair);
   bool Stand(cDescriptor &desc, bool leave);
   bool Full();
   bool Muted();

@@ -17,13 +17,18 @@ void cSet::Execute( cDescriptor &d, cParam &param )
 		   "wait_end_turn = %d cs\r\n"
 		   "wait_end_round = %d cs\r\n"
 		   "wait_moon = %d cs\r\n"
+		   "time_bank = %d cs\r\n"
 		   "gameover_score = %d\r\n" 
-		   "idleness = %d\r\n", DGI_COMMAND_SET, config.Port(), config.Nice(), config.Wait_Select(),
+		   "idleness = %d\r\n", DGI_COMMAND_SET, config.Port(), config.Nice(), 
+		                                         config.Wait_Select(),
 //		                                         config.Wait_Pass(), 
 						         config.Wait_Play(), 
 							 config.Wait_Bot(),
-						         config.Wait_End_Turn(), config.Wait_End_Round(),
-					                 config.Wait_Moon(), config.GameOver_Score(),
+						         config.Wait_End_Turn(), 
+							 config.Wait_End_Round(),
+					                 config.Wait_Moon(), 
+							 config.Time_Bank(),
+							 config.GameOver_Score(),
 						         config.Idleness());
     return;
   }
@@ -45,6 +50,7 @@ void cSet::Execute( cDescriptor &d, cParam &param )
     if (!strcmp(cmd, "wait_end_round")) opt = OPT_WAIT_END_ROUND; else
     if (!strcmp(cmd, "wait_end_turn")) opt = OPT_WAIT_END_TURN; else
     if (!strcmp(cmd, "wait_moon")) opt = OPT_WAIT_MOON; else
+    if (!strcmp(cmd, "time_bank")) opt = OPT_TIME_BANK; else
     if (!strcmp(cmd, "gameover_score")) opt = OPT_GAMEOVER_SCORE; else 
     if (!strcmp(cmd, "idleness")) opt = OPT_IDLENESS; else
     {
@@ -68,6 +74,13 @@ void cSet::Execute( cDescriptor &d, cParam &param )
 		d.Socket_Write("%s %d %d", DGE_WRONG_VALUE, -20, 19);
 		return;
               }
+	      break;
+      case OPT_TIME_BANK:
+	      if ((value < 0) || (value > 18000)) {
+		good_value = false;
+		d.Socket_Write("%s %d %d", DGE_WRONG_VALUE, 0, 18000);
+		return;
+	      }
 	      break;
       case OPT_WAIT_SELECT:
       case OPT_WAIT_PASS:

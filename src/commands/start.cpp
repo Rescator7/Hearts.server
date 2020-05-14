@@ -31,11 +31,6 @@ void cStart::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
-  if (table->Paused()) {
-    d.Socket_Write(DGI_TABLE_PAUSED);
-    return;
-  }
-
   if (!table->Owner(d)) {
     d.Socket_Write(DGE_TABLE_NOT_OWNER);
     return;
