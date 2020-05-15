@@ -571,11 +571,11 @@ void cGame::EndRound(cTable &table)
       }
     }
 
-  ResetRound();
-  ResetPlayed();
-
   if (++passto == 4)
     passto = 0;
+
+  ResetRound();
+  ResetPlayed();
 
   Generate_Cards();
   Sort();
