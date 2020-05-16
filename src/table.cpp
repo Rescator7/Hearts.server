@@ -559,14 +559,21 @@ void cTabList::Play()
 	 case STATE_SEND_CARDS: if (game->PassTo() == pNOPASS) {
 				  game->SetState(STATE_WAIT_PLAY);
 				  delay = config.Wait_Play();
-			          table->Send(turn, "%s %d", DGI_TABLE_YOUR_TURN, config.Wait_Play());
 				}
 				else {
 				  game->SetState(STATE_WAIT_SELECT);
 	                          delay = config.Wait_Select();
 				}
+
 				for (int player = 0; player < 4; player++)
 	                          table->Send(player, "%s %d %d %s", DGI_TABLE_YOUR_CARDS, game->PassTo(), delay, game->Str_Cards(player));
+
+				if (game->PassTo() == pNOPASS)
+			          table->Send(turn, "%s %d", DGI_TABLE_YOUR_TURN, config.Wait_Play()); // This must be sent after DGI_YOUR_CARDS,
+		                                                                                       // On pNOPASS DGI_YOUR_CARDS will disable
+												       // selecting cards in the GUI. DGI_TABLE_YOUR_TURN
+												       // will re-enable it.
+
 				game->Wait(delay);
 		                break;
 	 case STATE_WAIT_SELECT: if (game->WaitOver()) {
