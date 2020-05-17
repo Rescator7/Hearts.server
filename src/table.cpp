@@ -592,7 +592,7 @@ void cTabList::Play()
 				 break;
 			       }
 			       if (game->WaitOver()) {
-				 if (time_bank) {
+				 if (time_bank && (game->Num_Cards(turn) > 1)) {
 				   game->Wait(time_bank);
 				   game->SetState(STATE_TIME_BANK);
 	                           table->SendAll("%s %d %d %d", DGI_TIME_BANK, turn, time_bank, config.Time_Bank());

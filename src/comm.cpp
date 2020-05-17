@@ -70,7 +70,7 @@ socket_t init_socket(unsigned int port)
   }
 
   fcntl(s, F_SETFL, O_NONBLOCK);
-  listen(s, 5);
+  listen(s, SOMAXCONN);
 
   return s;
 }

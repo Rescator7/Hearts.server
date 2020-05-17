@@ -44,6 +44,7 @@ clean:
 	rm -f server.log
 	rm -f server.bak
 	rm -f core*
+	rm -f server.zip
 
 ref:
 %.o: %.cpp
