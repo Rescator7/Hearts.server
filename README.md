@@ -1,7 +1,7 @@
 # hearts.server
 
 ## 1) Install requirements
-<p>sudo apt-get install libmysqlclient-dev</p>
+<pre><code>sudo apt-get install libmysqlclient-dev</pre></code>
 
 ## 2) Edit the server configuration file
 <pre><code>vim .hserver
