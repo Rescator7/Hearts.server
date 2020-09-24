@@ -3,12 +3,14 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <filesystem>
 
 #include "define.h"
 #include "log.h"
 
 cLog::cLog(const char *fname)
 {
+  file_size = 0;
   byteswritten = 0;
   bLogging = true;
   filename = strdup(fname);
@@ -28,14 +30,19 @@ void cLog::Open()
   if (!(logfile=fopen(filename, "a"))) {
     printf("SYSERR: failed to turn on logging.\n");
     bLogging = false;
-  }
+  } else
+      file_size = std::filesystem::file_size(filename);
 }
 
-bool cLog::Check_Size()
+void cLog::Check_Size()
 {
-  if (byteswritten < MAX_LOG_SIZE) return bLogging;
-
+  file_size += byteswritten;
+  
   byteswritten = 0;
+  if (file_size < MAX_LOG_SIZE) 
+    return;
+  else 
+    file_size = 0;
   
   fclose(logfile);
 
@@ -47,15 +54,11 @@ bool cLog::Check_Size()
     printf("SYSERR: failed to turn on logging.\n");
     bLogging = false;
   }
-
-  return bLogging;
 }
 
 void cLog::Write (const char *format, ...)
 {
   if (!bLogging) return;
-
-  if (!Check_Size()) return;
 
   int bytes;
 
@@ -83,6 +86,10 @@ void cLog::Write (const char *format, ...)
 
   fprintf(logfile, "\n");
   byteswritten++;
+
+  // It's possible to write more than MAX_LOG_SIZE bytes, but
+  // on the next Write(), the backup creation will occur.
+  Check_Size();
 
   fflush(logfile);
 }

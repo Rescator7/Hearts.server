@@ -11,13 +11,14 @@ public:
 private:
   bool bLogging;
   long int byteswritten;
+  long int file_size;
   char *filename;
   FILE *logfile;
 
 public:
   void Write (const char * format, ...);
   void Open();
-  bool Check_Size();
+  void Check_Size();
 };
 
 // external variable
