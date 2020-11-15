@@ -1,4 +1,6 @@
-# hearts.server
+# Hearts.server
+<p>The server code for my application Hearts.
+It is running at rescator7.com 5000</p>
 
 ## 1) Install requirements
 <pre><code>sudo apt-get install libmysqlclient-dev</pre></code>
