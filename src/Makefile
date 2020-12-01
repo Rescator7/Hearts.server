@@ -6,7 +6,7 @@ CPP = g++
 #MYFLAGS = -D_REENTRANT -DQT_NO_DEBUG -DQT_THREAD_SUPPORT -DQT_SHARED
 
 #Library
-LIBRARY = -lmysqlclient -lcrypto
+LIBRARY = -lmysqlclient -lcrypto -lstdc++fs
 #CPP_LIBRARY = -L/usr/lib/qt3/lib -lqt-mt
 
 #Includes

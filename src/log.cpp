@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
-#include <filesystem>
+#include <experimental/filesystem>
 
 #include "define.h"
 #include "log.h"
@@ -31,7 +31,7 @@ void cLog::Open()
     printf("SYSERR: failed to turn on logging.\n");
     bLogging = false;
   } else
-      file_size = std::filesystem::file_size(filename);
+      file_size = std::experimental::filesystem::file_size(filename);
 }
 
 void cLog::Check_Size()
