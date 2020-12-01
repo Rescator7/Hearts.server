@@ -20,6 +20,7 @@ private:
   bool muted;
   bool paused;
   time_t expire;
+  time_t time_paused;
 
 public:
   class cGame *game;
@@ -30,6 +31,7 @@ public:
   unsigned int Num_Players();
   unsigned int Time_Bank(usINT chair);
   time_t Expire();
+  time_t Time_Paused();
   void Sit(cDescriptor &desc, unsigned int chair);
   void Say(cDescriptor &desc, const char *message);
   void Send(usINT chair, const char *format, ... );
@@ -73,6 +75,7 @@ private:
 public:
   bool Add(cTable *elem);
   bool Empty(); 
+  bool Purge(usINT tableID);
   bool Remove(cTable *elem);
   void Remove_Expired();
   void Play();

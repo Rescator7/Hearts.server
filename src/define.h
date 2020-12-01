@@ -4,7 +4,7 @@
 //#define DEBUG
 //#define USE_ANSI
 
-#define VERSION "1.0.11"
+#define VERSION "1.0.12"
 
 #define socket_t int
 #define usINT unsigned short int
@@ -26,6 +26,7 @@
 #define SOCKET_MAX_READ_BYTES 256
 #define SIT_DELAY            2          // in seconds
 #define TABLE_EXPIRE         10 
+#define PAUSE_EXPIRE         300
 #define MAX_REGISTER_PER_IP  25
 #define MAX_CONNECTION_PER_IP 50
 

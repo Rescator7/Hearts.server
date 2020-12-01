@@ -19,6 +19,7 @@ cTable::cTable(cDescriptor &desc, int f)
   table_id = ++num_table;
   flags = f;
   expire = time(nullptr);
+  time_paused = 0;
 
   Reset_Time_Bank();
 
@@ -367,6 +368,11 @@ time_t cTable::Expire()
  return expire;
 }
 
+time_t cTable::Time_Paused()
+{
+ return time_paused;
+}
+
 unsigned int cTable::Num_Players()
 {
  return num_players;
@@ -407,6 +413,7 @@ bool cTable::Muted()
 
 void cTable::Pause(bool pause)
 {
+  time_paused = time(nullptr);
   paused = pause;
 }
 
@@ -524,6 +531,24 @@ bool cTabList::Empty()
  return true;
 }
 
+bool cTabList::Purge(usINT tableID)
+{
+  struct sList *Q = head;
+  struct cTable *table;
+
+  while ( Q ) {
+    table = Q->elem;
+   	
+    if (table->TableID() == tableID) {
+      table->SendAll("%s The table has been purged by the administrators.", DGI_TEXT);
+      Remove(table);
+      return true;
+    }
+    Q = Q->next;
+  }
+  return false;
+}
+
 void cTabList::Remove_Expired() 
 {
   struct sList *Q = head, *N;
@@ -531,8 +556,12 @@ void cTabList::Remove_Expired()
   while ( Q ) {
     N = Q->next;
 
+    if (Q->elem->Paused() && (difftime(time(nullptr), Q->elem->Time_Paused()) >= PAUSE_EXPIRE))
+      Q->elem->Pause(false);      
+
     if (!Q->elem->Num_Players() && (difftime(time(nullptr), Q->elem->Expire()) >= TABLE_EXPIRE))
       Remove(Q->elem);
+
     Q = N;
   }
 }

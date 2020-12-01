@@ -32,6 +32,7 @@ cCommandsStack::cCommandsStack(void)
   Add( "password", DGH_HELP_PASSWORD, LVL_GUEST,     new cPassword() );
   Add( "pause",    DGH_HELP_PAUSE,    LVL_SUPERUSER, new cPause() );
   Add( "play",     DGH_HELP_PLAY,     LVL_GUEST,     new cPlay() );
+  Add( "purge",    DGH_HELP_PURGE,    LVL_SUPERUSER, new cPurge() );
   Add( "say",      DGH_HELP_SAY,      LVL_GUEST,     new cSay() );
   Add( "set",      DGH_HELP_SET,      LVL_ADMIN,     new cSet() );
   Add( "shutdown", DGH_HELP_SHUTDOWN, LVL_ADMIN,     new cShutdown() );

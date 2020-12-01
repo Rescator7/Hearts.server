@@ -121,5 +121,6 @@
 #define DGH_HELP_SHUTDOWN           "H54"
 #define DGH_HELP_SHUTOFF            "H55"
 #define DGH_HELP_TEST               "H56"
+#define DGH_HELP_PURGE              "H57"
 
 #endif // _DATAGRAMS_

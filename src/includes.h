@@ -12,6 +12,7 @@
 #include "commands/password.h"
 #include "commands/pause.h"
 #include "commands/play.h"
+#include "commands/purge.h"
 #include "commands/say.h"
 #include "commands/set.h"
 #include "commands/shutdown.h"
