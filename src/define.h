@@ -4,7 +4,7 @@
 //#define DEBUG
 //#define USE_ANSI
 
-#define VERSION "1.0.12"
+#define VERSION "1.0.13"
 
 #define socket_t int
 #define usINT unsigned short int
