@@ -26,6 +26,8 @@ void cNew::Execute( cDescriptor & d, cParam & param )
    table_list->Add(table);   
 
    d.Socket_Write("%s %d", DGI_PLAYER_CHOOSE_CHAIR, table->TableID());
+
+   table->Sit(d, PLAYER_SOUTH);
  } else
      d.Socket_Write(DGE_PLAYER_AT_TABLE);
 }
