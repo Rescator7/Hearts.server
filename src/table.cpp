@@ -84,6 +84,7 @@ usINT cTable::PlayerLink(cDescriptor &desc)
  if (player->ID() == player_id[PLAYER_NORTH]) {
    player->table = this;
    player_desc[PLAYER_NORTH] = &desc;
+   snprintf(player_name[PLAYER_NORTH], 20, "%s", player->Handle());
    num_players++;
    descriptor_list->Send_To_All("%s %d n %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player->Handle());
    return PLAYER_NORTH;
@@ -92,6 +93,7 @@ usINT cTable::PlayerLink(cDescriptor &desc)
  if (player->ID() == player_id[PLAYER_SOUTH]) {
    player->table = this;
    player_desc[PLAYER_SOUTH] = &desc;
+   snprintf(player_name[PLAYER_SOUTH], 20, "%s", player->Handle());
    num_players++;
    descriptor_list->Send_To_All("%s %d s %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player->Handle());
    return PLAYER_SOUTH;
@@ -100,6 +102,7 @@ usINT cTable::PlayerLink(cDescriptor &desc)
  if (player->ID() == player_id[PLAYER_WEST]) {
    player->table = this;
    player_desc[PLAYER_WEST] = &desc;
+   snprintf(player_name[PLAYER_WEST], 20, "%s", player->Handle());
    num_players++;
    descriptor_list->Send_To_All("%s %d w %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player->Handle());
    return PLAYER_WEST;
@@ -108,6 +111,7 @@ usINT cTable::PlayerLink(cDescriptor &desc)
  if (player->ID() == player_id[PLAYER_EAST]) {
    player->table = this;
    player_desc[PLAYER_EAST] = &desc;
+   snprintf(player_name[PLAYER_EAST], 20, "%s", player->Handle());
    num_players++;
    descriptor_list->Send_To_All("%s %d e %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player->Handle());
    return PLAYER_EAST;
@@ -126,21 +130,29 @@ void cTable::Clear()
   player_desc[PLAYER_SOUTH] = nullptr;
   player_desc[PLAYER_WEST] = nullptr;
   player_desc[PLAYER_EAST] = nullptr;
+  bot[PLAYER_NORTH] = false;
+  bot[PLAYER_SOUTH] = false;
+  bot[PLAYER_WEST] = false;
+  bot[PLAYER_EAST] = false;
   num_players = 0;
 }
 
-bool cTable::Stand(cDescriptor &desc, bool leave)
+bool cTable::Stand(cDescriptor &desc, int flag)
 {
  struct cPlayer *player = desc.player;
 
  if (player_desc[PLAYER_NORTH] == &desc) {
    player_desc[PLAYER_NORTH] = nullptr;
-   snprintf(player_name[PLAYER_NORTH], 20, "(%s)", player->Handle());
-   if (leave) {
-     if (game->Started())
-       player->update(CMD_FOURTH);
 
+   if (flag != FLAG_TABLE_DISCONNECT)
      player_id[PLAYER_NORTH] = NOPLAYER;
+
+   if (flag == FLAG_TABLE_SWITCH)
+     *player_name[PLAYER_NORTH] = '\x0';
+   else {
+     snprintf(player_name[PLAYER_NORTH], 20, "(%s)", player->Handle());
+     if ((flag == FLAG_TABLE_LEAVE) && game->Started())
+       player->update(CMD_FOURTH);
    }
    descriptor_list->Send_To_All("%s %d n", DGI_PLAYER_STAND, table_id);
    num_players--;
@@ -150,13 +162,19 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
 #endif
    return true;
  }
+
  if (player_desc[PLAYER_SOUTH] == &desc) {
    player_desc[PLAYER_SOUTH] = nullptr;
-   snprintf(player_name[PLAYER_SOUTH], 20, "(%s)", player->Handle());
-   if (leave) {
-     if (game->Started())
-       player->update(CMD_FOURTH);
+
+   if (flag != FLAG_TABLE_DISCONNECT)
      player_id[PLAYER_SOUTH] = NOPLAYER;
+
+   if (flag == FLAG_TABLE_SWITCH)
+     *player_name[PLAYER_SOUTH] = '\x0';
+   else {
+     snprintf(player_name[PLAYER_SOUTH], 20, "(%s)", player->Handle());
+     if ((flag == FLAG_TABLE_LEAVE) && game->Started())
+       player->update(CMD_FOURTH);
    }
    descriptor_list->Send_To_All("%s %d s", DGI_PLAYER_STAND, table_id);
    num_players--;
@@ -166,13 +184,19 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
    expire = time(nullptr);
    return true;
  }
+
  if (player_desc[PLAYER_WEST] == &desc) {
    player_desc[PLAYER_WEST] = nullptr;
-   snprintf(player_name[PLAYER_WEST], 20, "(%s)", player->Handle());
-   if (leave) {
-     if (game->Started())
-       player->update(CMD_FOURTH);
+
+   if (flag != FLAG_TABLE_DISCONNECT)
      player_id[PLAYER_WEST] = NOPLAYER;
+
+   if (flag == FLAG_TABLE_SWITCH)
+     *player_name[PLAYER_WEST] = '\x0';
+   else {
+     snprintf(player_name[PLAYER_WEST], 20, "(%s)", player->Handle());
+     if ((flag == FLAG_TABLE_LEAVE) && game->Started())
+       player->update(CMD_FOURTH);
    }
    descriptor_list->Send_To_All("%s %d w", DGI_PLAYER_STAND, table_id);
    num_players--;
@@ -182,13 +206,19 @@ bool cTable::Stand(cDescriptor &desc, bool leave)
    expire = time(nullptr);
    return true;
  }
+
  if (player_desc[PLAYER_EAST] == &desc) {
    player_desc[PLAYER_EAST] = nullptr;
-   snprintf(player_name[PLAYER_EAST], 20, "(%s)", player->Handle());
-   if (leave) {
-     if (game->Started())
-       player->update(CMD_FOURTH);
+
+   if (flag != FLAG_TABLE_DISCONNECT)
      player_id[PLAYER_EAST] = NOPLAYER;
+
+   if (flag == FLAG_TABLE_SWITCH)
+     *player_name[PLAYER_EAST] = '\x0';
+   else {
+     snprintf(player_name[PLAYER_EAST], 20, "(%s)", player->Handle());
+     if ((flag == FLAG_TABLE_LEAVE) && game->Started())
+       player->update(CMD_FOURTH);
    }
    descriptor_list->Send_To_All("%s %d e", DGI_PLAYER_STAND, table_id);
    num_players--;
@@ -214,7 +244,7 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
   }
 
  // is the chair free?
-  if (player_desc[chair] == nullptr) {
+  if ((player_desc[chair] == nullptr) && (!bot[chair])) {
     // do we have a delay before sitting again?
     if (desc.Get_Sit_Time() && (difftime(time(nullptr), desc.Get_Sit_Time()) <= SIT_DELAY)) {
       desc.Socket_Write(DGE_PLAYER_SIT_DELAY);
@@ -223,7 +253,7 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
         desc.Set_Sit_Time(time(nullptr));
 
    // Calling Stand() for possible switching chair.
-   Stand(desc, true);
+   Stand(desc, FLAG_TABLE_SWITCH);
 
    char c;
    switch (chair) {
@@ -236,6 +266,7 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
    }
 
    player_desc[chair] = &desc;
+   snprintf(player_name[chair], 20, "%s", desc.player->Handle());
    player_id[chair] = desc.player->ID();
    Send(chair, "%s %d", DGI_TABLE_WHO_AM_I, chair);
    descriptor_list->Send_To_All("%s %d %c %d %s", DGI_PLAYER_SIT_HERE, table_id, c, muted, desc.player->Handle());
@@ -245,7 +276,8 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
    if (num_players == 4)
      game->Start();
  } else
-     if (player_desc[chair] == &desc) Stand(desc, true);
+     if (player_desc[chair] == &desc) 
+       Stand(desc, FLAG_TABLE_SWITCH);
 }
 
 void cTable::Sat(cDescriptor &desc)
@@ -309,7 +341,25 @@ bool cTable::PlayerSat(cDescriptor &desc)
   return false;
 }
 
-void cTable::Bot()
+void cTable::Default()
+{
+  strcpy(player_name[PLAYER_NORTH], "*North");
+  descriptor_list->Send_To_All("%s %d n %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player_name[PLAYER_NORTH]);
+
+  strcpy(player_name[PLAYER_WEST], "*West");
+  descriptor_list->Send_To_All("%s %d w %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player_name[PLAYER_WEST]);
+
+  strcpy(player_name[PLAYER_EAST], "*East");
+  descriptor_list->Send_To_All("%s %d e %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player_name[PLAYER_EAST]);
+
+  num_players = 3;
+  
+  bot[PLAYER_NORTH] = true;
+  bot[PLAYER_WEST] = true;
+  bot[PLAYER_EAST] = true;
+}
+
+void cTable::Fill_Bot()
 {
   if (player_desc[PLAYER_NORTH] == nullptr) {
     strcpy(player_name[PLAYER_NORTH], "*North");
@@ -469,6 +519,18 @@ bool cTabList::Add(cTable *elem)
   descriptor_list->Send_To_All("%s %d %d", DGI_TABLE_CREATED, elem->TableID(), elem->Flags());
 
   return ( true );
+}
+
+void cTabList::Create_Default_Table()
+{
+  struct cTable *table;
+  struct cDescriptor *bot = nullptr;
+
+  table = new cTable(*bot, 0); // no table owner, game flags = 0
+
+  Add(table);
+
+  table->Default();
 }
 
 cTabList::cTabList()
@@ -716,25 +778,55 @@ void cTabList::Show(cDescriptor &desc)
   const char *nobody = "<nobody>";
   struct sList *Q = head;
   struct cTable *table;
-  struct cDescriptor *North, *South, *West, *East;
   const char *name_N, *name_S, *name_W, *name_E;
-  bool started;
 
   while ( Q ) {
     table = Q->elem;
-    started = table->game->Started();
 
-    North = table->desc(PLAYER_NORTH);
-    South = table->desc(PLAYER_SOUTH);
-    West = table->desc(PLAYER_WEST);
-    East = table->desc(PLAYER_EAST);
-
-    name_N = (North && North->player) ? North->player->Handle() : started ? table->Name(PLAYER_NORTH) : nobody;
-    name_S = (South && South->player) ? South->player->Handle() : started ? table->Name(PLAYER_SOUTH) : nobody;
-    name_W = (West  && West->player)  ? West->player->Handle()  : started ? table->Name(PLAYER_WEST) : nobody;
-    name_E = (East  && East->player)  ? East->player->Handle()  : started ? table->Name(PLAYER_EAST) : nobody;
+    name_N = *table->Name(PLAYER_NORTH) ? table->Name(PLAYER_NORTH) : nobody;
+    name_S = *table->Name(PLAYER_SOUTH) ? table->Name(PLAYER_SOUTH) : nobody;
+    name_W = *table->Name(PLAYER_WEST) ? table->Name(PLAYER_WEST) : nobody;
+    name_E = *table->Name(PLAYER_EAST) ? table->Name(PLAYER_EAST) : nobody;
 
     desc.Socket_Write("%s [%5d] %-8s %-8s %-8s %-8s", DGI_TEXT, table->TableID(), name_N, name_S, name_W, name_E);
     Q = Q->next;
   }
+}
+
+void cTabList::Clean()
+{
+  struct sList *Q = head, *N;
+  struct cTable *table;
+  struct cGame *game;
+
+  while ( Q ) {
+    table = Q->elem;
+    game = table->game;
+
+    N = Q->next;
+
+    if (!game->Started())
+      Remove(table);      
+
+    Q = N;
+  }
+}
+
+bool cTabList::Available()
+{
+  struct sList *Q = head;
+  struct cTable *table;
+  struct cGame *game;
+
+  while ( Q ) {
+    table = Q->elem;
+    game = table->game;
+
+    if (!game->Started())
+      return true;
+
+    Q = Q->next;
+  }
+
+  return false;
 }

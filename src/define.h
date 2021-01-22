@@ -4,7 +4,7 @@
 //#define DEBUG
 //#define USE_ANSI
 
-#define VERSION "1.0.13"
+#define VERSION "1.0.14"
 
 #define socket_t int
 #define usINT unsigned short int
@@ -50,6 +50,10 @@
 #define CON_CONFIRM_PASSWORD 9
 #define CON_MOTD             10
 #define CON_PROMPT           11
+
+#define FLAG_TABLE_DISCONNECT 0
+#define FLAG_TABLE_SWITCH     1
+#define FLAG_TABLE_LEAVE      2
 
 #define LVL_GUEST            0
 #define LVL_REGISTERED       1

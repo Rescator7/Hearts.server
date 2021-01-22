@@ -19,7 +19,7 @@ void cSit::Execute( cDescriptor &d, cParam &param )
   }
 
   if (!*param.arguments) {
-    table->Stand(d, true);
+    table->Stand(d, FLAG_TABLE_SWITCH);
     return;
   }
 

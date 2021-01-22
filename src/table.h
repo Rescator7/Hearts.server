@@ -19,6 +19,7 @@ private:
   char player_name[4][20] = {0};
   bool muted;
   bool paused;
+  bool bot[4];
   time_t expire;
   time_t time_paused;
 
@@ -41,10 +42,11 @@ public:
   void Mute();
   void Clear();
   void Pause(bool pause);
-  void Bot();
+  void Fill_Bot();
   void Adjust_Time_Bank(usINT chair);
   void Purge_Time_Bank(usINT chair);
-  bool Stand(cDescriptor &desc, bool leave);
+  void Default();
+  bool Stand(cDescriptor &desc, int flag);
   bool Full();
   bool Muted();
   bool Paused();
@@ -77,10 +79,13 @@ public:
   bool Empty(); 
   bool Purge(usINT tableID);
   bool Remove(cTable *elem);
+  bool Available();
   void Remove_Expired();
   void Play();
   void List(cDescriptor &desc);
   void Show(cDescriptor &desc);
+  void Clean();
+  void Create_Default_Table();
   cTable *Search(unsigned int id);
 };
 #endif // _TABLE_

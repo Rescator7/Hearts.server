@@ -120,7 +120,7 @@ cDescriptor::~cDescriptor()
     // class player don't have a descriptor, and table->Stand() use a descriptor
     // maybe, modify it to use playerid instead...
     if (player->table)
-      player->table->Stand(*this, false);
+      player->table->Stand(*this, FLAG_TABLE_DISCONNECT);
 
     delete player;
   }
@@ -579,13 +579,13 @@ bool cDescList::Check_Conns()
 
   while (Q) {
     N = Q->next;
-    if (server_shutoff && Q->elem->player && !Q->elem->player->table) {
-      Q->elem->Socket_Write(DGE_SERVER_SHUTOFF);
+    if (!Q->elem->Is_Connected())
       Remove(Q->elem);
-    }
     else
-      if (!Q->elem->Is_Connected())
+      if (server_shutoff && Q->elem->player && !Q->elem->player->table) {
+        Q->elem->Socket_Write(DGE_SERVER_SHUTOFF);
         Remove(Q->elem);
+      }
     Q = N;
   }
 

@@ -36,6 +36,6 @@ void cStart::Execute( cDescriptor &d, cParam &param )
     return;
   }
 
-  table->Bot();
+  table->Fill_Bot();
   game->Start();
 }

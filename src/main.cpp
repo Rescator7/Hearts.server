@@ -75,6 +75,10 @@ void game_loop( socket_t mother_desc )
     descriptor_list->Check_Conns();
 
     table_list->Remove_Expired();
+
+    if (!table_list->Available())
+      table_list->Create_Default_Table();
+
     table_list->Play();
   }
 }
