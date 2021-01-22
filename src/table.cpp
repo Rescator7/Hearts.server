@@ -287,21 +287,25 @@ void cTable::Sat(cDescriptor &desc)
   if ((player = Player(PLAYER_NORTH)) != nullptr) 
     desc.Socket_Write("%s %d n %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player->Handle());
   else
+  if (*player_name[PLAYER_NORTH])
     desc.Socket_Write("%s %d n %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player_name[PLAYER_NORTH]);
     
   if ((player = Player(PLAYER_SOUTH)) != nullptr) 
     desc.Socket_Write("%s %d s %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player->Handle());
   else
+  if (*player_name[PLAYER_SOUTH])
     desc.Socket_Write("%s %d s %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player_name[PLAYER_SOUTH]);
 	    
   if ((player = Player(PLAYER_WEST)) != nullptr) 
     desc.Socket_Write("%s %d w %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player->Handle());
   else
+  if (*player_name[PLAYER_WEST])
     desc.Socket_Write("%s %d w %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player_name[PLAYER_WEST]);
 
   if ((player = Player(PLAYER_EAST)) != nullptr) 
     desc.Socket_Write("%s %d e %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player->Handle());
   else
+  if (*player_name[PLAYER_EAST])
     desc.Socket_Write("%s %d e %d %s", DGI_PLAYER_SIT_HERE, TableID(), muted, player_name[PLAYER_EAST]);
 }
 
