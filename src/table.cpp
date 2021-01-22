@@ -151,8 +151,10 @@ bool cTable::Stand(cDescriptor &desc, int flag)
      *player_name[PLAYER_NORTH] = '\x0';
    else {
      snprintf(player_name[PLAYER_NORTH], 20, "(%s)", player->Handle());
-     if ((flag == FLAG_TABLE_LEAVE) && game->Started())
+     if ((flag == FLAG_TABLE_LEAVE) && game->Started()) {
+       bot[PLAYER_NORTH] = true;
        player->update(CMD_FOURTH);
+     }
    }
    descriptor_list->Send_To_All("%s %d n", DGI_PLAYER_STAND, table_id);
    num_players--;
@@ -173,8 +175,10 @@ bool cTable::Stand(cDescriptor &desc, int flag)
      *player_name[PLAYER_SOUTH] = '\x0';
    else {
      snprintf(player_name[PLAYER_SOUTH], 20, "(%s)", player->Handle());
-     if ((flag == FLAG_TABLE_LEAVE) && game->Started())
+     if ((flag == FLAG_TABLE_LEAVE) && game->Started()) {
+       bot[PLAYER_SOUTH] = true;
        player->update(CMD_FOURTH);
+     }
    }
    descriptor_list->Send_To_All("%s %d s", DGI_PLAYER_STAND, table_id);
    num_players--;
@@ -195,8 +199,10 @@ bool cTable::Stand(cDescriptor &desc, int flag)
      *player_name[PLAYER_WEST] = '\x0';
    else {
      snprintf(player_name[PLAYER_WEST], 20, "(%s)", player->Handle());
-     if ((flag == FLAG_TABLE_LEAVE) && game->Started())
+     if ((flag == FLAG_TABLE_LEAVE) && game->Started()) {
+       bot[PLAYER_WEST] = true;
        player->update(CMD_FOURTH);
+     }
    }
    descriptor_list->Send_To_All("%s %d w", DGI_PLAYER_STAND, table_id);
    num_players--;
@@ -217,8 +223,10 @@ bool cTable::Stand(cDescriptor &desc, int flag)
      *player_name[PLAYER_EAST] = '\x0';
    else {
      snprintf(player_name[PLAYER_EAST], 20, "(%s)", player->Handle());
-     if ((flag == FLAG_TABLE_LEAVE) && game->Started())
+     if ((flag == FLAG_TABLE_LEAVE) && game->Started()) {
+       bot[PLAYER_EAST] = true;
        player->update(CMD_FOURTH);
+     }
    }
    descriptor_list->Send_To_All("%s %d e", DGI_PLAYER_STAND, table_id);
    num_players--;
@@ -366,18 +374,22 @@ void cTable::Default()
 void cTable::Fill_Bot()
 {
   if (player_desc[PLAYER_NORTH] == nullptr) {
+    bot[PLAYER_NORTH] = true;
     strcpy(player_name[PLAYER_NORTH], "*North");
     descriptor_list->Send_To_All("%s %d n %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player_name[PLAYER_NORTH]);
   }
   if (player_desc[PLAYER_SOUTH] == nullptr) {
+    bot[PLAYER_SOUTH] = true;
     strcpy(player_name[PLAYER_SOUTH], "*South");
     descriptor_list->Send_To_All("%s %d s %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player_name[PLAYER_SOUTH]);
   }
   if (player_desc[PLAYER_WEST] == nullptr) {
+    bot[PLAYER_WEST] = true;
     strcpy(player_name[PLAYER_WEST], "*West");
     descriptor_list->Send_To_All("%s %d w %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player_name[PLAYER_WEST]);
   }
   if (player_desc[PLAYER_EAST] == nullptr) {
+    bot[PLAYER_EAST] = true;
     strcpy(player_name[PLAYER_EAST], "*East");
     descriptor_list->Send_To_All("%s %d e %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player_name[PLAYER_EAST]);
   }
@@ -448,6 +460,16 @@ bool cTable::Full()
 
   return true;
 */
+}
+
+bool cTable::isEmpty()
+{
+  if (!bot[PLAYER_SOUTH]) return false;
+  if (!bot[PLAYER_WEST]) return false;
+  if (!bot[PLAYER_NORTH]) return false;
+  if (!bot[PLAYER_EAST]) return false;
+
+  return true;
 }
 
 cDescriptor *cTable::desc(usINT chair)
@@ -618,15 +640,21 @@ bool cTabList::Purge(usINT tableID)
 void cTabList::Remove_Expired() 
 {
   struct sList *Q = head, *N;
+  struct cTable *table;
 
   while ( Q ) {
     N = Q->next;
 
-    if (Q->elem->Paused() && (difftime(time(nullptr), Q->elem->Time_Paused()) >= PAUSE_EXPIRE))
-      Q->elem->Pause(false);      
+    table = Q->elem;
 
-    if (!Q->elem->Num_Players() && (difftime(time(nullptr), Q->elem->Expire()) >= TABLE_EXPIRE))
-      Remove(Q->elem);
+    if (table->Paused() && (difftime(time(nullptr), table->Time_Paused()) >= PAUSE_EXPIRE))
+      table->Pause(false);      
+
+    if (!table->Num_Players() && (difftime(time(nullptr), table->Expire()) >= TABLE_EXPIRE))
+      Remove(table);
+    else
+    if (table->isEmpty())
+      Remove(table);
 
     Q = N;
   }

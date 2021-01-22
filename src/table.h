@@ -52,6 +52,7 @@ public:
   bool Paused();
   bool PlayerSat(cDescriptor &desc);
   bool Owner(cDescriptor &d);
+  bool isEmpty();
   usINT Chair(cDescriptor &desc);
   usINT PlayerLink(cDescriptor &desc);
   usINT TimeLeft(usINT chair);
