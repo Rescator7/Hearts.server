@@ -33,7 +33,6 @@ public:
   unsigned int Time_Bank(usINT chair);
   time_t Expire();
   time_t Time_Paused();
-  void Sit(cDescriptor &desc, unsigned int chair);
   void AutoSit(cDescriptor &desc);
   void Say(cDescriptor &desc, const char *message);
   void Send(usINT chair, const char *format, ... );
@@ -47,6 +46,7 @@ public:
   void Adjust_Time_Bank(usINT chair);
   void Purge_Time_Bank(usINT chair);
   void Default();
+  bool Sit(cDescriptor &desc, unsigned int chair);
   bool Stand(cDescriptor &desc, int flag);
   bool Full();
   bool Muted();

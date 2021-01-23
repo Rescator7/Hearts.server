@@ -244,11 +244,11 @@ bool cTable::Stand(cDescriptor &desc, int flag)
  return false;
 }
 
-void cTable::Sit(cDescriptor &desc, unsigned int chair)
+bool cTable::Sit(cDescriptor &desc, unsigned int chair)
 {
   if (game->Started()) {
     desc.Socket_Write(DGE_TABLE_STARTED);
-    return;
+    return false;
   }
 
  // is the chair free?
@@ -256,7 +256,7 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
     // do we have a delay before sitting again?
     if (desc.Get_Sit_Time() && (difftime(time(nullptr), desc.Get_Sit_Time()) <= SIT_DELAY)) {
       desc.Socket_Write(DGE_PLAYER_SIT_DELAY);
-      return;
+      return false;
     } else
         desc.Set_Sit_Time(time(nullptr));
 
@@ -270,7 +270,7 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
      case PLAYER_WEST:  c = 'w'; break;
      case PLAYER_EAST:  c = 'e'; break; 
      default: Log.Write("SYSERR: sit_player invalid chair.");
-	      return;
+	      return false;
    }
 
    player_desc[chair] = &desc;
@@ -283,9 +283,13 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
 
    if (num_players == 4)
      game->Start();
+   
+   return true;
  } else
      if (player_desc[chair] == &desc) 
        Stand(desc, FLAG_TABLE_SWITCH);
+ 
+ return false;
 }
 
 void cTable::AutoSit(cDescriptor &desc)
