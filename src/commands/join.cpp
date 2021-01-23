@@ -61,4 +61,6 @@ void cJoin::Execute( cDescriptor &d, cParam &param )
 
   if (chair != PLAYER_NOWHERE)
     table->Sit(d, chair);
+  else
+    table->AutoSit(d);
 }

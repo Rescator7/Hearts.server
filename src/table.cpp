@@ -144,18 +144,18 @@ bool cTable::Stand(cDescriptor &desc, int flag)
  if (player_desc[PLAYER_NORTH] == &desc) {
    player_desc[PLAYER_NORTH] = nullptr;
 
-   if (flag != FLAG_TABLE_DISCONNECT)
-     player_id[PLAYER_NORTH] = NOPLAYER;
-
-   if (flag == FLAG_TABLE_SWITCH)
-     *player_name[PLAYER_NORTH] = '\x0';
-   else {
-     snprintf(player_name[PLAYER_NORTH], 20, "(%s)", player->Handle());
-     if ((flag == FLAG_TABLE_LEAVE) && game->Started()) {
+   if (game->Started()) {
+     snprintf(player_name[PLAYER_NORTH], 20, "(%s)", player->Handle()); // keep the name
+     if (flag == FLAG_TABLE_LEAVE) {
        bot[PLAYER_NORTH] = true;
        player->update(CMD_FOURTH);
+       player_id[PLAYER_NORTH] = NOPLAYER; // remove the possible connection reconnect
      }
-   }
+   } else {
+      *player_name[PLAYER_NORTH] = '\x0';
+      player_id[PLAYER_NORTH] = NOPLAYER;  // switching chair or leaving -> remove reconnection link
+     }
+
    descriptor_list->Send_To_All("%s %d n", DGI_PLAYER_STAND, table_id);
    num_players--;
    expire = time(nullptr);
@@ -168,18 +168,18 @@ bool cTable::Stand(cDescriptor &desc, int flag)
  if (player_desc[PLAYER_SOUTH] == &desc) {
    player_desc[PLAYER_SOUTH] = nullptr;
 
-   if (flag != FLAG_TABLE_DISCONNECT)
-     player_id[PLAYER_SOUTH] = NOPLAYER;
-
-   if (flag == FLAG_TABLE_SWITCH)
-     *player_name[PLAYER_SOUTH] = '\x0';
-   else {
-     snprintf(player_name[PLAYER_SOUTH], 20, "(%s)", player->Handle());
-     if ((flag == FLAG_TABLE_LEAVE) && game->Started()) {
+   if (game->Started()) {
+     snprintf(player_name[PLAYER_SOUTH], 20, "(%s)", player->Handle()); // keep the name
+     if (flag == FLAG_TABLE_LEAVE) {
        bot[PLAYER_SOUTH] = true;
        player->update(CMD_FOURTH);
+       player_id[PLAYER_SOUTH] = NOPLAYER; // remove the possible connection reconnect
      }
-   }
+   } else {
+      *player_name[PLAYER_SOUTH] = '\x0';
+      player_id[PLAYER_SOUTH] = NOPLAYER;  // switching chair or leaving -> remove reconnection link
+     }
+
    descriptor_list->Send_To_All("%s %d s", DGI_PLAYER_STAND, table_id);
    num_players--;
 #ifdef DEBUG
@@ -192,18 +192,18 @@ bool cTable::Stand(cDescriptor &desc, int flag)
  if (player_desc[PLAYER_WEST] == &desc) {
    player_desc[PLAYER_WEST] = nullptr;
 
-   if (flag != FLAG_TABLE_DISCONNECT)
-     player_id[PLAYER_WEST] = NOPLAYER;
-
-   if (flag == FLAG_TABLE_SWITCH)
-     *player_name[PLAYER_WEST] = '\x0';
-   else {
-     snprintf(player_name[PLAYER_WEST], 20, "(%s)", player->Handle());
-     if ((flag == FLAG_TABLE_LEAVE) && game->Started()) {
+   if (game->Started()) {
+     snprintf(player_name[PLAYER_WEST], 20, "(%s)", player->Handle()); // keep the name
+     if (flag == FLAG_TABLE_LEAVE) {
        bot[PLAYER_WEST] = true;
        player->update(CMD_FOURTH);
+       player_id[PLAYER_WEST] = NOPLAYER; // remove the possible connection reconnect
      }
-   }
+   } else {
+      *player_name[PLAYER_WEST] = '\x0';
+      player_id[PLAYER_WEST] = NOPLAYER;  // switching chair or leaving -> remove reconnection link
+     }
+
    descriptor_list->Send_To_All("%s %d w", DGI_PLAYER_STAND, table_id);
    num_players--;
 #ifdef DEBUG
@@ -216,18 +216,18 @@ bool cTable::Stand(cDescriptor &desc, int flag)
  if (player_desc[PLAYER_EAST] == &desc) {
    player_desc[PLAYER_EAST] = nullptr;
 
-   if (flag != FLAG_TABLE_DISCONNECT)
-     player_id[PLAYER_EAST] = NOPLAYER;
-
-   if (flag == FLAG_TABLE_SWITCH)
-     *player_name[PLAYER_EAST] = '\x0';
-   else {
-     snprintf(player_name[PLAYER_EAST], 20, "(%s)", player->Handle());
-     if ((flag == FLAG_TABLE_LEAVE) && game->Started()) {
+   if (game->Started()) {
+     snprintf(player_name[PLAYER_EAST], 20, "(%s)", player->Handle()); // keep the name
+     if (flag == FLAG_TABLE_LEAVE) {
        bot[PLAYER_EAST] = true;
        player->update(CMD_FOURTH);
+       player_id[PLAYER_EAST] = NOPLAYER; // remove the possible connection reconnect
      }
-   }
+   } else {
+      *player_name[PLAYER_EAST] = '\x0';
+      player_id[PLAYER_EAST] = NOPLAYER;  // switching chair or leaving -> remove reconnection link
+     }
+
    descriptor_list->Send_To_All("%s %d e", DGI_PLAYER_STAND, table_id);
    num_players--;
 #ifdef DEBUG
@@ -286,6 +286,26 @@ void cTable::Sit(cDescriptor &desc, unsigned int chair)
  } else
      if (player_desc[chair] == &desc) 
        Stand(desc, FLAG_TABLE_SWITCH);
+}
+
+void cTable::AutoSit(cDescriptor &desc)
+{
+  if ((player_desc[PLAYER_SOUTH] == nullptr) && !bot[PLAYER_SOUTH]) {
+    Sit(desc, PLAYER_SOUTH);
+    return;
+  }
+  if ((player_desc[PLAYER_WEST] == nullptr) && !bot[PLAYER_WEST]) {
+    Sit(desc, PLAYER_WEST);
+    return;
+  }
+  if ((player_desc[PLAYER_NORTH] == nullptr) && !bot[PLAYER_NORTH]) {
+    Sit(desc, PLAYER_NORTH);
+    return;
+  }
+  if ((player_desc[PLAYER_EAST] == nullptr) && !bot[PLAYER_EAST]) {
+    Sit(desc, PLAYER_EAST);
+    return;
+  }
 }
 
 void cTable::Sat(cDescriptor &desc)

@@ -34,6 +34,7 @@ public:
   time_t Expire();
   time_t Time_Paused();
   void Sit(cDescriptor &desc, unsigned int chair);
+  void AutoSit(cDescriptor &desc);
   void Say(cDescriptor &desc, const char *message);
   void Send(usINT chair, const char *format, ... );
   void SendAll(const char *format, ... );
