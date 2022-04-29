@@ -2,6 +2,8 @@
 #include <cstring>
 #include "../define.h"
 #include "../datagrams.h"
+#include "../table.h"
+#include "../game.h"
 #include "../player.h"
 #include "sit.h"
 
@@ -15,6 +17,13 @@ void cSit::Execute( cDescriptor &d, cParam &param )
 
   if (table == nullptr) {
     d.Socket_Write(DGE_PLAYER_NO_TABLE);
+    return;
+  }
+
+  struct cGame *game = table->game;
+
+  if (game->Started()) {
+    d.Socket_Write(DGE_TABLE_STARTED);
     return;
   }
 

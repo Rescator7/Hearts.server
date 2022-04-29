@@ -417,6 +417,8 @@ void cTable::Fill_Bot()
     strcpy(player_name[PLAYER_EAST], "*East");
     descriptor_list->Send_To_All("%s %d e %d %s", DGI_PLAYER_SIT_HERE, table_id, muted, player_name[PLAYER_EAST]);
   }
+
+  num_players = 4;
 }
 
 void cTable::Adjust_Time_Bank(usINT chair)

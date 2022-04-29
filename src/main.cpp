@@ -179,7 +179,7 @@ int main()
  Log.Write("Entering the game_loop");
  game_loop( mother_desc );
 
- Log.Write("Heart server is turning down");
+ Log.Write("Heart server is shuting down");
 
  delete descriptor_list;
  delete table_list;
