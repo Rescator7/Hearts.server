@@ -52,6 +52,7 @@
 #define DGE_TABLE_CORRUPTED         "E48"
 #define DGE_WRONG_VALUE             "E49"
 #define DGE_TABLE_NOT_OWNER         "E50"
+#define DGE_WRONG_KEY               "E51"
 
 // Users datagrams Informations
 #define DGI_PLAYER_UID              "I01"
@@ -92,6 +93,7 @@
 #define DGI_TEXT                    "I36"
 #define DGI_RECONNECTED             "I37"
 #define DGI_TIME_BANK               "I38"
+#define DGI_PLAYER_UUID             "I39"
 
 // Users Datagrams help commands informations
 #define DGH_HELP_DATE               "H01"

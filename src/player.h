@@ -21,6 +21,7 @@
 #define CMD_SECOND     4
 #define CMD_THIRD      5
 #define CMD_FOURTH     6
+#define CMD_UUID       7
 
 class cPlayer {
 public:
@@ -33,10 +34,11 @@ private:
   unsigned int player_id;
   unsigned int level;
   time_t login_time;
-  char *handle;
-  char *realname;
-  char *email;
-  char *password;
+  char handle[MAX_HANDLE_LENGTH+1];
+  char realname[MAX_REALNAME_LENGTH+1];
+  char email[MAX_EMAIL_LENGTH+1];
+  char password[SHA_PASSWORD_SIZE+1];
+  char uuid[UUID_LENGTH+1];
   char *ip;
   long int first;
   long int second;
@@ -47,8 +49,9 @@ public:
   void setPassword( const char *p );
   void NewPassword( const char *p );
   void update(usINT cmd);
-  void Set_Handle(char *h);
-  void Set_Password(char *p);
+  void Set_Handle(const char *h);
+  void Set_Password(const char *p);
+  void Set_UUID(const char *u);
   void Set_Level(usINT l);
   void Set_Ip(char *_ip);
   void ULink_Table(unsigned int id);
@@ -62,10 +65,11 @@ public:
   char *Handle();
   char *Password();
   char *Ip();
-  long int First();
-  long int Second();
-  long int Third();
-  long int Fourth();
+  char *UUID() { return uuid; };
+  long int First() { return first; };
+  long int Second() { return second; };
+  long int Third() { return third; };
+  long int Fourth() { return fourth; };
 };
 
 #endif // _PLAYER_

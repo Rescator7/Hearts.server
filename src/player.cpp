@@ -12,12 +12,13 @@ cPlayer::cPlayer()
 {
   player_id = 0;
   level = 0;
-  handle = nullptr;
-  realname = nullptr;
-  email = nullptr;
-  password = nullptr;
+  handle[0] = '\x0';
+  realname[0] = '\x0';
+  email[0] = '\x0';
+  password[0] = '\x0';
   ip = nullptr;
   table = nullptr;
+  uuid[0] = '\x0';
   first = 0;
   second = 0;
   third = 0;
@@ -27,8 +28,10 @@ cPlayer::cPlayer()
 
 cPlayer::~cPlayer()
 {
-  if (ip)
+  if (ip) {
     free(ip);
+    ip = nullptr;
+  }
 }
 
 bool cPlayer::doesPasswordMatch( const char *p )
@@ -57,14 +60,11 @@ void cPlayer::setPassword( const char *p )
   for (int i=0; i<20; i++)
     sprintf(pwd + i * 2, "%02x", obuf[i]); 
 
-  password = strdup(pwd);
+  strncpy(password, pwd, SHA_PASSWORD_SIZE);
 }
 
 void cPlayer::NewPassword(const char *p)
 {
-  if (password)
-    free(password);
-
   setPassword(p);
 
   sql.query("update account set password = \"%s\" where playerid = %d;", password, player_id);
@@ -72,7 +72,7 @@ void cPlayer::NewPassword(const char *p)
 
 bool cPlayer::isHandle( const char *h ) 
 {
-  if ((h == nullptr) || (handle == nullptr)) return false;
+  if ((h == nullptr) || (!*handle)) return false;
 
   return (!strcasecmp(handle, h));
 }
@@ -93,22 +93,26 @@ bool cPlayer::save()
   printf ("%s %s %s %s %s\r\n", handle, password, ip, realname, email);
 #endif
 
-  return ( sql.query("insert into account values (0, '%s', '%s', '%s', '%s', '%s', now(), now(), 0, 1, 0, 0, 0, 0 )", handle, password, ip, realname, email ));
+  return ( sql.query("insert into account values (0, '%s', '%s', '%s', '%s', '%s', '%s', now(), now(), 0, 1, 0, 0, 0, 0 )", uuid, handle, password, ip, realname, email ));
 }
 
 bool cPlayer::load()
 {
-  if (sql.query("select playerid, ip, userlevel, first, second, third, fourth from account where handle = '%s'", handle)) {
+  if (sql.query("select playerid, uuid, ip, userlevel, first, second, third, fourth from account where handle = '%s'", handle)) {
     player_id = atoi(sql.get_row(0));
 
-    if (sql.get_row(1)) // can't strdup empty string
-      ip = strdup(sql.get_row(1));
+    // strlen must be used. sql doesn't return nullptr it can return empty string.
+    if (strlen(sql.get_row(1)) == UUID_LENGTH) 
+      strncpy(uuid, sql.get_row(1), UUID_LENGTH);
 
-    level = atoi(sql.get_row(2));
-    first = atoi(sql.get_row(3));
-    second = atoi(sql.get_row(4));
-    third = atoi(sql.get_row(5));
-    fourth = atoi(sql.get_row(6));
+    if (strlen(sql.get_row(2)))
+      ip = strdup(sql.get_row(2));
+
+    level = atoi(sql.get_row(3));
+    first = atoi(sql.get_row(4));
+    second = atoi(sql.get_row(5));
+    third = atoi(sql.get_row(6));
+    fourth = atoi(sql.get_row(7));
 
 #ifdef DEBUG
     if (ip)
@@ -144,6 +148,8 @@ void cPlayer::update(usINT cmd)
     case CMD_FOURTH:    sql.query("update account set fourth = fourth + 1 where playerid = %d;", player_id);
 			fourth++;
 			break;
+    case CMD_UUID:      sql.query("update account set uuid = '%s' where playerid = %d;", uuid, player_id);
+			break;
   }
 }
 
@@ -172,14 +178,14 @@ char *cPlayer::Ip()
   return ip;
 }
 
-void cPlayer::Set_Handle(char *h)
+void cPlayer::Set_Handle(const char *h)
 {
-  handle = h;
+  strncpy(handle, h, MAX_HANDLE_LENGTH);
 }
 
-void cPlayer::Set_Password(char *p)
+void cPlayer::Set_Password(const char *p)
 {
-  password = p;
+  strncpy(password, p, SHA_PASSWORD_SIZE);
 }
 
 void cPlayer::Set_Level(usINT l)
@@ -192,28 +198,13 @@ void cPlayer::Set_Ip(char *_ip)
   ip = strdup(_ip);
 }
 
+void cPlayer::Set_UUID(const char *u)
+{
+  strncpy(uuid, u, UUID_LENGTH);
+}
+
 void cPlayer::ULink_Table(unsigned int id)
 {
   if (table && (table->TableID() == id))
     table = nullptr;
-}
-
-long int cPlayer::First()
-{
-  return first;
-}
-
-long int cPlayer::Second()
-{
-  return second;
-}
-
-long int cPlayer::Third()
-{
-  return third;
-}
-
-long int cPlayer::Fourth()
-{
-  return fourth;
 }

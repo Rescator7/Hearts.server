@@ -4,7 +4,7 @@
 //#define DEBUG
 //#define USE_ANSI
 
-#define VERSION "1.0.18"
+#define VERSION "1.1"
 
 #define socket_t int
 #define usINT unsigned short int
@@ -37,33 +37,42 @@
 #define MAX_PASSWORD_LENGTH  16
 #define MIN_PASSWORD_LENGTH  4
 #define MAX_PROMPT_LENGTH    50
+#define UUID_LENGTH          48
+#define SHA_PASSWORD_SIZE    40
 
-#define CON_CONNECTED        0
-#define CON_CLOSE            1
-#define CON_DISCONNECT       2
-#define CON_LOGIN            3
-#define CON_PASSWORD         4
-#define CON_NEW_HANDLE       5
-#define CON_NEW_REALNAME     6
-#define CON_NEW_EMAIL        7
-#define CON_NEW_PASSWORD     8
-#define CON_CONFIRM_PASSWORD 9
-#define CON_MOTD             10
-#define CON_PROMPT           11
+enum CONNECTION_STATE {
+     CON_CONNECTED        = 0,
+     CON_CLOSE            = 1,
+     CON_DISCONNECT       = 2,
+     CON_LOGIN            = 3,
+     CON_UUID             = 4,
+     CON_PASSWORD         = 5,
+     CON_NEW_HANDLE       = 6,
+     CON_NEW_REALNAME     = 7,     
+     CON_NEW_EMAIL        = 8,
+     CON_NEW_PASSWORD     = 9,
+     CON_CONFIRM_PASSWORD = 10,
+     CON_MOTD             = 11,
+     CON_PROMPT           = 12
+};
 
 #define FLAG_TABLE_DISCONNECT 0
 #define FLAG_TABLE_SWITCH     1
 #define FLAG_TABLE_LEAVE      2
 
-#define LVL_GUEST            0
-#define LVL_REGISTERED       1
-#define LVL_ADMIN            10
-#define LVL_SUPERUSER        20
+enum LEVEL {
+     LVL_GUEST      = 0,
+     LVL_REGISTERED = 1,
+     LVL_ADMIN      = 10,
+     LVL_SUPERUSER  = 20
+};
 
-#define pLEFT                0
-#define pRIGHT               1
-#define pACCROSS             2
-#define pNOPASS              3
+enum DIRECTION {
+     pLEFT    = 0,
+     pRIGHT   = 1,
+     pACCROSS = 2,
+     pNOPASS  = 3
+};
 
 #define NOPLAYER             0
 #define DECK_SIZE            52

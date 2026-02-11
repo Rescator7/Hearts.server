@@ -7,6 +7,13 @@
 #include <cctype>  // isalnum()
 #include <cerrno>
 
+#include <random>
+#include <string>
+#include <sstream>
+#include <iomanip>
+#include <iostream>
+#include <cstdint> 
+
 #include "define.h"
 #include "config.h"
 #include "player.h"
@@ -22,6 +29,66 @@ const char *login = "login:";
 const char *password = "password:";
 const char *handle = "handle:";
 const char *confirm = "confirm:";
+const char *key = "key:";
+
+// Fonction CRC-32 simple (polynome standard 0xEDB88320)
+uint32_t crc32(const std::string& data)
+{
+    uint32_t crc = 0xFFFFFFFF;
+    const uint32_t poly = 0xEDB88320;
+
+    for (char c : data) {
+        crc ^= static_cast<uint32_t>(c);
+        for (int j = 0; j < 8; ++j) {
+            crc = (crc >> 1) ^ (poly & -(crc & 1));
+        }
+    }
+    return ~crc;
+}
+
+// Genere cle 40 hex + 8 hex CRC-32 (48 caracteres total)
+std::string generate_unique_key()
+{
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_int_distribution<uint8_t> dis(0, 15);
+
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0');
+
+    std::string key;
+    for (int i = 0; i < 40; ++i) {
+        uint8_t digit = dis(gen);
+        ss << std::setw(1) << static_cast<int>(digit);
+        key += ss.str().back();
+        ss.str("");  // reset stream pour eviter buffer
+    }
+
+    // Calcul CRC-32 sur les 40 hex
+    uint32_t crc = crc32(key);
+
+    // Ajoute 8 hex du CRC (32 bits)
+    ss << std::hex << std::setw(8) << std::setfill('0') << crc;
+    key += ss.str();
+
+    return key;
+}
+
+bool verify_key(const std::string& received_key)
+{
+    if (received_key.length() != 48) return false;
+
+    std::string payload = received_key.substr(0, 40);
+    std::string crc_str = received_key.substr(40, 8);
+
+    // Convertit CRC recu en uint32_t
+    uint32_t received_crc = std::stoul(crc_str, nullptr, 16);
+
+    // Recalcule CRC sur les 40 premiers hex
+    uint32_t computed_crc = crc32(payload);
+
+    return received_crc == computed_crc;
+}
 
 socket_t s;
 
@@ -200,7 +267,7 @@ ssize_t cDescriptor::Socket_Read()
     last_sockread = time(nullptr);
     skip_crlf( buffer );
 
-    if ((state != CON_PASSWORD) && (state != CON_NEW_PASSWORD) && (state != CON_CONFIRM_PASSWORD))
+    if ((state != CON_PASSWORD) && (state != CON_NEW_PASSWORD) && (state != CON_CONFIRM_PASSWORD) && (state != CON_UUID))
       Log.Write("RCVD %d (%s): %s", desc, ip, buffer);
 
     if (!strcmp(buffer,"ÿôÿý")) {
@@ -272,19 +339,41 @@ bool cDescriptor::process_input()
              Socket_Write(handle);
              break;
            }
+
+           if (!strcmp(lcBuf, "uuid")) {
+	     state = CON_UUID;
+	     Socket_Write(key);
+             break;
+	   }
+
            if (IsHandleValid(lcBuf, login)) {
              if (!sql.query("select handle, password from account where handle='%s'", lcBuf)) {
                Socket_Write(DGE_HANDLE_NOT_REGISTERED);
 	       return false;
              } else {
                  Socket_Write(password);
-                 player->Set_Handle(strdup(lcBuf));
-                 player->Set_Password(strdup(sql.get_row(1)));
+                 player->Set_Handle((const char *)&lcBuf);
+                 player->Set_Password(sql.get_row(1));
                  state = CON_PASSWORD;
                }
            } else 
 	       return false;
            break;
+    case CON_UUID :
+	   if (verify_key(lcBuf)) {
+	     Log.Write("PROCINP: CON_UUID -> Valid");
+	     if (sql.query("select handle, password from account where uuid='%s'", lcBuf)) {
+	       player->Set_Handle(sql.get_row(0));
+	       player->Set_Password(sql.get_row(1));
+	       player->load();
+	       descriptor_list->DisconnectPlayerID(player->ID());
+               state = CON_MOTD;
+	       goto motd;
+	     }
+	   }
+	   Log.Write("PROCINP: CON_UUID -> Invalid or not found");
+           Socket_Write(DGE_WRONG_KEY);
+           return false;
     case CON_PASSWORD :
            if (!*lcBuf) 
              return false;
@@ -299,6 +388,11 @@ bool cDescriptor::process_input()
              Socket_Write(DGE_PLAYER_LOAD_FAILED);
              return false;
            }
+	   if (!*player->UUID()) {
+	     player->Set_UUID(generate_unique_key().c_str());
+	     player->update(CMD_UUID);
+	   }
+	   Socket_Write("%s %s", DGI_PLAYER_UUID, player->UUID());
            state = CON_MOTD;
            goto motd;
     case CON_NEW_HANDLE :
@@ -317,9 +411,20 @@ bool cDescriptor::process_input()
 
            if (!IsHandleValid(lcBuf, handle))
 	     return false;
-           player->Set_Handle(strdup(buffer));
-	   Socket_Write(password);
-	   state = CON_NEW_PASSWORD;
+           player->Set_Handle((const char*)&buffer);
+	   player->Set_UUID(generate_unique_key().c_str());
+	   Socket_Write("%s %s", DGI_PLAYER_UUID, player->UUID());
+	   if (!player->save()) {
+             Socket_Write("Account creation failed");
+             return false;
+           } else {
+               descriptor_list->DisconnectPlayerID(player->SQL_ID()); // need to do this this way, to avoid to disconnect the new connection
+               player->load();                                        // load() we need the playerid now
+             }
+           state = CON_MOTD;
+	   goto motd;
+//	   Socket_Write(password);
+//	   state = CON_NEW_PASSWORD;
 //          state = CON_NEW_REALNAME;
            break;
 /*

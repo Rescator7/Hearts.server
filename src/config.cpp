@@ -15,7 +15,8 @@ cConfig::cConfig()
      Log.Write("SYSERR: Server configuration. Num_Fields: %d", fields);
      return;
    }
-   port = atoi(sql.get_row(0));
+//   port = atoi(sql.get_row(0));
+   port = 5050;
    nice = atoi(sql.get_row(1));
    wait_select = atoi(sql.get_row(2));
    wait_pass = atoi(sql.get_row(3));
