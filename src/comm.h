@@ -21,6 +21,7 @@ private:
   struct hostent *from;
   unsigned int bytes_read;
   int    state;
+  bool join = false;
   char   ip [16];       // numeric ip
 
 public:

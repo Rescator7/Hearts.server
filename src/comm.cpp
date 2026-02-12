@@ -327,7 +327,12 @@ bool cDescriptor::process_input()
   switch ( state ) {
     case CON_LOGIN : 
            Log.Write("PROCINP: CON_LOGIN");
-           if (!strcmp(lcBuf, "new")) {
+	   // "join" will be used by Hearts >= 2.0 to create an account without password. Only UUID
+	   // "new" will be backward compatible Hearts 1.9.6 to create a new account handle + password
+	   if (!strcmp(lcBuf, "join"))
+	     join = true;
+
+           if (!strcmp(lcBuf, "new") || join) {
              if (sql.query("select count(*) from account where ip = '%s'", player->Ip())) {
  	       if (atoi(sql.get_row(0)) >= MAX_REGISTER_PER_IP) {
  	         Socket_Write(DGE_SOCKET_MAX_REGISTER_IP);
@@ -398,6 +403,7 @@ bool cDescriptor::process_input()
     case CON_NEW_HANDLE :
            Log.Write("PROCINP: CON_NEW_HANDLE");
            if (!strcmp(lcBuf, "new") ||
+	       !strcmp(lcBuf, "join") ||
                !strncmp(lcBuf, "guest", 5)) {
              Socket_Write(DGE_HANDLE_RESERVED);
            return false;
@@ -411,20 +417,25 @@ bool cDescriptor::process_input()
 
            if (!IsHandleValid(lcBuf, handle))
 	     return false;
+
            player->Set_Handle((const char*)&buffer);
 	   player->Set_UUID(generate_unique_key().c_str());
 	   Socket_Write("%s %s", DGI_PLAYER_UUID, player->UUID());
-	   if (!player->save()) {
-             Socket_Write("Account creation failed");
-             return false;
-           } else {
-               descriptor_list->DisconnectPlayerID(player->SQL_ID()); // need to do this this way, to avoid to disconnect the new connection
-               player->load();                                        // load() we need the playerid now
-             }
-           state = CON_MOTD;
-	   goto motd;
-//	   Socket_Write(password);
-//	   state = CON_NEW_PASSWORD;
+
+	   if (join) {
+	     if (!player->save()) {
+               Socket_Write("Account creation failed");
+               return false;
+             } else {
+                 descriptor_list->DisconnectPlayerID(player->SQL_ID()); // need to do this this way, to avoid to disconnect the new connection
+                 player->load();                                        // load() we need the playerid now
+               }
+             state = CON_MOTD;
+	     goto motd;
+	   }
+
+	   Socket_Write(password);
+	   state = CON_NEW_PASSWORD;
 //          state = CON_NEW_REALNAME;
            break;
 /*

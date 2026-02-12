@@ -90,7 +90,7 @@ unsigned int cPlayer::SQL_ID()
 bool cPlayer::save()
 {
 #ifdef DEBUG
-  printf ("%s %s %s %s %s\r\n", handle, password, ip, realname, email);
+  printf ("'%s' '%s' '%s' '%s' '%s' '%s'\r\n", uuid, handle, password, ip, realname, email);
 #endif
 
   return ( sql.query("insert into account values (0, '%s', '%s', '%s', '%s', '%s', '%s', now(), now(), 0, 1, 0, 0, 0, 0 )", uuid, handle, password, ip, realname, email ));
