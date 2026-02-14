@@ -369,8 +369,11 @@ bool cDescriptor::process_input()
 	     if (sql.query("select handle, password from account where uuid='%s'", lcBuf)) {
 	       player->Set_Handle(sql.get_row(0));
 	       player->Set_Password(sql.get_row(1));
-	       player->load();
-	       descriptor_list->DisconnectPlayerID(player->ID());
+	       descriptor_list->DisconnectPlayerID(player->SQL_ID());
+	       if (!player->load()) {
+                 Socket_Write(DGE_PLAYER_LOAD_FAILED);
+                 return false;
+	       }
                state = CON_MOTD;
 	       goto motd;
 	     }
