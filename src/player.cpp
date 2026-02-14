@@ -12,13 +12,7 @@ cPlayer::cPlayer()
 {
   player_id = 0;
   level = 0;
-  handle[0] = '\x0';
-  realname[0] = '\x0';
-  email[0] = '\x0';
-  password[0] = '\x0';
-  ip = nullptr;
   table = nullptr;
-  uuid[0] = '\x0';
   first = 0;
   second = 0;
   third = 0;
@@ -28,10 +22,6 @@ cPlayer::cPlayer()
 
 cPlayer::~cPlayer()
 {
-  if (ip) {
-    free(ip);
-    ip = nullptr;
-  }
 }
 
 bool cPlayer::doesPasswordMatch( const char *p )
@@ -106,7 +96,7 @@ bool cPlayer::load()
       strncpy(uuid, sql.get_row(1), UUID_LENGTH);
 
     if (strlen(sql.get_row(2)))
-      ip = strdup(sql.get_row(2));
+      strncpy(ip, sql.get_row(2), IP_SIZE);
 
     level = atoi(sql.get_row(3));
     first = atoi(sql.get_row(4));
@@ -115,7 +105,7 @@ bool cPlayer::load()
     fourth = atoi(sql.get_row(7));
 
 #ifdef DEBUG
-    if (ip)
+    if (*ip)
       printf("Connected from: %s\r\n", ip);
   }
   printf("player id: %d, userlevel: %d\r\n", player_id, level);
@@ -193,9 +183,9 @@ void cPlayer::Set_Level(usINT l)
   level = l;
 }
 
-void cPlayer::Set_Ip(char *_ip)
+void cPlayer::Set_Ip(const char *_ip)
 {
-  ip = strdup(_ip);
+  strncpy(ip, _ip, IP_SIZE);
 }
 
 void cPlayer::Set_UUID(const char *u)

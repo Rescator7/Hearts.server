@@ -34,12 +34,12 @@ private:
   unsigned int player_id;
   unsigned int level;
   time_t login_time;
-  char handle[MAX_HANDLE_LENGTH+1];
-  char realname[MAX_REALNAME_LENGTH+1];
-  char email[MAX_EMAIL_LENGTH+1];
-  char password[SHA_PASSWORD_SIZE+1];
-  char uuid[UUID_LENGTH+1];
-  char *ip;
+  char handle[MAX_HANDLE_LENGTH+1] = {0};
+  char realname[MAX_REALNAME_LENGTH+1] = {0};
+  char email[MAX_EMAIL_LENGTH+1] = {0};
+  char password[SHA_PASSWORD_SIZE+1] = {0};
+  char uuid[UUID_LENGTH+1] = {0};
+  char ip[IP_SIZE+1] = {0};
   long int first;
   long int second;
   long int third;
@@ -53,7 +53,7 @@ public:
   void Set_Password(const char *p);
   void Set_UUID(const char *u);
   void Set_Level(usINT l);
-  void Set_Ip(char *_ip);
+  void Set_Ip(const char *_ip);
   void ULink_Table(unsigned int id);
   bool doesPasswordMatch( const char *p );
   bool isHandle( const char *h );

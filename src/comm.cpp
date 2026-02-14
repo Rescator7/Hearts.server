@@ -157,8 +157,7 @@ cDescriptor::cDescriptor(socket_t mother_desc)
   player = new cPlayer;
   last_sockread = time(nullptr);
   fcntl(desc, F_SETFL, O_NONBLOCK);
-  memset(ip, '\x0', sizeof(ip));
-  strncpy(ip, inet_ntoa(peer.sin_addr), 15);
+  strncpy(ip, inet_ntoa(peer.sin_addr), IP_SIZE);
   player->Set_Ip(ip);
   from = gethostbyaddr((char *) &peer.sin_addr, sizeof(peer.sin_addr), AF_INET);
 

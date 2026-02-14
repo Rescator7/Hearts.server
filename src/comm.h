@@ -12,7 +12,7 @@ public:
 private:
   socket_t desc;
   socklen_t len;
-  char buffer [SOCKET_BUFSIZE];
+  char buffer[SOCKET_BUFSIZE] = {0};
   fd_set input_set, output_set, exc_set, null_set;
   time_t last_sockread;
   time_t sit_time;
@@ -22,7 +22,7 @@ private:
   unsigned int bytes_read;
   int    state;
   bool join = false;
-  char   ip [16];       // numeric ip
+  char   ip[IP_SIZE+1] = {0};       // numeric ip
 
 public:
   class cPlayer *player;

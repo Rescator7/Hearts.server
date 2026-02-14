@@ -4,7 +4,7 @@
 //#define DEBUG
 //#define USE_ANSI
 
-#define VERSION "1.1.1"
+#define VERSION "1.1.2"
 
 #define socket_t int
 #define usINT unsigned short int
@@ -39,6 +39,7 @@
 #define MAX_PROMPT_LENGTH    50
 #define UUID_LENGTH          48
 #define SHA_PASSWORD_SIZE    40
+#define IP_SIZE              15
 
 enum CONNECTION_STATE {
      CON_CONNECTED        = 0,
