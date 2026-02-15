@@ -61,7 +61,6 @@ public:
   bool load();
   unsigned int SQL_ID();
   unsigned int ID();
-  unsigned int Level();
   char *Handle();
   char *Password();
   char *Ip();
@@ -70,6 +69,7 @@ public:
   long int Second() { return second; };
   long int Third() { return third; };
   long int Fourth() { return fourth; };
+  unsigned Level() { return level; };
 };
 
 #endif // _PLAYER_

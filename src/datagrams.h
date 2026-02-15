@@ -53,6 +53,7 @@
 #define DGE_WRONG_VALUE             "E49"
 #define DGE_TABLE_NOT_OWNER         "E50"
 #define DGE_WRONG_KEY               "E51"
+#define DGE_PLAYER_NOT_FOUND        "E52"
 
 // Users datagrams Informations
 #define DGI_PLAYER_UID              "I01"
@@ -94,6 +95,7 @@
 #define DGI_RECONNECTED             "I37"
 #define DGI_TIME_BANK               "I38"
 #define DGI_PLAYER_UUID             "I39"
+#define DGI_PLAYER_BANNED           "I40"
 
 // Users Datagrams help commands informations
 #define DGH_HELP_DATE               "H01"
@@ -124,5 +126,6 @@
 #define DGH_HELP_SHUTOFF            "H55"
 #define DGH_HELP_TEST               "H56"
 #define DGH_HELP_PURGE              "H57"
+#define DGH_HELP_BAN                "H58"
 
 #endif // _DATAGRAMS_

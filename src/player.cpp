@@ -143,11 +143,6 @@ void cPlayer::update(usINT cmd)
   }
 }
 
-unsigned int cPlayer::Level()
-{
-  return level;
-}
-
 unsigned int cPlayer::ID()
 {
   return player_id;

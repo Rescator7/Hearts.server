@@ -20,6 +20,7 @@ cCommandsStack::cCommandsStack(void)
 
   Add( "admin",    DGH_HELP_ADMIN,    LVL_SUPERUSER, new cAdmin() );
   Add( "announce", DGH_HELP_ANNOUNCE, LVL_ADMIN,     new cAnnounce() );
+  Add( "ban",      DGH_HELP_BAN,      LVL_ADMIN,     new cBan() );
   Add( "date",     DGH_HELP_DATE,     LVL_GUEST,     new cDate() );
   Add( "exit",     DGH_HELP_EXIT,     LVL_GUEST,     new cExit() );
   Add( "help",     DGH_HELP_HELP,     LVL_GUEST,     new cHelp() );
